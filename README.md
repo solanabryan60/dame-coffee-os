@@ -1,47 +1,26 @@
-# Dame Coffee OS — v0.1 prototype
+# Dame Coffee OS — v0.2
 
-A working visual prototype for damecoffeeco.com with:
+This version adds the first editable live-location control center.
 
-- Homepage and live-location section
-- Menu structure
-- Full mission statement
-- Catering calculator with the provided drink/time pricing logic
-- Dame Rewards preview
-- Mobile-responsive layout
-- Existing Dame Coffee assets and photos
+## Change the live location
 
-## Run locally
+Open `app/site-config.ts` and edit:
 
-1. Install Node.js 20+
-2. Run `npm install`
-3. Run `npm run dev`
-4. Open `http://localhost:3000`
+- `title`: large location title
+- `address`: exact public address
+- `directions`: instructions for finding the cart
+- `hours`: displayed operating hours
+- `isOpen`: `true` or `false`
+- `mobileOrdering`: `true` or `false`
+- `waitMinutes`: current estimated wait
+- `mapsUrl`: Google Maps directions link
 
-## Deploy
+Commit the edit in GitHub. Vercel will redeploy the site automatically.
 
-Push this folder to a GitHub repository and import it into Vercel. Because this is a commercial website, use a Vercel plan that permits commercial use.
+## Mission statement
 
-## Still to connect
+The complete mission statement is also stored in `app/site-config.ts`.
 
-- Square Catalog, Orders, Payments, Customers, and Loyalty APIs
-- Google Places/Maps for catering addresses and distance pricing
-- Database and admin dashboard
-- Authentication
-- Live location/order toggle
-- Real event calendar and booking holds
-- Email/SMS confirmations
-- Final licensed Cubao Wide webfont or logo-as-image treatment
+## Next phase
 
-## Catering formula currently implemented
-
-- Base: 100 drinks / 2 hours = $600
-- Each additional 50 drinks = +$150
-- 4 hours = +$150
-- 6–12 hours = +$300 for every additional 2 hours beyond 4
-- Tax is displayed separately
-
-Examples:
-
-- 150 drinks / 2 hours = $750 + tax
-- 300 drinks / 4 hours = $1,350 + tax
-- 300 drinks / 6 hours = $1,650 + tax
+Replace this file-based control center with a private, phone-friendly admin dashboard and database.

@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useMemo, useState } from 'react';
+import { liveLocation, missionStatement } from './site-config';
 
 const menu = [
   { name: 'Mexicano', price: 7, category: 'Specialty Lattes', detail: 'Cinnamon and sugar cane syrup with milk, served with matcha or cold brew.' },
@@ -12,7 +13,7 @@ const menu = [
   { name: 'Matcha Latte', price: 6.5, category: 'Classics', detail: 'Matcha with simple syrup and milk.' }
 ];
 
-const mission = `A nurturing communal space with intentionality towards quality. That stays true to Mexican culture through visual beauty. While being at service to the community so that all customers feel valued and at home.`;
+
 
 function cateringTotal(drinks: number, hours: number) {
   const drinkCharge = 600 + Math.max(0, (drinks - 100) / 50) * 150;
@@ -25,7 +26,6 @@ function cateringTotal(drinks: number, hours: number) {
 export default function Home() {
   const [drinks, setDrinks] = useState(100);
   const [hours, setHours] = useState(2);
-  const [location, setLocation] = useState('Venice — Ocean Front Walk near The Waterfront');
   const total = useMemo(() => cateringTotal(drinks, hours), [drinks, hours]);
 
   return (
@@ -60,21 +60,35 @@ export default function Home() {
       <section id="where" className="live section">
         <div>
           <p className="eyebrow"><span className="dot" /> WE&apos;RE BREWING</p>
-          <h2>{location}</h2>
-          <p>Open 6:00 AM–4:00 PM · Mobile ordering available while the cart is active.</p>
+          <h2 className="location-title">{liveLocation.title}</h2>
+          <p className="location-address">{liveLocation.address}</p>
+          <p className="location-directions">{liveLocation.directions}</p>
+          <div className="status-row">
+            <span className={`status-chip ${liveLocation.isOpen ? 'open' : 'closed'}`}>
+              {liveLocation.isOpen ? 'Open now' : 'Closed'}
+            </span>
+            <span className="status-chip neutral">{liveLocation.hours}</span>
+            <span className={`status-chip ${liveLocation.mobileOrdering ? 'open' : 'closed'}`}>
+              Mobile ordering {liveLocation.mobileOrdering ? 'on' : 'off'}
+            </span>
+            <span className="status-chip neutral">About {liveLocation.waitMinutes} min wait</span>
+          </div>
           <div className="actions">
-            <button className="pill solid">Order at this location</button>
-            <button className="pill ghost">Open map</button>
+            <button className="pill solid" disabled={!liveLocation.isOpen || !liveLocation.mobileOrdering}>
+              {liveLocation.mobileOrdering && liveLocation.isOpen ? 'Order pickup' : 'Ordering unavailable'}
+            </button>
+            <a className="pill ghost" href={liveLocation.mapsUrl} target="_blank" rel="noreferrer">Get directions</a>
           </div>
         </div>
-        <div className="location-card">
-          <label>Preview location</label>
-          <select value={location} onChange={(e) => setLocation(e.target.value)}>
-            <option>Venice — Ocean Front Walk near The Waterfront</option>
-            <option>Walnut / Diamond Bar</option>
-            <option>Santa Ana</option>
-          </select>
-          <p className="small">The final dashboard will let you update this from your phone and turn ordering on or off.</p>
+        <div className="location-card location-summary">
+          <p className="eyebrow">TODAY AT A GLANCE</p>
+          <dl>
+            <div><dt>Status</dt><dd>{liveLocation.isOpen ? 'Open' : 'Closed'}</dd></div>
+            <div><dt>Pickup orders</dt><dd>{liveLocation.mobileOrdering ? 'Accepting' : 'Paused'}</dd></div>
+            <div><dt>Wait time</dt><dd>{liveLocation.waitMinutes} minutes</dd></div>
+            <div><dt>Hours</dt><dd>{liveLocation.hours}</dd></div>
+          </dl>
+          <p className="small">This section is controlled from <code>app/site-config.ts</code> until the private dashboard is connected.</p>
         </div>
       </section>
 
@@ -99,7 +113,7 @@ export default function Home() {
 
       <section className="mission section">
         <div className="mission-art"><Image src="/assets/bean.png" alt="Dame Coffee bean mascot" fill className="contain" /></div>
-        <div><p className="eyebrow">OUR FULL MISSION</p><h2>{mission}</h2><p>Made with culture, unity, and love.</p></div>
+        <div><p className="eyebrow">OUR FULL MISSION</p><h2>{missionStatement}</h2><p>Made with culture, unity, and love.</p></div>
       </section>
 
       <section id="catering" className="section catering">
