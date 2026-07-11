@@ -1,8 +1,9 @@
 'use client';
 
 import Image from 'next/image';
-import { useMemo, useState } from 'react';
-import { liveLocation, missionStatement } from './site-config';
+import { useEffect, useMemo, useState } from 'react';
+import { liveLocation as fallbackLocation, missionStatement } from './site-config';
+import { readSiteSettings, SiteSettings } from './lib/supabase-rest';
 
 const menu = [
   { name: 'Mexicano', price: 7, category: 'Specialty Lattes', detail: 'Cinnamon and sugar cane syrup with milk, served with matcha or cold brew.' },
@@ -25,6 +26,26 @@ function cateringTotal(drinks: number, hours: number) {
 
 export default function Home() {
   const [drinks, setDrinks] = useState(100);
+  const [remoteLocation, setRemoteLocation] = useState<SiteSettings | null>(null);
+
+  useEffect(() => {
+    readSiteSettings().then(setRemoteLocation).catch(() => {
+      // Keep the built-in fallback visible if Supabase is temporarily unavailable.
+    });
+  }, []);
+
+  const liveLocation = remoteLocation
+    ? {
+        title: remoteLocation.location_title,
+        address: remoteLocation.address,
+        directions: remoteLocation.directions,
+        hours: remoteLocation.hours,
+        isOpen: remoteLocation.is_open,
+        mobileOrdering: remoteLocation.mobile_ordering,
+        waitMinutes: remoteLocation.wait_minutes,
+        mapsUrl: remoteLocation.maps_url,
+      }
+    : fallbackLocation;
   const [hours, setHours] = useState(2);
   const total = useMemo(() => cateringTotal(drinks, hours), [drinks, hours]);
 
@@ -88,7 +109,7 @@ export default function Home() {
             <div><dt>Wait time</dt><dd>{liveLocation.waitMinutes} minutes</dd></div>
             <div><dt>Hours</dt><dd>{liveLocation.hours}</dd></div>
           </dl>
-          <p className="small">This section is controlled from <code>app/site-config.ts</code> until the private dashboard is connected.</p>
+          <p className="small">Live details are managed privately through Dame Coffee OS.</p>
         </div>
       </section>
 

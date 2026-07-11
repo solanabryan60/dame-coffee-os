@@ -24,3 +24,13 @@ The complete mission statement is also stored in `app/site-config.ts`.
 ## Next phase
 
 Replace this file-based control center with a private, phone-friendly admin dashboard and database.
+
+## Private live-location dashboard
+
+1. Run `supabase-setup.sql` in the Supabase SQL Editor.
+2. In Supabase, go to Authentication -> Users -> Add user.
+3. Create the admin user `info@damecoffeeco.com` with a strong password.
+4. In Vercel, set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
+5. Redeploy, then visit `/admin/login`.
+
+Never commit passwords, service-role keys, or secret API keys to GitHub.
