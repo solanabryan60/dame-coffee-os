@@ -1,38 +1,35 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useMemo, useState } from 'react';
-import { liveLocation as fallbackLocation, missionStatement } from './site-config';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { readSiteSettings, SiteSettings } from './lib/supabase-rest';
+import { liveLocation as fallbackLocation, missionStatement } from './site-config';
 
-const menu = [
-  { name: 'Mexicano', price: 7, category: 'Specialty Lattes', detail: 'Cinnamon and sugar cane syrup with milk, served with matcha or cold brew.' },
-  { name: 'Brown Bear', price: 7, category: 'Specialty Lattes', detail: 'Brown sugar honey syrup with milk, served with matcha or cold brew.' },
-  { name: 'Sugar Free Bear', price: 7, category: 'Specialty Lattes', detail: 'Sugar-free vanilla cinnamon with milk, served with matcha or cold brew.' },
-  { name: 'Mellow Marsh', price: 8, category: 'Cold Foam Collection', detail: 'Marshmallow fluff, vanilla syrup, milk, matcha or cold brew, finished with cold foam.' },
-  { name: 'Cold Brew', price: 6, category: 'Classics', detail: 'Our 16-hour steeped cold brew.' },
-  { name: 'Matcha Latte', price: 6.5, category: 'Classics', detail: 'Matcha with simple syrup and milk.' }
+const navigation = [
+  { label: 'Home', href: '#home' },
+  { label: 'Menu', href: '#menu' },
+  { label: 'Locations', href: '#find-us' },
+  { label: 'Catering', href: '#catering' },
+  { label: 'Rewards', href: '#rewards' },
+  { label: 'About', href: '#story' },
+  { label: 'Contact', href: '#contact' },
 ];
 
-
-
-function cateringTotal(drinks: number, hours: number) {
-  const drinkCharge = 600 + Math.max(0, (drinks - 100) / 50) * 150;
-  let timeCharge = 0;
-  if (hours > 2 && hours <= 4) timeCharge = 150;
-  if (hours > 4) timeCharge = 150 + ((hours - 4) / 2) * 300;
-  return drinkCharge + timeCharge;
-}
-
 export default function Home() {
-  const [drinks, setDrinks] = useState(100);
   const [remoteLocation, setRemoteLocation] = useState<SiteSettings | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     readSiteSettings().then(setRemoteLocation).catch(() => {
       // Keep the built-in fallback visible if Supabase is temporarily unavailable.
     });
   }, []);
+
+  useEffect(() => {
+    document.body.classList.toggle('menu-is-open', menuOpen);
+    return () => document.body.classList.remove('menu-is-open');
+  }, [menuOpen]);
 
   const liveLocation = remoteLocation
     ? {
@@ -46,141 +43,248 @@ export default function Home() {
         mapsUrl: remoteLocation.maps_url,
       }
     : fallbackLocation;
-  const [hours, setHours] = useState(2);
-  const total = useMemo(() => cateringTotal(drinks, hours), [drinks, hours]);
+
+  const orderingAvailable = liveLocation.isOpen && liveLocation.mobileOrdering;
+  const liveMessage = liveLocation.isOpen ? "We’re brewing." : "We’ll be back soon.";
+
+  function closeMenu() {
+    setMenuOpen(false);
+  }
 
   return (
-    <main>
-      <header className="nav">
-        <Image src="/assets/logo.png" alt="Dame Coffee" width={190} height={90} className="wordmark" />
-        <nav>
-          <a href="#menu">Menu</a>
-          <a href="#where">Where We Are</a>
-          <a href="#catering">Catering</a>
-          <a href="#rewards">Rewards</a>
+    <main id="home" className="site-shell">
+      <header className="site-header">
+        <a className="brand-link" href="#home" aria-label="Dame Coffee home" onClick={closeMenu}>
+          <Image src="/assets/logo.png" alt="" width={500} height={500} priority />
+        </a>
+
+        <nav className="desktop-nav" aria-label="Main navigation">
+          {navigation.map((item) => (
+            <a key={item.label} href={item.href}>{item.label}</a>
+          ))}
         </nav>
-        <button className="pill solid">Order pickup</button>
+
+        <a
+          className={`button button-small header-order ${orderingAvailable ? '' : 'button-muted'}`}
+          href={orderingAvailable ? '#menu' : '#find-us'}
+          aria-disabled={!orderingAvailable}
+        >
+          {orderingAvailable ? 'Order' : 'View today'}
+        </a>
+
+        <button
+          className="menu-toggle"
+          type="button"
+          aria-expanded={menuOpen}
+          aria-controls="mobile-navigation"
+          aria-label={menuOpen ? 'Close navigation' : 'Open navigation'}
+          onClick={() => setMenuOpen((current) => !current)}
+        >
+          <span />
+          <span />
+        </button>
+
+        <nav
+          id="mobile-navigation"
+          className={`mobile-nav ${menuOpen ? 'is-open' : ''}`}
+          aria-label="Mobile navigation"
+        >
+          <p>Dame Coffee</p>
+          {navigation.map((item) => (
+            <a key={item.label} href={item.href} onClick={closeMenu}>{item.label}</a>
+          ))}
+          <div className="mobile-nav-contact">
+            <a href="tel:+19094519307">(909) 451-9307</a>
+            <a href="mailto:info@damecoffeeco.com">info@damecoffeeco.com</a>
+          </div>
+        </nav>
       </header>
 
-      <section className="hero">
-        <div className="hero-media" aria-label="Dame Coffee cart in action">
-          <Image src="/assets/cart-venice.jpg" alt="Dame Coffee cart at Venice Beach" fill priority className="cover" />
-          <div className="shade" />
-        </div>
-        <div className="hero-copy">
-          <p className="eyebrow">DAME COFFEE · DAME VIDA</p>
-          <h1>We bring a beautiful coffee experience wherever people are.</h1>
-          <p>Matcha, cold brew, culture, unity, and love — served from our mobile cart across Southern California.</p>
-          <div className="actions">
-            <button className="pill solid">Order ahead</button>
-            <a href="#where" className="pill ghost">Find us today</a>
+      <section className="home-hero" aria-labelledby="hero-title">
+        <Image
+          src="/assets/cart-venice.jpg"
+          alt="A Dame Coffee drink held in front of the mobile cart at Venice Beach"
+          fill
+          priority
+          sizes="100vw"
+          className="home-hero-image"
+        />
+        <div className="home-hero-wash" />
+        <div className="home-hero-copy">
+          <p className="kicker kicker-light">Dame Coffee · Dame Vida</p>
+          <h1 id="hero-title">
+            Crafted with heart.
+            <span>Rooted in Mexican culture.</span>
+          </h1>
+          <p className="hero-support">Coffee made with intention, culture, unity, and love.</p>
+          <div className="hero-actions">
+            <a className="button button-light" href="#find-us">Find us today</a>
+            <a className="text-link text-link-light" href="#menu">
+              Explore the menu <span aria-hidden="true">↗</span>
+            </a>
           </div>
         </div>
+        <a className="hero-scroll" href="#find-us">
+          Today&apos;s location
+          <span aria-hidden="true">↓</span>
+        </a>
       </section>
 
-      <section id="where" className="live section">
-        <div>
-          <p className="eyebrow"><span className="dot" /> WE&apos;RE BREWING</p>
-          <h2 className="location-title">{liveLocation.title}</h2>
-          <p className="location-address">{liveLocation.address}</p>
-          <p className="location-directions">{liveLocation.directions}</p>
-          <div className="status-row">
-            <span className={`status-chip ${liveLocation.isOpen ? 'open' : 'closed'}`}>
-              {liveLocation.isOpen ? 'Open now' : 'Closed'}
-            </span>
-            <span className="status-chip neutral">{liveLocation.hours}</span>
-            <span className={`status-chip ${liveLocation.mobileOrdering ? 'open' : 'closed'}`}>
-              Mobile ordering {liveLocation.mobileOrdering ? 'on' : 'off'}
-            </span>
-            <span className="status-chip neutral">About {liveLocation.waitMinutes} min wait</span>
-          </div>
-          <div className="actions">
-            <button className="pill solid" disabled={!liveLocation.isOpen || !liveLocation.mobileOrdering}>
-              {liveLocation.mobileOrdering && liveLocation.isOpen ? 'Order pickup' : 'Ordering unavailable'}
-            </button>
-            <a className="pill ghost" href={liveLocation.mapsUrl} target="_blank" rel="noreferrer">Get directions</a>
-          </div>
+      <section id="find-us" className="find-section section-pad" aria-labelledby="find-heading">
+        <div className="find-intro">
+          <p className="kicker">
+            <span className={`live-dot ${liveLocation.isOpen ? '' : 'is-closed'}`} />
+            {liveMessage}
+          </p>
+          <h2 id="find-heading">Find Dame today.</h2>
+          <p>
+            We bring a beautiful coffee experience to where people already are.
+            Check today&apos;s details before heading over.
+          </p>
         </div>
-        <div className="location-card location-summary">
-          <p className="eyebrow">TODAY AT A GLANCE</p>
-          <dl>
-            <div><dt>Status</dt><dd>{liveLocation.isOpen ? 'Open' : 'Closed'}</dd></div>
-            <div><dt>Pickup orders</dt><dd>{liveLocation.mobileOrdering ? 'Accepting' : 'Paused'}</dd></div>
-            <div><dt>Wait time</dt><dd>{liveLocation.waitMinutes} minutes</dd></div>
-            <div><dt>Hours</dt><dd>{liveLocation.hours}</dd></div>
+
+        <article className="live-card">
+          <div className="live-card-top">
+            <div>
+              <p className="live-card-label">{liveLocation.isOpen ? 'Serving today' : 'Current location'}</p>
+              <h3>{liveLocation.title}</h3>
+            </div>
+            <span className={`open-badge ${liveLocation.isOpen ? '' : 'is-closed'}`}>
+              {liveLocation.isOpen ? 'Open' : 'Closed'}
+            </span>
+          </div>
+
+          <div className="location-copy">
+            <p className="address">{liveLocation.address}</p>
+            <p>{liveLocation.directions}</p>
+          </div>
+
+          <dl className="live-facts">
+            <div>
+              <dt>Hours</dt>
+              <dd>{liveLocation.hours}</dd>
+            </div>
+            <div>
+              <dt>Wait</dt>
+              <dd>{liveLocation.isOpen ? `About ${liveLocation.waitMinutes} min` : 'Not available'}</dd>
+            </div>
+            <div>
+              <dt>Pickup</dt>
+              <dd>{orderingAvailable ? 'Ordering open' : 'Ordering paused'}</dd>
+            </div>
           </dl>
-          <p className="small">Live details are managed privately through Dame Coffee OS.</p>
+
+          <div className="live-actions">
+            <a className="button" href={liveLocation.mapsUrl} target="_blank" rel="noreferrer">
+              Get directions
+            </a>
+            <a
+              className={`button button-outline ${orderingAvailable ? '' : 'button-disabled'}`}
+              href={orderingAvailable ? '#menu' : '#find-us'}
+              aria-disabled={!orderingAvailable}
+              onClick={(event) => {
+                if (!orderingAvailable) event.preventDefault();
+              }}
+            >
+              {orderingAvailable ? 'Order pickup' : 'Ordering unavailable'}
+            </a>
+          </div>
+        </article>
+      </section>
+
+      <section id="menu" className="product-section" aria-labelledby="product-heading">
+        <div className="product-image product-image-main">
+          <Image
+            src="/assets/cart-market.jpg"
+            alt="The white Dame Coffee cart at a community market"
+            fill
+            sizes="(max-width: 760px) 100vw, 55vw"
+          />
+        </div>
+        <div className="product-story">
+          <p className="kicker">Cold brew · Matcha · Food</p>
+          <h2 id="product-heading">Made to make you stop for a sip.</h2>
+          <p>
+            Start simple or try one of our specialty flavors. Everything is served cold,
+            thoughtfully made, and ready to meet you where you are.
+          </p>
+          <a className="text-link" href="#contact">
+            Full menu coming next <span aria-hidden="true">→</span>
+          </a>
+        </div>
+        <div className="product-image product-image-secondary">
+          <Image
+            src="/assets/cart-team.jpg"
+            alt="The Dame Coffee team serving customers from the cart"
+            fill
+            sizes="(max-width: 760px) 100vw, 30vw"
+          />
         </div>
       </section>
 
-      <section id="menu" className="section">
-        <div className="section-head">
-          <div><p className="eyebrow">THE MENU</p><h2>Simple choices. Intentional drinks.</h2></div>
-          <p>Whole milk included. Almond or oat milk +$1. Cold foam +$1.</p>
+      <section id="story" className="mission-section section-pad" aria-labelledby="mission-heading">
+        <div className="mission-mark" aria-hidden="true">
+          <span>D</span>
+          <span>C</span>
         </div>
-        <div className="menu-grid">
-          {menu.map((item) => (
-            <article className="menu-card" key={item.name}>
-              <span>{item.category}</span>
-              <h3>{item.name}</h3>
-              <p>{item.detail}</p>
-              <div><strong>${item.price.toFixed(2)}</strong><button>Add</button></div>
-            </article>
+        <div className="mission-copy">
+          <p className="kicker">Our mission</p>
+          <h2 id="mission-heading">{missionStatement}</h2>
+          <p>Dame vida. Good coffee finds good people.</p>
+        </div>
+      </section>
+
+      <section className="next-chapters section-pad" aria-labelledby="chapters-heading">
+        <div>
+          <p className="kicker">More Dame</p>
+          <h2 id="chapters-heading">One clear place for every part of the experience.</h2>
+        </div>
+        <div className="chapter-grid">
+          <a id="catering" href="mailto:info@damecoffeeco.com?subject=Dame%20Coffee%20Catering">
+            <span>01</span>
+            <strong>Catering</strong>
+            <p>Bring cold brew and matcha to your next event.</p>
+          </a>
+          <a id="rewards" href="mailto:info@damecoffeeco.com?subject=Dame%20Rewards">
+            <span>02</span>
+            <strong>Rewards</strong>
+            <p>Points and free items are on the way.</p>
+          </a>
+          <a href="#story">
+            <span>03</span>
+            <strong>Our story</strong>
+            <p>Culture, community, and coffee with intention.</p>
+          </a>
+        </div>
+      </section>
+
+      <footer id="contact" className="site-footer">
+        <div className="footer-brand">
+          <Image src="/assets/logo.png" alt="Dame Coffee" width={500} height={500} />
+          <p>Coffee made with culture, unity, and love.</p>
+        </div>
+
+        <div className="footer-nav">
+          <p>Explore</p>
+          {navigation.slice(0, 6).map((item) => (
+            <a key={item.label} href={item.href}>{item.label}</a>
           ))}
         </div>
-      </section>
 
-      <section className="quote-band"><p>“Good coffee finds good people.”</p></section>
-
-      <section className="mission section">
-        <div className="mission-art"><Image src="/assets/bean.png" alt="Dame Coffee bean mascot" fill className="contain" /></div>
-        <div><p className="eyebrow">OUR FULL MISSION</p><h2>{missionStatement}</h2><p>Made with culture, unity, and love.</p></div>
-      </section>
-
-      <section id="catering" className="section catering">
-        <div className="section-head">
-          <div><p className="eyebrow">BUILD YOUR EVENT</p><h2>Plan drinks without waiting for a quote.</h2></div>
-          <p>Travel is built into the estimate. Final details and price are confirmed by phone.</p>
+        <div className="footer-contact">
+          <p>Talk to us</p>
+          <a href="tel:+19094519307">(909) 451-9307</a>
+          <a href="mailto:info@damecoffeeco.com">info@damecoffeeco.com</a>
+          <a href="https://instagram.com/_dame.coffee_" target="_blank" rel="noreferrer">
+            @_dame.coffee_
+          </a>
         </div>
-        <div className="builder">
-          <div className="controls">
-            <label>Event address<input placeholder="Start typing an address" /></label>
-            <div className="map-placeholder">Google Maps preview</div>
-            <label>Event date<input type="date" /></label>
-            <label>Number of drinks <strong>{drinks}</strong><input type="range" min="100" max="600" step="50" value={drinks} onChange={(e) => setDrinks(Number(e.target.value))} /></label>
-            <label>Service time <strong>{hours} hours</strong><input type="range" min="2" max="12" step="2" value={hours} onChange={(e) => setHours(Number(e.target.value))} /></label>
-          </div>
-          <aside className="estimate">
-            <Image src="/assets/bean.png" alt="Bean mascot" width={120} height={150} />
-            <p>Estimated event total</p>
-            <h3>${total.toLocaleString()} <small>+ tax</small></h3>
-            <ul>
-              <li>{drinks} drinks</li>
-              <li>{hours} hours of service</li>
-              <li>Travel included in estimate</li>
-              <li>100-drink and 2-hour minimum</li>
-            </ul>
-            <button className="pill solid full">Reserve date with deposit</button>
-            <a className="pill ghost full" href="tel:+19094519307">Call now with questions</a>
-            <p className="fine">We&apos;ll call to confirm the menu, staffing, availability, travel details, and final price. Events may extend on site for an additional fee.</p>
-          </aside>
+
+        <div className="footer-bottom">
+          <span>© {new Date().getFullYear()} Dame Coffee Co.</span>
+          <span>Santa Ana · Walnut / Diamond Bar · Venice</span>
+          <Link href="/admin/login">Private admin</Link>
         </div>
-      </section>
-
-      <section id="rewards" className="section rewards">
-        <div><p className="eyebrow">DAME REWARDS</p><h2>Come for the drink. Stay part of the story.</h2><p>Customer accounts, points on every order, birthday rewards, Founding Member status, favorites, and order history.</p><button className="pill solid">Join the founding members</button></div>
-        <div className="reward-card"><span>FOUNDING MEMBER · 2026</span><h3>1,245 points</h3><p>255 points until your next reward.</p><div className="progress"><i /></div><Image src="/assets/bean.png" alt="Dame Bean" width={100} height={130} /></div>
-      </section>
-
-      <section className="gallery section">
-        <Image src="/assets/cart-market.jpg" alt="Dame Coffee market cart" width={800} height={1000} />
-        <Image src="/assets/cart-team.jpg" alt="Dame Coffee team serving" width={800} height={1000} />
-      </section>
-
-      <footer>
-        <Image src="/assets/logo.png" alt="Dame Coffee" width={230} height={100} />
-        <div><a href="tel:+19094519307">(909) 451-9307</a><a href="mailto:info@damecoffeeco.com">info@damecoffeeco.com</a><a href="https://instagram.com/_dame.coffee_">@_dame.coffee_</a></div>
-        <p>Santa Ana · Walnut / Diamond Bar · Venice</p>
       </footer>
     </main>
   );

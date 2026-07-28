@@ -1,36 +1,55 @@
-# Dame Coffee OS — v0.2
+# Dame Coffee OS 1.0 — Foundation
 
-This version adds the first editable live-location control center.
+The Foundation release gives Dame Coffee a focused, mobile-first public homepage while preserving the private Supabase control center.
 
-## Change the live location
+## Public experience
 
-Open `app/site-config.ts` and edit:
+- Cinematic, full-height hero using current Dame photography
+- Responsive desktop and mobile navigation
+- Live “Find Dame Today” card
+- Correct open and closed homepage messaging
+- Ordering automatically pauses when the shop is closed or mobile ordering is off
+- Editorial product and mission sections
+- Contact details and private admin link in the footer
+- Accessible reduced-motion behavior
 
-- `title`: large location title
-- `address`: exact public address
-- `directions`: instructions for finding the cart
-- `hours`: displayed operating hours
-- `isOpen`: `true` or `false`
-- `mobileOrdering`: `true` or `false`
-- `waitMinutes`: current estimated wait
-- `mapsUrl`: Google Maps directions link
+## Live location control center
 
-Commit the edit in GitHub. Vercel will redeploy the site automatically.
+Visit `/admin/login` and sign in with a user created in Supabase Authentication. The dashboard controls:
 
-## Mission statement
+- Large location title
+- Address and directions
+- Hours
+- Open or closed status
+- Mobile ordering status
+- Wait time
+- Google Maps directions link
 
-The complete mission statement is also stored in `app/site-config.ts`.
+The public homepage reads those values from Supabase. If Supabase is temporarily unavailable, `app/site-config.ts` supplies a safe public fallback.
 
-## Next phase
+## Local development
 
-Replace this file-based control center with a private, phone-friendly admin dashboard and database.
+```bash
+npm install
+npm run dev
+```
 
-## Private live-location dashboard
+Create `.env.local` with:
 
-1. Run `supabase-setup.sql` in the Supabase SQL Editor.
-2. In Supabase, go to Authentication -> Users -> Add user.
-3. Create the admin user `info@damecoffeeco.com` with a strong password.
-4. In Vercel, set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
-5. Redeploy, then visit `/admin/login`.
+```text
+NEXT_PUBLIC_SUPABASE_URL=your-project-url
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
+```
 
-Never commit passwords, service-role keys, or secret API keys to GitHub.
+Never commit passwords, service-role keys, database passwords, or secret API keys.
+
+## Production deployment
+
+The GitHub `main` branch is connected to the existing Vercel project. A merge into `main` creates a new production deployment automatically.
+
+Keep these variables configured in Vercel for Production and Preview:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+
+The database schema remains in `supabase-setup.sql`. Dame Coffee OS 1.0 Foundation does not require a database migration.
