@@ -1,15 +1,18 @@
 # Dame Coffee OS 1.0 — Foundation
 
-The Foundation release gives Dame Coffee a focused, mobile-first public homepage while preserving the private Supabase control center.
+The Foundation release gives Dame Coffee a focused, mobile-first public experience while preserving the private Supabase control center.
 
 ## Public experience
 
-- Cinematic, full-height hero using current Dame photography
-- Responsive desktop and mobile navigation
-- Live “Find Dame Today” card
+- Focused full-height homepage with a direct “Find Us Today” journey
+- Responsive navigation connecting real pages instead of one long homepage
+- Live “Us, Today” card powered by the existing admin controls
 - Correct open and closed homepage messaging
 - Ordering automatically pauses when the shop is closed or mobile ordering is off
-- Editorial product and mission sections
+- Dedicated `/menu` page organized into Basics, Specialty Drinks, Cold Foam Lovers, and Food Items
+- Dedicated `/rewards` page explaining benefits and collecting launch-list interest
+- Dedicated `/catering` page with the approved drink, time, and price estimator
+- Clean mission and information section
 - Contact details and private admin link in the footer
 - Accessible reduced-motion behavior
 

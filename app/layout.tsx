@@ -1,4 +1,5 @@
 import './styles.css';
+import './public-v2.css';
 
 export const metadata = {
   metadataBase: new URL('https://www.damecoffeeco.com'),
