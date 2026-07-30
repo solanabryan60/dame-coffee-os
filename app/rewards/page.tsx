@@ -13,7 +13,7 @@ const benefits = [
   {
     number: '01',
     title: 'Earn on every visit',
-    text: 'Your eligible Dame purchases will move you closer to free drinks and food.',
+    text: 'Your eligible Dame purchases will move you closer to free drinks, food, and more.',
   },
   {
     number: '02',
