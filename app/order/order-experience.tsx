@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { SquareMenuItem, SquareMenuModifierGroup } from '../lib/square';
+import { getCustomerSession } from '../lib/customer-session';
+import { readCustomerProfile } from '../lib/supabase-rest';
 
 type CartLine = {
   id: string;
@@ -153,6 +155,7 @@ export default function OrderExperience({
 }) {
   const [cart, setCart] = useState<CartLine[]>([]);
   const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [note, setNote] = useState('');
   const [error, setError] = useState('');
@@ -160,6 +163,20 @@ export default function OrderExperience({
 
   const orderingEnabled = location.isOpen && location.mobileOrdering && squareConfigured;
   const total = cart.reduce((sum, line) => sum + line.unitAmount * line.quantity, 0);
+
+  useEffect(() => {
+    getCustomerSession().then(async (session) => {
+      if (!session) return;
+      setEmail(session.user.email ?? '');
+      try {
+        const profile = await readCustomerProfile(session.access_token, session.user.id);
+        setName(profile.first_name);
+        setPhone(profile.phone ?? '');
+      } catch {
+        // Ordering remains available even if a saved rewards profile cannot load.
+      }
+    });
+  }, []);
 
   function addLine(line: Omit<CartLine, 'id' | 'quantity'>) {
     setCart((current) => [
@@ -188,8 +205,8 @@ export default function OrderExperience({
       setError('Add something good before checking out.');
       return;
     }
-    if (!name.trim() || !phone.trim()) {
-      setError('Add your name and phone number so we know who is picking up.');
+    if (!name.trim() || !email.trim() || !phone.trim()) {
+      setError('Add your name, email, and phone number so we know who is picking up.');
       return;
     }
 
@@ -204,7 +221,7 @@ export default function OrderExperience({
             quantity: line.quantity,
             modifierIds: line.modifierIds,
           })),
-          customer: { name, phone, note },
+          customer: { name, email, phone, note },
         }),
       });
       const payload = (await response.json()) as { checkoutUrl?: string; error?: string };
@@ -308,6 +325,16 @@ export default function OrderExperience({
             <label>
               <span>Pickup name</span>
               <input value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" placeholder="Your name" />
+            </label>
+            <label>
+              <span>Email</span>
+              <input
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                autoComplete="email"
+                placeholder="you@example.com"
+              />
             </label>
             <label>
               <span>Mobile number</span>

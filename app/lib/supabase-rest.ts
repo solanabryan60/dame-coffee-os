@@ -10,6 +10,32 @@ export type SiteSettings = {
   maps_url: string;
 };
 
+export type AuthUser = {
+  id: string;
+  email?: string;
+  email_confirmed_at?: string | null;
+  user_metadata?: Record<string, unknown>;
+};
+
+export type AuthSession = {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+  expires_at?: number;
+  token_type?: string;
+  user: AuthUser;
+};
+
+export type CustomerProfile = {
+  user_id: string;
+  first_name: string;
+  phone: string | null;
+  birthday: string | null;
+  marketing_opt_in: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
@@ -44,24 +70,12 @@ export async function readSiteSettings(): Promise<SiteSettings> {
 }
 
 export async function loginAdmin(email: string, password: string) {
-  const config = requireConfig();
-  const response = await fetch(
-    `${config.supabaseUrl}/auth/v1/token?grant_type=password`,
-    {
-      method: 'POST',
-      headers: {
-        apikey: config.supabaseKey,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    },
-  );
-
-  const payload = await response.json();
-  if (!response.ok) {
-    throw new Error(payload?.error_description || payload?.msg || 'Login failed.');
+  const session = await loginCustomer(email, password);
+  const membership = await readAdminMembership(session.access_token, session.user.id);
+  if (!membership) {
+    throw new Error('This account does not have access to Dame Coffee OS.');
   }
-  return payload as { access_token: string; refresh_token: string; expires_in: number };
+  return session;
 }
 
 export async function updateSiteSettings(
@@ -96,4 +110,184 @@ export async function updateSiteSettings(
     const message = await response.text();
     throw new Error(message || 'Could not save changes.');
   }
+}
+
+function authError(payload: unknown, fallback: string) {
+  if (!payload || typeof payload !== 'object') return fallback;
+  const record = payload as Record<string, unknown>;
+  return String(
+    record.error_description ||
+      record.msg ||
+      record.message ||
+      record.error ||
+      fallback,
+  );
+}
+
+export function normalizeUsPhone(phone: string) {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 10) return `+1${digits}`;
+  if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
+  throw new Error('Enter a valid 10-digit phone number.');
+}
+
+export async function signUpCustomer(input: {
+  firstName: string;
+  email: string;
+  phone: string;
+  birthday?: string;
+  password: string;
+  marketingOptIn: boolean;
+}) {
+  const config = requireConfig();
+  const response = await fetch(`${config.supabaseUrl}/auth/v1/signup`, {
+    method: 'POST',
+    headers: {
+      apikey: config.supabaseKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email: input.email.trim().toLowerCase(),
+      password: input.password,
+      data: {
+        first_name: input.firstName.trim(),
+        phone: normalizeUsPhone(input.phone),
+        birthday: input.birthday || null,
+        marketing_opt_in: input.marketingOptIn,
+      },
+    }),
+  });
+
+  const payload = await response.json();
+  if (!response.ok) throw new Error(authError(payload, 'Could not create your account.'));
+  return payload as {
+    access_token?: string;
+    refresh_token?: string;
+    expires_in?: number;
+    expires_at?: number;
+    user: AuthUser;
+  };
+}
+
+export async function loginCustomer(email: string, password: string): Promise<AuthSession> {
+  const config = requireConfig();
+  const response = await fetch(
+    `${config.supabaseUrl}/auth/v1/token?grant_type=password`,
+    {
+      method: 'POST',
+      headers: {
+        apikey: config.supabaseKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
+    },
+  );
+
+  const payload = await response.json();
+  if (!response.ok) throw new Error(authError(payload, 'Sign in failed.'));
+  return payload as AuthSession;
+}
+
+export async function refreshCustomerSession(refreshToken: string): Promise<AuthSession> {
+  const config = requireConfig();
+  const response = await fetch(
+    `${config.supabaseUrl}/auth/v1/token?grant_type=refresh_token`,
+    {
+      method: 'POST',
+      headers: {
+        apikey: config.supabaseKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    },
+  );
+  const payload = await response.json();
+  if (!response.ok) throw new Error(authError(payload, 'Your session has expired.'));
+  return payload as AuthSession;
+}
+
+export async function readAuthUser(accessToken: string): Promise<AuthUser> {
+  const config = requireConfig();
+  const response = await fetch(`${config.supabaseUrl}/auth/v1/user`, {
+    headers: {
+      apikey: config.supabaseKey,
+      Authorization: `Bearer ${accessToken}`,
+    },
+    cache: 'no-store',
+  });
+  const payload = await response.json();
+  if (!response.ok) throw new Error(authError(payload, 'Please sign in again.'));
+  return payload as AuthUser;
+}
+
+export async function readCustomerProfile(
+  accessToken: string,
+  userId: string,
+): Promise<CustomerProfile> {
+  const config = requireConfig();
+  const response = await fetch(
+    `${config.supabaseUrl}/rest/v1/customer_profiles?user_id=eq.${encodeURIComponent(userId)}&select=*`,
+    {
+      headers: {
+        apikey: config.supabaseKey,
+        Authorization: `Bearer ${accessToken}`,
+      },
+      cache: 'no-store',
+    },
+  );
+  const payload = await response.json();
+  if (!response.ok) throw new Error(authError(payload, 'Could not load your profile.'));
+  const rows = payload as CustomerProfile[];
+  if (!rows[0]) throw new Error('Your rewards profile is still being prepared.');
+  return rows[0];
+}
+
+export async function updateCustomerProfile(
+  accessToken: string,
+  userId: string,
+  profile: Pick<CustomerProfile, 'first_name' | 'phone' | 'birthday' | 'marketing_opt_in'>,
+) {
+  const config = requireConfig();
+  const response = await fetch(
+    `${config.supabaseUrl}/rest/v1/customer_profiles?user_id=eq.${encodeURIComponent(userId)}`,
+    {
+      method: 'PATCH',
+      headers: {
+        apikey: config.supabaseKey,
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=representation',
+      },
+      body: JSON.stringify({
+        first_name: profile.first_name.trim(),
+        phone: profile.phone ? normalizeUsPhone(profile.phone) : null,
+        birthday: profile.birthday || null,
+        marketing_opt_in: profile.marketing_opt_in,
+        updated_at: new Date().toISOString(),
+      }),
+    },
+  );
+  const payload = await response.json();
+  if (!response.ok) throw new Error(authError(payload, 'Could not save your profile.'));
+  return (payload as CustomerProfile[])[0];
+}
+
+export async function readAdminMembership(
+  accessToken: string,
+  userId: string,
+): Promise<boolean> {
+  const config = requireConfig();
+  const response = await fetch(
+    `${config.supabaseUrl}/rest/v1/admin_users?user_id=eq.${encodeURIComponent(userId)}&select=user_id`,
+    {
+      headers: {
+        apikey: config.supabaseKey,
+        Authorization: `Bearer ${accessToken}`,
+      },
+      cache: 'no-store',
+    },
+  );
+  const payload = await response.json();
+  if (!response.ok) throw new Error(authError(payload, 'Could not verify admin access.'));
+  return Array.isArray(payload) && payload.length > 0;
 }

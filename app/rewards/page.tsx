@@ -45,7 +45,12 @@ export default function RewardsPage() {
             A straightforward rewards program built around points, free items,
             birthday treats, and the people who keep showing up for Dame.
           </p>
-          <a className="dame-button dame-button-light" href="#join">Join the launch list</a>
+          <div className="dame-actions">
+            <a className="dame-button dame-button-light" href="#join">Join Dame Rewards</a>
+            <a className="dame-inline-link dame-inline-link-light" href="/rewards/account">
+              My account <span aria-hidden="true">→</span>
+            </a>
+          </div>
         </div>
         <div className="dame-rewards-bean">
           <Image src="/assets/bean.png" alt="The Dame Bean welcoming rewards members" width={632} height={922} priority />
@@ -74,8 +79,8 @@ export default function RewardsPage() {
           <p className="dame-kicker">Be there from the beginning</p>
           <h2>Join Dame Rewards.</h2>
           <p>
-            Add your name to the launch list. We&apos;ll let you know when points
-            and member accounts are ready.
+            Create your member account, keep your profile in one place, and see
+            your points and available rewards whenever you come back.
           </p>
         </div>
         <RewardsSignup />

@@ -9,6 +9,7 @@ type CheckoutRequest = {
   }>;
   customer?: {
     name?: string;
+    email?: string;
     phone?: string;
     note?: string;
   };
@@ -32,6 +33,7 @@ export async function POST(request: Request) {
     }));
     const customer = {
       name: body.customer?.name?.trim() ?? '',
+      email: body.customer?.email?.trim().toLowerCase() ?? '',
       phone: body.customer?.phone?.trim() ?? '',
       note: body.customer?.note?.trim() ?? '',
     };
@@ -39,8 +41,8 @@ export async function POST(request: Request) {
     if (!lines.length || lines.length > 30) {
       return Response.json({ error: 'Add at least one item to your order.' }, { status: 400 });
     }
-    if (!customer.name || !customer.phone) {
-      return Response.json({ error: 'Enter your name and phone number for pickup.' }, { status: 400 });
+    if (!customer.name || !customer.email || !customer.phone) {
+      return Response.json({ error: 'Enter your name, email, and phone number for pickup.' }, { status: 400 });
     }
 
     const checkoutUrl = await createSquarePaymentLink(lines, customer, settings.wait_minutes);
