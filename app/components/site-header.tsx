@@ -32,7 +32,7 @@ export default function SiteHeader({ overlay = false }: { overlay?: boolean }) {
         ))}
       </nav>
 
-      <Link className="dame-header-action" href="/#today">Find us today</Link>
+      <Link className="dame-header-action" href="/order">Order pickup</Link>
 
       <button
         className="dame-menu-button"
@@ -50,6 +50,7 @@ export default function SiteHeader({ overlay = false }: { overlay?: boolean }) {
         id="dame-mobile-navigation"
         className={`dame-mobile-nav ${menuOpen ? 'is-open' : ''}`}
         aria-label="Mobile navigation"
+        hidden={!menuOpen}
       >
         <p>Where would you like to go?</p>
         {navigation.map((item) => (
@@ -57,8 +58,8 @@ export default function SiteHeader({ overlay = false }: { overlay?: boolean }) {
             {item.label}
           </Link>
         ))}
-        <Link className="dame-mobile-primary" href="/#today" onClick={() => setMenuOpen(false)}>
-          Find us today
+        <Link className="dame-mobile-primary" href="/order" onClick={() => setMenuOpen(false)}>
+          Order pickup
         </Link>
         <div>
           <a href="tel:+19094519307">(909) 451-9307</a>

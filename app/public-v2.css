@@ -31,6 +31,12 @@
   backdrop-filter: none;
 }
 
+.dame-header.menu-open {
+  border-bottom-color: transparent;
+  background: transparent;
+  backdrop-filter: none;
+}
+
 .dame-logo {
   position: relative;
   z-index: 102;
@@ -1626,5 +1632,852 @@
 @media (prefers-reduced-motion: reduce) {
   .dame-landing-image {
     animation: none;
+  }
+}
+
+/* Phase 2 menu */
+.dame-menu-intro {
+  min-height: 540px;
+  padding: clamp(82px, 10vw, 150px) clamp(22px, 7vw, 110px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
+  gap: clamp(40px, 8vw, 120px);
+  align-items: center;
+  background: var(--soft-gray);
+}
+
+.dame-menu-intro h1,
+.dame-menu-panel h2,
+.dame-order-hero h1,
+.dame-order-menu > header h2,
+.dame-order-complete h1 {
+  margin: 18px 0 24px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 500;
+  letter-spacing: -0.055em;
+  line-height: 0.92;
+}
+
+.dame-menu-intro h1 {
+  font-size: clamp(62px, 8vw, 118px);
+}
+
+.dame-menu-intro > div:first-child > p:last-child {
+  max-width: 670px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.dame-menu-stamp {
+  width: min(100%, 360px);
+  aspect-ratio: 1;
+  padding: 44px;
+  border-radius: 50%;
+  display: grid;
+  align-content: center;
+  justify-self: center;
+  background: var(--dame-red);
+  color: white;
+  text-align: center;
+  text-transform: uppercase;
+  transform: rotate(-4deg);
+}
+
+.dame-menu-stamp span {
+  font-size: clamp(26px, 4vw, 48px);
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+.dame-menu-stamp strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(58px, 8vw, 100px);
+  font-weight: 500;
+  letter-spacing: -0.08em;
+  line-height: 0.82;
+}
+
+.dame-menu-browser {
+  padding: clamp(76px, 9vw, 130px) clamp(22px, 7vw, 110px);
+  background: var(--warm-white);
+}
+
+.dame-menu-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.dame-menu-tabs button {
+  min-height: 58px;
+  padding: 14px 18px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 180ms ease, color 180ms ease;
+}
+
+.dame-menu-tabs button:last-child {
+  border-right: 0;
+}
+
+.dame-menu-tabs button span {
+  margin-right: 9px;
+  color: var(--dame-red);
+  font-size: 9px;
+}
+
+.dame-menu-tabs button[aria-selected="true"] {
+  background: var(--dame-red);
+  color: white;
+}
+
+.dame-menu-tabs button[aria-selected="true"] span {
+  color: white;
+}
+
+.dame-menu-panel {
+  min-height: 540px;
+  padding-top: clamp(56px, 7vw, 90px);
+  animation: dame-panel-enter 360ms ease both;
+}
+
+.dame-menu-panel > header {
+  margin-bottom: 46px;
+  display: grid;
+  grid-template-columns: 1fr 0.7fr;
+  gap: 40px;
+  align-items: end;
+}
+
+.dame-menu-panel h2 {
+  font-size: clamp(54px, 7vw, 96px);
+}
+
+.dame-menu-panel > header > p {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+.dame-menu-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+}
+
+.dame-menu-card {
+  min-height: 260px;
+  padding: 30px;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: 62px 1fr;
+  gap: 24px;
+  background: var(--warm-white);
+  transition: background 180ms ease, transform 180ms ease;
+}
+
+.dame-menu-card:hover {
+  position: relative;
+  z-index: 2;
+  background: var(--cream);
+  transform: translateY(-5px);
+}
+
+.dame-menu-card-mark {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--dame-red);
+  color: white;
+}
+
+.dame-menu-card-mark span {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 18px;
+  font-style: italic;
+}
+
+.dame-menu-card-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 22px;
+}
+
+.dame-menu-card h3 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.dame-menu-card strong {
+  flex: 0 0 auto;
+  color: var(--dame-red);
+  font-size: 14px;
+}
+
+.dame-menu-card p {
+  margin: 18px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.dame-menu-variations {
+  margin-top: 18px;
+  display: block;
+  color: var(--dame-red);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dame-menu-empty {
+  min-height: 280px;
+  padding: 50px;
+  border: 1px solid var(--line);
+  display: grid;
+  place-content: center;
+  text-align: center;
+}
+
+.dame-menu-empty p {
+  margin: 0 0 8px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 34px;
+}
+
+.dame-menu-empty span {
+  color: var(--muted);
+}
+
+.dame-menu-panel > footer {
+  padding-top: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+}
+
+.dame-menu-panel > footer > span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Phase 2 pickup ordering */
+.dame-order-hero {
+  min-height: 590px;
+  padding: clamp(82px, 9vw, 140px) clamp(22px, 7vw, 110px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr);
+  gap: clamp(46px, 8vw, 120px);
+  align-items: center;
+  background: var(--cream);
+}
+
+.dame-order-hero h1 {
+  max-width: 850px;
+  font-size: clamp(58px, 8vw, 112px);
+}
+
+.dame-order-hero > div > p:last-child {
+  max-width: 630px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.dame-order-hero > aside {
+  padding: clamp(28px, 4vw, 48px);
+  border-radius: var(--radius-lg);
+  background: var(--dame-red);
+  color: white;
+  box-shadow: var(--shadow);
+}
+
+.dame-order-hero > aside > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.dame-order-hero > aside .dame-live-dot {
+  box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.14);
+}
+
+.dame-order-hero > aside h2 {
+  margin: 26px 0 10px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(38px, 5vw, 62px);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+}
+
+.dame-order-hero > aside > p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.55;
+}
+
+.dame-order-hero dl {
+  margin: 28px 0;
+  padding: 20px 0;
+  border-block: 1px solid rgba(255, 255, 255, 0.22);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+}
+
+.dame-order-hero dt {
+  margin-bottom: 7px;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.dame-order-hero dd {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.dame-order-hero > aside > a {
+  color: white;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.dame-order-notice {
+  padding: 24px clamp(22px, 7vw, 110px);
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: #1d1411;
+  color: white;
+}
+
+.dame-order-notice strong {
+  flex: 0 0 auto;
+  color: #f3c9c9;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.dame-order-notice p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.dame-order-layout {
+  padding: clamp(76px, 9vw, 130px) clamp(22px, 7vw, 110px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(340px, 0.75fr);
+  gap: clamp(42px, 7vw, 100px);
+  align-items: start;
+}
+
+.dame-order-menu > header {
+  margin-bottom: 44px;
+}
+
+.dame-order-menu > header h2 {
+  font-size: clamp(48px, 6vw, 82px);
+}
+
+.dame-order-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.dame-order-item {
+  padding: 26px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  background: var(--warm-white);
+}
+
+.dame-order-item-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.dame-order-item-heading p {
+  margin: 0 0 8px;
+  color: var(--dame-red);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.dame-order-item h3 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.dame-order-item-heading > strong {
+  color: var(--dame-red);
+  font-size: 14px;
+}
+
+.dame-order-description {
+  margin: 16px 0 24px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.dame-order-select {
+  margin-bottom: 18px;
+  display: grid;
+  gap: 8px;
+}
+
+.dame-order-select > span,
+.dame-order-modifiers legend {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.dame-order-select select {
+  width: 100%;
+  min-height: 48px;
+  padding: 11px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: white;
+  color: var(--ink);
+}
+
+.dame-order-modifiers {
+  min-width: 0;
+  margin: 0 0 18px;
+  padding: 0;
+  border: 0;
+}
+
+.dame-order-modifiers legend {
+  width: 100%;
+  margin-bottom: 9px;
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.dame-order-modifiers legend span {
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.dame-order-modifiers > div {
+  display: grid;
+  gap: 7px;
+}
+
+.dame-order-modifiers label {
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 9px;
+  align-items: center;
+  cursor: pointer;
+}
+
+.dame-order-modifiers input {
+  accent-color: var(--dame-red);
+}
+
+.dame-order-modifiers small {
+  color: var(--muted);
+}
+
+.dame-order-item > .dame-button {
+  width: 100%;
+  margin-top: auto;
+}
+
+.dame-order-item > .dame-button:disabled,
+.dame-checkout-button:disabled {
+  border-color: #a79d98;
+  background: #a79d98;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.dame-cart {
+  position: sticky;
+  top: 24px;
+  padding: clamp(26px, 4vw, 42px);
+  border-radius: var(--radius-lg);
+  background: var(--soft-gray);
+}
+
+.dame-cart-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.dame-cart-heading p {
+  margin: 0 0 8px;
+  color: var(--dame-red);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.dame-cart-heading h2 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 38px;
+  font-weight: 500;
+}
+
+.dame-cart-heading > strong {
+  color: var(--dame-red);
+  font-size: 18px;
+}
+
+.dame-cart-empty {
+  margin: 30px 0;
+  padding: 26px 0;
+  border-block: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.dame-cart-lines {
+  margin: 28px 0;
+  border-top: 1px solid var(--line);
+}
+
+.dame-cart-lines article {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dame-cart-lines h3 {
+  margin: 0 0 5px;
+  font-size: 14px;
+}
+
+.dame-cart-lines p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.dame-quantity {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.dame-quantity button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--warm-white);
+  cursor: pointer;
+}
+
+.dame-quantity span {
+  min-width: 16px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.dame-pickup-fields {
+  margin-top: 26px;
+  display: grid;
+  gap: 16px;
+}
+
+.dame-pickup-fields label {
+  display: grid;
+  gap: 7px;
+}
+
+.dame-pickup-fields label > span {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.dame-pickup-fields input,
+.dame-pickup-fields textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--warm-white);
+  color: var(--ink);
+}
+
+.dame-pickup-fields textarea {
+  min-height: 84px;
+  resize: vertical;
+}
+
+.dame-checkout-error {
+  margin: 18px 0 0;
+  padding: 12px;
+  border-radius: 10px;
+  background: #f4dfdc;
+  color: var(--dame-red);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.dame-checkout-button {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.dame-square-note {
+  margin: 12px 0 18px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.dame-cart > a {
+  display: block;
+  color: var(--dame-red);
+  font-size: 11px;
+  font-weight: 900;
+  text-align: center;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.dame-order-complete {
+  min-height: 760px;
+  padding: clamp(80px, 10vw, 150px) clamp(22px, 7vw, 110px);
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 50px;
+  align-items: center;
+  background: var(--cream);
+}
+
+.dame-order-complete h1 {
+  max-width: 900px;
+  font-size: clamp(58px, 8vw, 112px);
+}
+
+.dame-order-complete > div > p:not(.dame-kicker) {
+  max-width: 620px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.dame-order-complete .dame-actions {
+  margin-top: 32px;
+}
+
+.dame-order-complete > img {
+  width: min(100%, 360px);
+  height: auto;
+  justify-self: center;
+}
+
+@keyframes dame-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 980px) {
+  .dame-menu-intro,
+  .dame-order-hero,
+  .dame-order-layout,
+  .dame-order-complete {
+    grid-template-columns: 1fr;
+  }
+
+  .dame-menu-stamp {
+    width: min(70vw, 300px);
+  }
+
+  .dame-order-layout {
+    gap: 54px;
+  }
+
+  .dame-cart {
+    position: static;
+  }
+}
+
+@media (max-width: 720px) {
+  .dame-menu-intro,
+  .dame-order-hero,
+  .dame-order-layout,
+  .dame-order-complete {
+    padding: 72px 20px;
+  }
+
+  .dame-menu-intro h1,
+  .dame-order-hero h1,
+  .dame-order-complete h1 {
+    font-size: 58px;
+  }
+
+  .dame-menu-browser {
+    padding: 66px 20px;
+  }
+
+  .dame-menu-tabs {
+    border-radius: 22px;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dame-menu-tabs button {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .dame-menu-tabs button:nth-child(2) {
+    border-right: 0;
+  }
+
+  .dame-menu-tabs button:nth-child(3),
+  .dame-menu-tabs button:nth-child(4) {
+    border-bottom: 0;
+  }
+
+  .dame-menu-panel > header {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .dame-menu-panel h2,
+  .dame-order-menu > header h2 {
+    font-size: 52px;
+  }
+
+  .dame-menu-card-grid,
+  .dame-order-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dame-menu-card {
+    min-height: 230px;
+    padding: 24px 20px;
+    grid-template-columns: 48px 1fr;
+    gap: 16px;
+  }
+
+  .dame-menu-card-mark {
+    width: 44px;
+    height: 44px;
+  }
+
+  .dame-menu-card-title {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .dame-menu-panel > footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dame-menu-panel > footer .dame-button {
+    width: 100%;
+  }
+
+  .dame-order-notice {
+    padding: 20px;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .dame-order-hero > aside,
+  .dame-cart {
+    border-radius: 28px;
+  }
+
+  .dame-order-item {
+    padding: 22px 18px;
+  }
+
+  .dame-order-complete > img {
+    width: min(70vw, 290px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dame-menu-panel {
+    animation: none;
+  }
+
+  .dame-menu-card {
+    transition: none;
   }
 }
