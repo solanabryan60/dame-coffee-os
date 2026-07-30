@@ -42,8 +42,7 @@ export default function RewardsPage() {
           <p className="dame-kicker dame-kicker-light">Dame Rewards</p>
           <h1>Come back.<br />Get something good.</h1>
           <p>
-            A straightforward rewards program built around points, free items,
-            birthday treats, and the people who keep showing up for Dame.
+            Sip. Earn. Return. Every cup brings you closer to something special.
           </p>
           <div className="dame-actions">
             <a className="dame-button dame-button-light" href="#join">Join Dame Rewards</a>
