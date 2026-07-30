@@ -59,7 +59,7 @@ export default function RewardsPage() {
       <section className="dame-benefits" aria-labelledby="benefits-title">
         <div className="dame-benefits-heading">
           <p className="dame-kicker">Why join?</p>
-          <h2 id="benefits-title">Every return deserves a little love.</h2>
+          <h2 id="benefits-title">Every purchase deserves a little love.</h2>
           <p>
             Earn points as you sip, then turn them into drinks, upgrades, and
             special Dame moments.
