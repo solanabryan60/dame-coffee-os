@@ -46,10 +46,52 @@ for select
 to anon, authenticated
 using (true);
 
+create table if not exists public.admin_users (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
+insert into public.admin_users (user_id)
+select id
+from auth.users
+where lower(email) in (
+  'info@damecoffeeco.com',
+  'solanabryan60@gmail.com',
+  'damecoffeecollc@gmail.com',
+  'sarahortiz288@gmail.com'
+)
+on conflict (user_id) do nothing;
+
+alter table public.admin_users enable row level security;
+
+drop policy if exists "Users can read own admin membership" on public.admin_users;
+create policy "Users can read own admin membership"
+on public.admin_users
+for select
+to authenticated
+using ((select auth.uid()) = user_id);
+
+grant select on public.admin_users to authenticated;
+
 drop policy if exists "Authenticated admins can update settings" on public.site_settings;
 create policy "Authenticated admins can update settings"
 on public.site_settings
 for update
 to authenticated
-using (true)
-with check (true);
+using (
+  exists (
+    select 1
+    from public.admin_users
+    where admin_users.user_id = (select auth.uid())
+  )
+)
+with check (
+  exists (
+    select 1
+    from public.admin_users
+    where admin_users.user_id = (select auth.uid())
+  )
+);
+
+-- Phase 3 customer accounts and admin security are defined in:
+-- supabase-phase3-rewards.sql

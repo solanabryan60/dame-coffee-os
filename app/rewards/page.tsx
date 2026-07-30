@@ -13,7 +13,7 @@ const benefits = [
   {
     number: '01',
     title: 'Earn on every visit',
-    text: 'Your eligible Dame purchases will move you closer to free drinks and food.',
+    text: 'Your eligible Dame purchases will move you closer to free drinks, food, and more.',
   },
   {
     number: '02',
@@ -40,12 +40,16 @@ export default function RewardsPage() {
       <section className="dame-rewards-hero">
         <div className="dame-rewards-copy">
           <p className="dame-kicker dame-kicker-light">Dame Rewards</p>
-          <h1>Come back.<br />Get something good.</h1>
+          <h1>More flavor.<br />More life.<br />Más Dame.</h1>
           <p>
-            A straightforward rewards program built around points, free items,
-            birthday treats, and the people who keep showing up for Dame.
+            Sip. Earn. Return. Every cup brings you closer to something special.
           </p>
-          <a className="dame-button dame-button-light" href="#join">Join the launch list</a>
+          <div className="dame-actions">
+            <a className="dame-button dame-button-light" href="#join">Join Dame Rewards</a>
+            <a className="dame-inline-link dame-inline-link-light" href="/rewards/account">
+              My account <span aria-hidden="true">→</span>
+            </a>
+          </div>
         </div>
         <div className="dame-rewards-bean">
           <Image src="/assets/bean.png" alt="The Dame Bean welcoming rewards members" width={632} height={922} priority />
@@ -55,8 +59,11 @@ export default function RewardsPage() {
       <section className="dame-benefits" aria-labelledby="benefits-title">
         <div className="dame-benefits-heading">
           <p className="dame-kicker">Why join?</p>
-          <h2 id="benefits-title">The benefits stay simple.</h2>
-          <p>No passport. No chasing locations. Just rewards for choosing Dame.</p>
+          <h2 id="benefits-title">Every purchase deserves a little love.</h2>
+          <p>
+            Earn points as you sip, then turn them into drinks, upgrades, and
+            special Dame moments.
+          </p>
         </div>
         <div className="dame-benefit-grid">
           {benefits.map((benefit) => (
@@ -74,8 +81,8 @@ export default function RewardsPage() {
           <p className="dame-kicker">Be there from the beginning</p>
           <h2>Join Dame Rewards.</h2>
           <p>
-            Add your name to the launch list. We&apos;ll let you know when points
-            and member accounts are ready.
+            Create your member account, keep your profile in one place, and see
+            your points and available rewards whenever you come back.
           </p>
         </div>
         <RewardsSignup />
