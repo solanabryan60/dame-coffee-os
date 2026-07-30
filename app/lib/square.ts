@@ -1,0 +1,510 @@
+const SQUARE_API_VERSION = '2026-07-15';
+
+export type MenuCategoryId = 'basics' | 'specialty' | 'foam' | 'food';
+
+export type SquareMenuVariation = {
+  id: string;
+  name: string;
+  priceAmount: number;
+  priceLabel: string;
+};
+
+export type SquareMenuModifier = {
+  id: string;
+  name: string;
+  priceAmount: number;
+  priceLabel: string;
+};
+
+export type SquareMenuModifierGroup = {
+  id: string;
+  name: string;
+  selectionType: 'SINGLE' | 'MULTIPLE';
+  minSelected: number;
+  maxSelected: number | null;
+  options: SquareMenuModifier[];
+};
+
+export type SquareMenuItem = {
+  id: string;
+  name: string;
+  description: string;
+  category: MenuCategoryId;
+  categoryLabel: string;
+  imageUrl: string | null;
+  variations: SquareMenuVariation[];
+  modifierGroups: SquareMenuModifierGroup[];
+};
+
+export type SquareCatalogResult = {
+  configured: boolean;
+  items: SquareMenuItem[];
+};
+
+type SquareMoney = {
+  amount?: number;
+  currency?: string;
+};
+
+type CatalogObject = {
+  id: string;
+  type: string;
+  is_deleted?: boolean;
+  present_at_all_locations?: boolean;
+  present_at_location_ids?: string[];
+  category_data?: {
+    name?: string;
+  };
+  image_data?: {
+    url?: string;
+  };
+  modifier_list_data?: {
+    name?: string;
+    selection_type?: 'SINGLE' | 'MULTIPLE';
+    modifiers?: CatalogObject[];
+  };
+  modifier_data?: {
+    name?: string;
+    price_money?: SquareMoney;
+  };
+  item_data?: {
+    name?: string;
+    description?: string;
+    description_html?: string;
+    categories?: Array<{ id?: string }>;
+    category_id?: string;
+    image_ids?: string[];
+    modifier_list_info?: Array<{
+      modifier_list_id?: string;
+      min_selected_modifiers?: number;
+      max_selected_modifiers?: number;
+    }>;
+    variations?: CatalogObject[];
+  };
+  item_variation_data?: {
+    name?: string;
+    sellable?: boolean;
+    price_money?: SquareMoney;
+    location_overrides?: Array<{
+      location_id?: string;
+      sold_out?: boolean;
+      track_inventory?: boolean;
+    }>;
+  };
+};
+
+type SquareListCatalogResponse = {
+  objects?: CatalogObject[];
+  cursor?: string;
+  errors?: Array<{ detail?: string; code?: string }>;
+};
+
+type CheckoutLine = {
+  variationId: string;
+  quantity: number;
+  modifierIds: string[];
+};
+
+type CheckoutCustomer = {
+  name: string;
+  phone: string;
+  note?: string;
+};
+
+const fallbackItems: SquareMenuItem[] = [
+  {
+    id: 'fallback-cold-brew',
+    name: 'Cold Brew',
+    description: 'Our smooth house cold brew, steeped for 16 hours.',
+    category: 'basics',
+    categoryLabel: 'The Basics',
+    imageUrl: null,
+    variations: [{ id: 'fallback-cold-brew-variation', name: 'Regular', priceAmount: 600, priceLabel: '$6.00' }],
+    modifierGroups: [],
+  },
+  {
+    id: 'fallback-matcha-latte',
+    name: 'Matcha Latte',
+    description: 'Matcha, simple syrup, and your choice of milk.',
+    category: 'basics',
+    categoryLabel: 'The Basics',
+    imageUrl: null,
+    variations: [{ id: 'fallback-matcha-latte-variation', name: 'Regular', priceAmount: 650, priceLabel: '$6.50' }],
+    modifierGroups: [],
+  },
+  {
+    id: 'fallback-brown-bear',
+    name: 'Brown Bear Latte',
+    description: 'Brown sugar honey syrup with matcha or cold brew.',
+    category: 'specialty',
+    categoryLabel: 'Specialty Drinks',
+    imageUrl: null,
+    variations: [{ id: 'fallback-brown-bear-variation', name: 'Regular', priceAmount: 700, priceLabel: '$7.00' }],
+    modifierGroups: [],
+  },
+  {
+    id: 'fallback-mexicano',
+    name: 'Mexicano Latte',
+    description: 'Cinnamon and sugar cane syrup with matcha or cold brew.',
+    category: 'specialty',
+    categoryLabel: 'Specialty Drinks',
+    imageUrl: null,
+    variations: [{ id: 'fallback-mexicano-variation', name: 'Regular', priceAmount: 700, priceLabel: '$7.00' }],
+    modifierGroups: [],
+  },
+  {
+    id: 'fallback-sugar-free-bear',
+    name: 'Sugar Free Bear',
+    description: 'Sugar-free vanilla cinnamon with matcha or cold brew.',
+    category: 'specialty',
+    categoryLabel: 'Specialty Drinks',
+    imageUrl: null,
+    variations: [{ id: 'fallback-sugar-free-bear-variation', name: 'Regular', priceAmount: 725, priceLabel: '$7.25' }],
+    modifierGroups: [],
+  },
+  {
+    id: 'fallback-mellow-marsh',
+    name: 'Mellow Marsh Latte',
+    description: 'Marshmallow fluff, vanilla, milk, and cold foam with matcha or cold brew.',
+    category: 'foam',
+    categoryLabel: 'Cold Foam Lovers',
+    imageUrl: null,
+    variations: [{ id: 'fallback-mellow-marsh-variation', name: 'Regular', priceAmount: 800, priceLabel: '$8.00' }],
+    modifierGroups: [],
+  },
+  {
+    id: 'fallback-croissant',
+    name: 'Croissant',
+    description: 'Fresh flavors available while supplies last.',
+    category: 'food',
+    categoryLabel: 'Food Items',
+    imageUrl: null,
+    variations: [{ id: 'fallback-croissant-variation', name: 'Regular', priceAmount: 500, priceLabel: '$5.00' }],
+    modifierGroups: [],
+  },
+];
+
+function getSquareConfig() {
+  const accessToken = process.env.SQUARE_ACCESS_TOKEN;
+  const locationId = process.env.SQUARE_LOCATION_ID;
+  const environment = process.env.SQUARE_ENVIRONMENT === 'sandbox' ? 'sandbox' : 'production';
+
+  if (!accessToken || !locationId) return null;
+
+  return {
+    accessToken,
+    locationId,
+    baseUrl:
+      environment === 'sandbox'
+        ? 'https://connect.squareupsandbox.com'
+        : 'https://connect.squareup.com',
+  };
+}
+
+function moneyLabel(amount = 0) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(amount / 100);
+}
+
+function stripHtml(value = '') {
+  return value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function inferCategory(name: string, squareCategory = ''): MenuCategoryId {
+  const normalizedName = name.toLowerCase();
+  const normalizedCategory = squareCategory.toLowerCase();
+
+  if (normalizedName.includes('croissant') || normalizedCategory.includes('food')) return 'food';
+  if (normalizedName.includes('mellow marsh') || normalizedName.includes('cold foam')) return 'foam';
+  if (
+    normalizedName === 'cold brew' ||
+    normalizedName === 'cold brew latte' ||
+    normalizedName === 'matcha latte'
+  ) {
+    return 'basics';
+  }
+  return 'specialty';
+}
+
+function categoryLabel(category: MenuCategoryId) {
+  if (category === 'basics') return 'The Basics';
+  if (category === 'foam') return 'Cold Foam Lovers';
+  if (category === 'food') return 'Food Items';
+  return 'Specialty Drinks';
+}
+
+function objectIsAtLocation(object: CatalogObject, locationId: string) {
+  if (object.present_at_all_locations !== false) return true;
+  return object.present_at_location_ids?.includes(locationId) ?? false;
+}
+
+async function listCatalogObjects(required = false) {
+  const config = getSquareConfig();
+  if (!config) {
+    if (required) throw new Error('Square ordering has not been configured yet.');
+    return null;
+  }
+
+  const objects: CatalogObject[] = [];
+  let cursor = '';
+
+  for (let page = 0; page < 10; page += 1) {
+    const params = new URLSearchParams({
+      types: 'ITEM,CATEGORY,MODIFIER_LIST,IMAGE',
+    });
+    if (cursor) params.set('cursor', cursor);
+
+    const response = await fetch(`${config.baseUrl}/v2/catalog/list?${params}`, {
+      headers: {
+        Authorization: `Bearer ${config.accessToken}`,
+        'Content-Type': 'application/json',
+        'Square-Version': SQUARE_API_VERSION,
+      },
+      cache: 'no-store',
+    });
+
+    const payload = (await response.json()) as SquareListCatalogResponse;
+    if (!response.ok) {
+      const detail = payload.errors?.[0]?.detail || 'Square could not load the menu.';
+      if (required) throw new Error(detail);
+      return null;
+    }
+
+    objects.push(...(payload.objects ?? []));
+    cursor = payload.cursor ?? '';
+    if (!cursor) break;
+  }
+
+  return { config, objects };
+}
+
+export async function getSquareCatalog(options: { required?: boolean } = {}): Promise<SquareCatalogResult> {
+  const catalog = await listCatalogObjects(options.required);
+  if (!catalog) {
+    return { configured: false, items: fallbackItems };
+  }
+
+  const categories = new Map(
+    catalog.objects
+      .filter((object) => object.type === 'CATEGORY')
+      .map((object) => [object.id, object.category_data?.name ?? '']),
+  );
+  const images = new Map(
+    catalog.objects
+      .filter((object) => object.type === 'IMAGE')
+      .map((object) => [object.id, object.image_data?.url ?? '']),
+  );
+  const modifierLists = new Map(
+    catalog.objects
+      .filter((object) => object.type === 'MODIFIER_LIST')
+      .map((object) => [object.id, object]),
+  );
+
+  const items = catalog.objects
+    .filter(
+      (object) =>
+        object.type === 'ITEM' &&
+        !object.is_deleted &&
+        object.item_data?.name &&
+        objectIsAtLocation(object, catalog.config.locationId),
+    )
+    .filter((object) => object.item_data?.name?.toLowerCase() !== 'milk only')
+    .map((object): SquareMenuItem | null => {
+      const itemData = object.item_data!;
+      const variations = (itemData.variations ?? [])
+        .filter((variation) => {
+          if (variation.is_deleted || variation.item_variation_data?.sellable === false) return false;
+          const locationOverride = variation.item_variation_data?.location_overrides?.find(
+            (override) => override.location_id === catalog.config.locationId,
+          );
+          return !locationOverride?.sold_out;
+        })
+        .map((variation) => {
+          const amount = variation.item_variation_data?.price_money?.amount ?? 0;
+          return {
+            id: variation.id,
+            name: variation.item_variation_data?.name || 'Regular',
+            priceAmount: amount,
+            priceLabel: moneyLabel(amount),
+          };
+        });
+
+      if (!variations.length) return null;
+
+      const modifierGroups = (itemData.modifier_list_info ?? [])
+        .map((info): SquareMenuModifierGroup | null => {
+          if (!info.modifier_list_id) return null;
+          const list = modifierLists.get(info.modifier_list_id);
+          if (!list?.modifier_list_data) return null;
+
+          const options = (list.modifier_list_data.modifiers ?? [])
+            .filter((modifier) => !modifier.is_deleted && modifier.modifier_data?.name)
+            .map((modifier) => {
+              const amount = modifier.modifier_data?.price_money?.amount ?? 0;
+              return {
+                id: modifier.id,
+                name: modifier.modifier_data?.name ?? 'Option',
+                priceAmount: amount,
+                priceLabel: amount ? `+${moneyLabel(amount)}` : 'Included',
+              };
+            });
+
+          if (!options.length) return null;
+
+          return {
+            id: list.id,
+            name: list.modifier_list_data.name || 'Customize',
+            selectionType: list.modifier_list_data.selection_type || 'MULTIPLE',
+            minSelected: info.min_selected_modifiers ?? 0,
+            maxSelected: info.max_selected_modifiers ?? null,
+            options,
+          };
+        })
+        .filter((group): group is SquareMenuModifierGroup => Boolean(group));
+
+      const firstCategoryId = itemData.categories?.[0]?.id || itemData.category_id || '';
+      const category = inferCategory(itemData.name!, categories.get(firstCategoryId) ?? '');
+      const imageId = itemData.image_ids?.[0];
+
+      return {
+        id: object.id,
+        name: itemData.name!,
+        description: stripHtml(itemData.description_html || itemData.description || ''),
+        category,
+        categoryLabel: categoryLabel(category),
+        imageUrl: imageId ? images.get(imageId) || null : null,
+        variations,
+        modifierGroups,
+      };
+    })
+    .filter((item): item is SquareMenuItem => Boolean(item))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  return {
+    configured: true,
+    items: items.length ? items : fallbackItems,
+  };
+}
+
+function normalizePhone(phone: string) {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 10) return `+1${digits}`;
+  if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
+  throw new Error('Enter a valid 10-digit phone number.');
+}
+
+function productionUrl() {
+  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '');
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
+  return 'https://www.damecoffeeco.com';
+}
+
+export async function createSquarePaymentLink(
+  lines: CheckoutLine[],
+  customer: CheckoutCustomer,
+  waitMinutes: number,
+) {
+  const catalog = await getSquareCatalog({ required: true });
+  const config = getSquareConfig();
+  if (!config || !catalog.configured) throw new Error('Square ordering has not been configured yet.');
+
+  const variationItems = new Map(
+    catalog.items.flatMap((item) =>
+      item.variations.map((variation) => [variation.id, item] as const),
+    ),
+  );
+
+  const lineItems = lines.map((line) => {
+    const item = variationItems.get(line.variationId);
+    if (!item) throw new Error('One item is no longer available.');
+    if (!Number.isInteger(line.quantity) || line.quantity < 1 || line.quantity > 12) {
+      throw new Error('Choose a quantity between 1 and 12.');
+    }
+
+    const validModifiers = new Set(
+      item.modifierGroups.flatMap((group) => group.options.map((option) => option.id)),
+    );
+    if (line.modifierIds.some((id) => !validModifiers.has(id))) {
+      throw new Error('One customization is no longer available.');
+    }
+
+    for (const group of item.modifierGroups) {
+      const groupOptionIds = new Set(group.options.map((option) => option.id));
+      const selectedCount = line.modifierIds.filter((id) => groupOptionIds.has(id)).length;
+      if (selectedCount < group.minSelected) {
+        throw new Error(`Choose the required ${group.name} option.`);
+      }
+      if (group.maxSelected !== null && selectedCount > group.maxSelected) {
+        throw new Error(`Too many ${group.name} options were selected.`);
+      }
+    }
+
+    return {
+      quantity: String(line.quantity),
+      catalog_object_id: line.variationId,
+      modifiers: line.modifierIds.map((id) => ({
+        catalog_object_id: id,
+        quantity: '1',
+      })),
+    };
+  });
+
+  const response = await fetch(`${config.baseUrl}/v2/online-checkout/payment-links`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${config.accessToken}`,
+      'Content-Type': 'application/json',
+      'Square-Version': SQUARE_API_VERSION,
+    },
+    body: JSON.stringify({
+      idempotency_key: crypto.randomUUID(),
+      description: 'Dame Coffee pickup order',
+      order: {
+        location_id: config.locationId,
+        line_items: lineItems,
+        pricing_options: {
+          auto_apply_discounts: true,
+          auto_apply_taxes: true,
+        },
+        fulfillments: [
+          {
+            type: 'PICKUP',
+            state: 'PROPOSED',
+            pickup_details: {
+              recipient: {
+                display_name: customer.name.trim().slice(0, 255),
+                phone_number: normalizePhone(customer.phone),
+              },
+              schedule_type: 'ASAP',
+              prep_time_duration: `PT${Math.max(1, Math.min(waitMinutes, 120))}M`,
+              note: customer.note?.trim().slice(0, 500) || undefined,
+            },
+          },
+        ],
+      },
+      checkout_options: {
+        allow_tipping: true,
+        ask_for_shipping_address: false,
+        merchant_support_email: 'info@damecoffeeco.com',
+        redirect_url: `${productionUrl()}/order/complete`,
+      },
+      payment_note: `Dame Coffee pickup for ${customer.name.trim().slice(0, 120)}`,
+    }),
+    cache: 'no-store',
+  });
+
+  const payload = (await response.json()) as {
+    payment_link?: { url?: string };
+    errors?: Array<{ detail?: string }>;
+  };
+
+  if (!response.ok || !payload.payment_link?.url) {
+    throw new Error(payload.errors?.[0]?.detail || 'Square could not start checkout.');
+  }
+
+  return payload.payment_link.url;
+}

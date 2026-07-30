@@ -115,8 +115,8 @@ export default function Home() {
             <a className="dame-button" href={location.mapsUrl} target="_blank" rel="noreferrer">
               Get directions
             </a>
-            <Link className="dame-button dame-button-outline" href="/menu">
-              View menu
+            <Link className="dame-button dame-button-outline" href={orderingAvailable ? '/order' : '/menu'}>
+              {orderingAvailable ? 'Order pickup' : 'View menu'}
             </Link>
           </div>
         </article>
