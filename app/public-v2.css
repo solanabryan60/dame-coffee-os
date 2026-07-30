@@ -31,6 +31,12 @@
   backdrop-filter: none;
 }
 
+.dame-header.menu-open {
+  border-bottom-color: transparent;
+  background: transparent;
+  backdrop-filter: none;
+}
+
 .dame-logo {
   position: relative;
   z-index: 102;
