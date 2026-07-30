@@ -119,6 +119,16 @@ export type SquareCustomer = {
   phone_number?: string;
 };
 
+type SquareOrder = {
+  line_items?: Array<{
+    catalog_object_id?: string;
+  }>;
+  total_money?: SquareMoney;
+  total_tax_money?: SquareMoney;
+  total_tip_money?: SquareMoney;
+  total_service_charge_money?: SquareMoney;
+};
+
 const fallbackItems: SquareMenuItem[] = [
   {
     id: 'fallback-cold-brew',
@@ -439,6 +449,42 @@ export async function getSquareCustomer(customerId: string) {
     { allowNotFound: true },
   );
   return payload?.customer ?? null;
+}
+
+export async function getSquareOrderRewardContext(orderId: string) {
+  const payload = await squareRequest<{ order?: SquareOrder }>(
+    `/v2/orders/${encodeURIComponent(orderId)}`,
+    {},
+    { allowNotFound: true },
+  );
+  const order = payload?.order;
+  if (!order) return null;
+
+  const total = order.total_money?.amount ?? 0;
+  const tax = order.total_tax_money?.amount ?? 0;
+  const tip = order.total_tip_money?.amount ?? 0;
+  const serviceCharges = order.total_service_charge_money?.amount ?? 0;
+  const eligibleAmountCents = Math.max(0, total - tax - tip - serviceCharges);
+  const variationIds = new Set(
+    (order.line_items ?? [])
+      .map((line) => line.catalog_object_id)
+      .filter((id): id is string => Boolean(id)),
+  );
+  const categories = new Set<MenuCategoryId>();
+
+  if (variationIds.size) {
+    const catalog = await getSquareCatalog({ required: true });
+    for (const item of catalog.items) {
+      if (item.variations.some((variation) => variationIds.has(variation.id))) {
+        categories.add(item.category);
+      }
+    }
+  }
+
+  return {
+    eligibleAmountCents,
+    categories: [...categories],
+  };
 }
 
 function productionUrl() {

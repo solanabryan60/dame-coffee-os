@@ -39,6 +39,7 @@ export default function RewardsDashboard() {
   const [workingReward, setWorkingReward] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [referralMessage, setReferralMessage] = useState('');
 
   const loadAccount = useCallback(async () => {
     setLoading(true);
@@ -161,6 +162,29 @@ export default function RewardsDashboard() {
     window.location.assign('/rewards');
   }
 
+  async function shareReferral() {
+    if (!account?.profile.referral_code) return;
+    const referralUrl = `${window.location.origin}/rewards?ref=${account.profile.referral_code}#join`;
+    const shareData = {
+      title: 'Join Dame Rewards',
+      text: 'Join me at Dame Coffee. Your first eligible purchase brings us both closer to something special.',
+      url: referralUrl,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        setReferralMessage('Referral link shared.');
+        return;
+      }
+      await navigator.clipboard.writeText(referralUrl);
+      setReferralMessage('Referral link copied.');
+    } catch (shareError) {
+      if (shareError instanceof DOMException && shareError.name === 'AbortError') return;
+      setReferralMessage('Copy the code below and send it to your friend.');
+    }
+  }
+
   if (loading) {
     return (
       <section className="dame-account-loading">
@@ -210,6 +234,20 @@ export default function RewardsDashboard() {
         </div>
       </section>
 
+      {rewards.activePromotions.length ? (
+        <section className="dame-promotion-banner" aria-label="Current points promotion">
+          <span>{rewards.activePromotions[0].multiplier}× points</span>
+          <div>
+            <strong>{rewards.activePromotions[0].name}</strong>
+            <p>
+              {rewards.activePromotions[0].scope === 'all'
+                ? 'Every eligible Dame purchase is earning extra love right now.'
+                : 'Selected Dame favorites are earning extra love right now.'}
+            </p>
+          </div>
+        </section>
+      ) : null}
+
       <section className="dame-account-body">
         <div className="dame-account-main">
           {rewards.pendingRedemptions.length ? (
@@ -236,6 +274,27 @@ export default function RewardsDashboard() {
               </div>
             </section>
           ) : null}
+
+          <section className="dame-referral-card" aria-labelledby="dame-referral-title">
+            <div>
+              <p className="dame-kicker">Share the Dame love</p>
+              <h2 id="dame-referral-title">A little love for both of you.</h2>
+              <p>
+                Your friend earns 250 points after their first eligible $10
+                purchase. You earn 500 points—up to ten successful referrals
+                each month.
+              </p>
+            </div>
+            <div className="dame-referral-code">
+              <span>Your referral code</span>
+              <strong>{profile.referral_code}</strong>
+              <button className="dame-button" type="button" onClick={shareReferral}>
+                Share my link
+              </button>
+              <small>{rewards.qualifiedReferrals} successful referral{rewards.qualifiedReferrals === 1 ? '' : 's'}</small>
+              {referralMessage ? <p role="status">{referralMessage}</p> : null}
+            </div>
+          </section>
 
           <section className="dame-account-rewards" aria-labelledby="your-rewards">
             <header>

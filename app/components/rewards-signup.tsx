@@ -14,7 +14,11 @@ import {
 
 type Mode = 'join' | 'signin';
 
-export default function RewardsSignup() {
+export default function RewardsSignup({
+  initialReferralCode = '',
+}: {
+  initialReferralCode?: string;
+}) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>('join');
   const [firstName, setFirstName] = useState('');
@@ -22,6 +26,7 @@ export default function RewardsSignup() {
   const [phone, setPhone] = useState('');
   const [birthday, setBirthday] = useState('');
   const [password, setPassword] = useState('');
+  const [referralCode, setReferralCode] = useState(initialReferralCode);
   const [marketingOptIn, setMarketingOptIn] = useState(true);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -50,6 +55,9 @@ export default function RewardsSignup() {
       if (password.length < 8) {
         throw new Error('Choose a password with at least 8 characters.');
       }
+      if (referralCode && !/^[A-Z0-9]{8}$/.test(referralCode)) {
+        throw new Error('Enter the complete eight-character referral code.');
+      }
       const result = await signUpCustomer({
         firstName,
         email,
@@ -57,6 +65,7 @@ export default function RewardsSignup() {
         birthday,
         password,
         marketingOptIn,
+        referralCode,
       });
 
       if (result.access_token && result.refresh_token && result.expires_in) {
@@ -148,6 +157,27 @@ export default function RewardsSignup() {
                 onChange={(event) => setBirthday(event.target.value)}
                 autoComplete="bday"
               />
+            </div>
+            <div>
+              <label htmlFor="rewards-referral">Referral code · optional</label>
+              <input
+                id="rewards-referral"
+                value={referralCode}
+                onChange={(event) =>
+                  setReferralCode(
+                    event.target.value
+                      .toUpperCase()
+                      .replace(/[^A-Z0-9]/g, '')
+                      .slice(0, 8),
+                  )
+                }
+                placeholder="Eight-character code"
+                autoCapitalize="characters"
+                maxLength={8}
+              />
+              {initialReferralCode ? (
+                <small>Your friend&apos;s Dame referral is applied.</small>
+              ) : null}
             </div>
           </>
         ) : null}

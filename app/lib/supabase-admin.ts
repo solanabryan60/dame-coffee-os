@@ -6,6 +6,17 @@ type ProfileMatch = {
 
 type LedgerMatch = {
   user_id: string;
+  points_delta?: number;
+  amount_cents?: number | null;
+  multiplier?: number;
+};
+
+export type ActiveRewardPromotion = {
+  id: string;
+  name: string;
+  multiplier: number;
+  scope: 'all' | 'menu_categories';
+  eligible_categories: string[];
 };
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -78,6 +89,36 @@ export async function findRewardUserByPayment(squarePaymentId: string) {
   return rows[0]?.user_id ?? null;
 }
 
+export async function findRewardPurchaseByPayment(squarePaymentId: string) {
+  const [rows, refunds] = await Promise.all([
+    adminRequest<LedgerMatch[]>(
+      `/reward_ledger?source_type=eq.square_payment&source_id=eq.${encodeURIComponent(squarePaymentId)}&select=user_id,points_delta,amount_cents,multiplier&limit=1`,
+    ),
+    adminRequest<LedgerMatch[]>(
+      `/reward_ledger?source_type=eq.square_refund&related_source_id=eq.${encodeURIComponent(squarePaymentId)}&select=points_delta,amount_cents`,
+    ),
+  ]);
+  const purchase = rows[0];
+  if (!purchase?.user_id || !purchase.points_delta || !purchase.amount_cents) return null;
+  return {
+    userId: purchase.user_id,
+    points: purchase.points_delta,
+    amountCents: purchase.amount_cents,
+    multiplier: purchase.multiplier ?? 1,
+    refundedPoints: refunds.reduce(
+      (total, refund) => total + Math.abs(refund.points_delta ?? 0),
+      0,
+    ),
+  };
+}
+
+export async function getActiveRewardPromotions() {
+  const now = encodeURIComponent(new Date().toISOString());
+  return adminRequest<ActiveRewardPromotion[]>(
+    `/reward_promotions?active=is.true&starts_at=lte.${now}&ends_at=gt.${now}&select=id,name,multiplier,scope,eligible_categories&order=multiplier.desc,starts_at.asc`,
+  );
+}
+
 export async function recordDameSquareEvent(input: {
   userId: string;
   squareId: string;
@@ -85,6 +126,8 @@ export async function recordDameSquareEvent(input: {
   points: number;
   amountCents: number;
   description: string;
+  multiplier: number;
+  relatedSquareId?: string | null;
 }) {
   return adminRequest<{
     duplicate: boolean;
@@ -100,6 +143,8 @@ export async function recordDameSquareEvent(input: {
       p_points: input.points,
       p_amount_cents: input.amountCents,
       p_description: input.description,
+      p_multiplier: input.multiplier,
+      p_related_square_id: input.relatedSquareId ?? null,
     }),
   });
 }

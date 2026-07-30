@@ -901,6 +901,12 @@
   line-height: 1.55;
 }
 
+.dame-rewards-form small {
+  color: var(--dame-red);
+  font-size: 11px;
+  font-weight: 800;
+}
+
 .dame-rewards-access {
   display: grid;
   gap: 16px;
@@ -1119,6 +1125,45 @@
   background: var(--warm-white);
 }
 
+.dame-promotion-banner {
+  padding: 24px clamp(22px, 7vw, 110px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(20px, 4vw, 52px);
+  background: var(--ink);
+  color: white;
+}
+
+.dame-promotion-banner > span {
+  flex: 0 0 auto;
+  color: var(--cream);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(42px, 5vw, 68px);
+  font-weight: 500;
+  letter-spacing: -0.055em;
+  line-height: 0.9;
+}
+
+.dame-promotion-banner strong,
+.dame-promotion-banner p {
+  display: block;
+  margin: 0;
+}
+
+.dame-promotion-banner strong {
+  margin-bottom: 4px;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.dame-promotion-banner p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
 .dame-account-main header h2 {
   max-width: 720px;
   margin: 18px 0 clamp(42px, 6vw, 70px);
@@ -1230,6 +1275,78 @@
   margin: -48px 0 42px;
   color: var(--muted);
   line-height: 1.65;
+}
+
+.dame-referral-card {
+  margin-bottom: 78px;
+  padding: clamp(30px, 5vw, 56px);
+  border-radius: var(--radius-lg);
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(250px, 0.75fr);
+  gap: clamp(32px, 6vw, 74px);
+  align-items: end;
+  background: var(--dame-red);
+  color: white;
+}
+
+.dame-referral-card h2 {
+  max-width: 580px;
+  margin: 18px 0 18px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(42px, 5.5vw, 70px);
+  font-weight: 500;
+  letter-spacing: -0.055em;
+  line-height: 0.94;
+}
+
+.dame-referral-card > div:first-child > p:last-child {
+  max-width: 560px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.74);
+  line-height: 1.65;
+}
+
+.dame-referral-code {
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.dame-referral-code > span,
+.dame-referral-code > small {
+  display: block;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.dame-referral-code > strong {
+  margin: 12px 0 20px;
+  display: block;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(36px, 4vw, 52px);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+.dame-referral-code .dame-button {
+  width: 100%;
+  border-color: white;
+  background: white;
+  color: var(--dame-red);
+}
+
+.dame-referral-code > small {
+  margin-top: 18px;
+}
+
+.dame-referral-code > p {
+  margin: 12px 0 0;
+  color: white;
+  font-size: 12px;
 }
 
 .dame-pending-rewards {
@@ -1723,6 +1840,10 @@
     position: static;
   }
 
+  .dame-referral-card {
+    grid-template-columns: 1fr;
+  }
+
   .dame-info {
     grid-template-columns: 0.8fr 1.2fr;
   }
@@ -2114,6 +2235,18 @@
 
   .dame-account-body {
     padding: 76px 20px;
+  }
+
+  .dame-promotion-banner {
+    padding: 24px 20px;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .dame-referral-card {
+    padding: 30px 22px;
+    border-radius: 28px;
   }
 
   .dame-points-card,

@@ -10,8 +10,12 @@ import {
 } from '../lib/supabase-rest';
 import {
   AdminRewardLookup,
+  createRewardPromotion,
+  listRewardPromotions,
   lookupDameReward,
   redeemDameReward,
+  RewardPromotion,
+  setRewardPromotionActive,
 } from '../lib/dame-rewards';
 
 const TOKEN_KEY = 'dame_admin_access_token';
@@ -27,6 +31,18 @@ export default function AdminDashboard() {
   const [rewardMessage, setRewardMessage] = useState('');
   const [rewardError, setRewardError] = useState('');
   const [checkingReward, setCheckingReward] = useState(false);
+  const [promotions, setPromotions] = useState<RewardPromotion[]>([]);
+  const [promotionName, setPromotionName] = useState('');
+  const [promotionStartsAt, setPromotionStartsAt] = useState('');
+  const [promotionEndsAt, setPromotionEndsAt] = useState('');
+  const [promotionScope, setPromotionScope] =
+    useState<RewardPromotion['scope']>('all');
+  const [promotionCategories, setPromotionCategories] = useState<
+    RewardPromotion['eligible_categories']
+  >([]);
+  const [promotionMessage, setPromotionMessage] = useState('');
+  const [promotionError, setPromotionError] = useState('');
+  const [savingPromotion, setSavingPromotion] = useState(false);
 
   useEffect(() => {
     const token = window.localStorage.getItem(TOKEN_KEY);
@@ -35,8 +51,14 @@ export default function AdminDashboard() {
       return;
     }
 
-    readSiteSettings()
-      .then(setSettings)
+    Promise.all([
+      readSiteSettings(),
+      listRewardPromotions(token),
+    ])
+      .then(([siteSettings, rewardPromotions]) => {
+        setSettings(siteSettings);
+        setPromotions(rewardPromotions);
+      })
       .catch((loadError) => {
         setError(loadError instanceof Error ? loadError.message : 'Could not load settings.');
       });
@@ -121,6 +143,105 @@ export default function AdminDashboard() {
       );
     } finally {
       setCheckingReward(false);
+    }
+  }
+
+  function togglePromotionCategory(
+    category: RewardPromotion['eligible_categories'][number],
+  ) {
+    setPromotionCategories((current) =>
+      current.includes(category)
+        ? current.filter((item) => item !== category)
+        : [...current, category],
+    );
+  }
+
+  async function addPromotion(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const token = window.localStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      router.replace('/admin/login');
+      return;
+    }
+
+    setPromotionMessage('');
+    setPromotionError('');
+    setSavingPromotion(true);
+    try {
+      if (
+        promotionScope === 'menu_categories' &&
+        promotionCategories.length === 0
+      ) {
+        throw new Error('Choose at least one menu category for this campaign.');
+      }
+      const startsAt = new Date(promotionStartsAt);
+      const endsAt = new Date(promotionEndsAt);
+      if (
+        Number.isNaN(startsAt.getTime()) ||
+        Number.isNaN(endsAt.getTime()) ||
+        endsAt <= startsAt
+      ) {
+        throw new Error('Choose an ending time after the campaign begins.');
+      }
+
+      const promotion = await createRewardPromotion(token, {
+        name: promotionName.trim(),
+        scope: promotionScope,
+        eligible_categories:
+          promotionScope === 'all' ? [] : promotionCategories,
+        starts_at: startsAt.toISOString(),
+        ends_at: endsAt.toISOString(),
+      });
+      setPromotions((current) => [promotion, ...current]);
+      setPromotionName('');
+      setPromotionStartsAt('');
+      setPromotionEndsAt('');
+      setPromotionScope('all');
+      setPromotionCategories([]);
+      setPromotionMessage('Your 2× points campaign is scheduled.');
+    } catch (promotionFailure) {
+      setPromotionError(
+        promotionFailure instanceof Error
+          ? promotionFailure.message
+          : 'Could not schedule that campaign.',
+      );
+    } finally {
+      setSavingPromotion(false);
+    }
+  }
+
+  async function togglePromotion(promotion: RewardPromotion) {
+    const token = window.localStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      router.replace('/admin/login');
+      return;
+    }
+
+    setPromotionMessage('');
+    setPromotionError('');
+    setSavingPromotion(true);
+    try {
+      const updated = await setRewardPromotionActive(
+        token,
+        promotion.id,
+        !promotion.active,
+      );
+      setPromotions((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item)),
+      );
+      setPromotionMessage(
+        updated.active
+          ? `${updated.name} is active.`
+          : `${updated.name} is paused.`,
+      );
+    } catch (promotionFailure) {
+      setPromotionError(
+        promotionFailure instanceof Error
+          ? promotionFailure.message
+          : 'Could not update that campaign.',
+      );
+    } finally {
+      setSavingPromotion(false);
     }
   }
 
@@ -291,6 +412,136 @@ export default function AdminDashboard() {
 
         {rewardMessage ? <p className="admin-success">{rewardMessage}</p> : null}
         {rewardError ? <p className="admin-error">{rewardError}</p> : null}
+      </section>
+
+      <section className="admin-card admin-rewards-card">
+        <div className="admin-section-heading">
+          <div>
+            <p className="eyebrow">Points campaigns</p>
+            <h2>Schedule a 2× moment</h2>
+          </div>
+          <p>
+            Choose a date and whether every purchase or selected menu
+            categories earn double points. Overlapping campaigns never stack.
+          </p>
+        </div>
+
+        <form className="admin-form admin-grid" onSubmit={addPromotion}>
+          <label className="admin-wide">
+            Campaign name
+            <input
+              value={promotionName}
+              onChange={(event) => setPromotionName(event.target.value)}
+              placeholder="Double Points Saturday"
+              maxLength={80}
+              required
+            />
+          </label>
+          <label>
+            Begins
+            <input
+              type="datetime-local"
+              value={promotionStartsAt}
+              onChange={(event) => setPromotionStartsAt(event.target.value)}
+              required
+            />
+          </label>
+          <label>
+            Ends
+            <input
+              type="datetime-local"
+              value={promotionEndsAt}
+              onChange={(event) => setPromotionEndsAt(event.target.value)}
+              required
+            />
+          </label>
+          <label className="admin-wide">
+            Eligible purchases
+            <select
+              value={promotionScope}
+              onChange={(event) =>
+                setPromotionScope(event.target.value as RewardPromotion['scope'])
+              }
+            >
+              <option value="all">Every eligible purchase</option>
+              <option value="menu_categories">Selected menu categories</option>
+            </select>
+          </label>
+
+          {promotionScope === 'menu_categories' ? (
+            <fieldset className="admin-category-options admin-wide">
+              <legend>Choose the categories</legend>
+              {[
+                ['basics', 'The Basics'],
+                ['specialty', 'Specialty Drinks'],
+                ['foam', 'Cold Foam Lovers'],
+                ['food', 'Food Items'],
+              ].map(([value, label]) => (
+                <label key={value}>
+                  <input
+                    type="checkbox"
+                    checked={promotionCategories.includes(
+                      value as RewardPromotion['eligible_categories'][number],
+                    )}
+                    onChange={() =>
+                      togglePromotionCategory(
+                        value as RewardPromotion['eligible_categories'][number],
+                      )
+                    }
+                  />
+                  <span>{label}</span>
+                </label>
+              ))}
+            </fieldset>
+          ) : null}
+
+          <button
+            className="pill solid admin-wide"
+            type="submit"
+            disabled={savingPromotion}
+          >
+            {savingPromotion ? 'Scheduling…' : 'Schedule 2× points'}
+          </button>
+        </form>
+
+        {promotions.length ? (
+          <div className="admin-promotion-list">
+            {promotions.map((promotion) => (
+              <article key={promotion.id}>
+                <div>
+                  <span>{promotion.multiplier}× points</span>
+                  <h3>{promotion.name}</h3>
+                  <p>
+                    {new Date(promotion.starts_at).toLocaleString()} –{' '}
+                    {new Date(promotion.ends_at).toLocaleString()}
+                  </p>
+                  <small>
+                    {promotion.scope === 'all'
+                      ? 'Every eligible purchase'
+                      : promotion.eligible_categories.join(', ')}
+                  </small>
+                </div>
+                <button
+                  className={`toggle ${promotion.active ? 'on' : ''}`}
+                  type="button"
+                  aria-label={`${promotion.active ? 'Pause' : 'Activate'} ${promotion.name}`}
+                  aria-pressed={promotion.active}
+                  disabled={savingPromotion}
+                  onClick={() => togglePromotion(promotion)}
+                >
+                  <i />
+                </button>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="admin-empty-state">No 2× campaigns scheduled yet.</p>
+        )}
+
+        {promotionMessage ? (
+          <p className="admin-success">{promotionMessage}</p>
+        ) : null}
+        {promotionError ? <p className="admin-error">{promotionError}</p> : null}
       </section>
     </main>
   );

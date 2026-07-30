@@ -1,11 +1,16 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import { getSquareCustomer } from '@/app/lib/square';
+import {
+  getSquareCustomer,
+  getSquareOrderRewardContext,
+} from '@/app/lib/square';
 import {
   findRewardUserByContact,
-  findRewardUserByPayment,
+  findRewardPurchaseByPayment,
   findRewardUserBySquareOrder,
+  getActiveRewardPromotions,
   hasDameRewardsServerConfig,
   recordDameSquareEvent,
+  type ActiveRewardPromotion,
 } from '@/app/lib/supabase-admin';
 
 export const runtime = 'nodejs';
@@ -80,24 +85,56 @@ async function resolvePaymentUser(payment: NonNullable<
   return null;
 }
 
+function matchingPromotion(
+  promotions: ActiveRewardPromotion[],
+  categories: string[],
+) {
+  const orderCategories = new Set(categories);
+  return promotions.find((promotion) => {
+    if (promotion.scope === 'all') return true;
+    return promotion.eligible_categories.some((category) =>
+      orderCategories.has(category),
+    );
+  });
+}
+
 async function handlePayment(event: SquareWebhookEvent) {
   const payment = event.data?.object?.payment;
   if (!payment?.id || payment.status !== 'COMPLETED') return;
 
-  const amountCents = payment.amount_money?.amount ?? 0;
-  const points = Math.floor(amountCents / 100);
-  if (amountCents <= 0 || points <= 0) return;
+  const paymentAmountCents = payment.amount_money?.amount ?? 0;
+  if (paymentAmountCents <= 0) return;
 
   const userId = await resolvePaymentUser(payment);
   if (!userId) return;
+
+  const [orderContext, promotions] = await Promise.all([
+    payment.order_id
+      ? getSquareOrderRewardContext(payment.order_id)
+      : Promise.resolve(null),
+    getActiveRewardPromotions(),
+  ]);
+  const eligibleAmountCents = orderContext
+    ? Math.min(paymentAmountCents, orderContext.eligibleAmountCents)
+    : paymentAmountCents;
+  const promotion = matchingPromotion(
+    promotions,
+    orderContext?.categories ?? [],
+  );
+  const multiplier = promotion?.multiplier ?? 1;
+  const points = Math.floor(eligibleAmountCents / 10) * multiplier;
+  if (eligibleAmountCents <= 0 || points <= 0) return;
 
   await recordDameSquareEvent({
     userId,
     squareId: payment.id,
     eventType: 'purchase',
     points,
-    amountCents,
-    description: `Dame purchase · ${points} point${points === 1 ? '' : 's'} earned`,
+    amountCents: eligibleAmountCents,
+    multiplier,
+    description: promotion
+      ? `Dame purchase · ${promotion.name} · ${points} points earned`
+      : `Dame purchase · ${points} points earned`,
   });
 }
 
@@ -106,18 +143,33 @@ async function handleRefund(event: SquareWebhookEvent) {
   if (!refund?.id || !refund.payment_id || refund.status !== 'COMPLETED') return;
 
   const amountCents = refund.amount_money?.amount ?? 0;
-  const points = Math.floor(amountCents / 100);
-  if (amountCents <= 0 || points <= 0) return;
+  if (amountCents <= 0) return;
 
-  const userId = await findRewardUserByPayment(refund.payment_id);
-  if (!userId) return;
+  const purchase = await findRewardPurchaseByPayment(refund.payment_id);
+  if (!purchase) return;
+  const remainingPoints = Math.max(
+    0,
+    purchase.points - purchase.refundedPoints,
+  );
+  const points = Math.min(
+    remainingPoints,
+    Math.max(
+      1,
+      Math.floor(
+        purchase.points * Math.min(1, amountCents / purchase.amountCents),
+      ),
+    ),
+  );
+  if (points <= 0) return;
 
   await recordDameSquareEvent({
-    userId,
+    userId: purchase.userId,
     squareId: refund.id,
     eventType: 'refund',
     points,
     amountCents,
+    multiplier: purchase.multiplier,
+    relatedSquareId: refund.payment_id,
     description: `Refund adjustment · ${points} point${points === 1 ? '' : 's'}`,
   });
 }

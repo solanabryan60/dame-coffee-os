@@ -1,8 +1,8 @@
-# Dame Coffee OS — Phase 4 Dame Rewards
+# Dame Coffee OS — Phase 4B Rewards Growth
 
 Dame Coffee OS is the public website, pickup-ordering experience, rewards program, and private control center for Dame Coffee.
 
-Phase 4 replaces the paid Square Loyalty add-on with a Dame-owned rewards ledger in Supabase. Square still handles the catalog, orders, pickup fulfillment, and secure payments.
+Phase 4B expands the Dame-owned rewards ledger with merchandise rewards, qualified friend referrals, and scheduled 2× points campaigns. Square still handles the catalog, orders, pickup fulfillment, and secure payments.
 
 ## What customers can do
 
@@ -10,20 +10,28 @@ Phase 4 replaces the paid Square Loyalty add-on with a Dame-owned rewards ledger
 - Browse a live menu synced from the Square Catalog
 - Place pickup orders through Square-hosted checkout
 - Create a Dame Rewards account
-- Earn 1 Dame point per eligible $1 on signed-in purchases
+- Earn 10 Dame points per eligible $1 on signed-in purchases
 - View points and recent activity
 - Exchange points for one-time reward codes
 - Cancel an unused code and return the points to their balance
+- Share a personal referral link
+- Earn 500 points after a referred friend makes a first eligible $10 purchase
+- Receive 250 welcome points when joining through a friend and completing that purchase
+- Earn extra points during active Dame 2× campaigns
 
-The initial rewards are:
+The rewards are:
 
-- 25 points — free drink add-on
-- 75 points — free food item
-- 100 points — free Dame drink
+- 200 points — free drink add-on
+- 500 points — free food item
+- 700 points — free Dame drink
+- 2,500 points — Dame T-shirt
+- 5,000 points — Dame hoodie
+- 12,500 points — 1 lb bag of Dame beans
+- 25,000 points — 5 lb bag of Dame beans
 
 ## What Dame staff can do
 
-The private `/admin` dashboard keeps all existing live-location controls and adds reward-code redemption.
+The private `/admin` dashboard keeps all existing live-location controls and adds reward-code redemption plus promotion scheduling.
 
 Staff can:
 
@@ -32,10 +40,17 @@ Staff can:
 - Enter an eight-character customer reward code
 - See the reward and customer attached to that code
 - Mark the code used after applying the matching free item in Square POS
+- Schedule a named 2× points campaign for any date and time
+- Apply a campaign to every eligible purchase or selected menu categories
+- Turn a campaign on or off without deleting it
 
 ## How points are awarded
 
-Signed-in web orders are linked to the member before Square checkout opens. When Square confirms a completed payment, the verified webhook awards points. Completed refunds reverse the matching points.
+Signed-in web orders are linked to the member before Square checkout opens. When Square confirms a completed payment, the verified webhook awards 10 points per eligible dollar. Eligible spend excludes taxes, tips, and service charges. Completed refunds reverse the matching points.
+
+If more than one points campaign is active, only the highest multiplier applies. Promotions do not stack.
+
+A friend referral qualifies only after the new member completes a first eligible purchase of at least $10. Self-referrals are blocked, each new member can qualify only once, and each member may receive up to ten referrer bonuses per calendar month. A qualifying refund reverses the referral points.
 
 For an in-person Square POS sale, points can be matched when the order has a Square customer attached whose email or mobile number matches the member’s Dame profile.
 
@@ -48,14 +63,19 @@ Apply these SQL files in order:
 1. `supabase-setup.sql`
 2. `supabase-phase3-rewards.sql`
 3. `supabase-phase4-owned-rewards.sql`
+4. `supabase-phase4b-rewards-growth.sql`
+5. `supabase-phase4c-reward-refund-tracking.sql`
+6. `supabase-phase4d-reward-policy-tuning.sql`
 
-Phase 4 creates:
+Phase 4 and 4B create:
 
 - `rewards_accounts`
 - `reward_definitions`
 - `rewards_order_links`
 - `reward_ledger`
 - `reward_redemptions`
+- `reward_referrals`
+- `reward_promotions`
 
 Every customer-facing table has Row Level Security. Members can read only their own account, order links, activity, and redemptions. Point changes and reward use are handled through protected database functions.
 
@@ -140,5 +160,9 @@ Also confirm:
 - Customers cannot see another member’s reward records
 - Repeated webhook events do not duplicate points
 - Refund events do not create negative balances
+- Referral bonuses qualify only once and respect the monthly cap
+- Qualifying refunds reverse referral bonuses
+- The highest eligible live promotion is applied only once
+- Category-limited promotions match Square Catalog categories
 - Used and expired reward codes cannot be redeemed again
 - `/admin` and `/admin/login` still work

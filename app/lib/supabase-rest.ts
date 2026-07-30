@@ -29,9 +29,11 @@ export type AuthSession = {
 export type CustomerProfile = {
   user_id: string;
   first_name: string;
+  email: string | null;
   phone: string | null;
   birthday: string | null;
   marketing_opt_in: boolean;
+  referral_code: string;
   created_at: string;
   updated_at: string;
 };
@@ -138,6 +140,7 @@ export async function signUpCustomer(input: {
   birthday?: string;
   password: string;
   marketingOptIn: boolean;
+  referralCode?: string;
 }) {
   const config = requireConfig();
   const response = await fetch(`${config.supabaseUrl}/auth/v1/signup`, {
@@ -154,6 +157,7 @@ export async function signUpCustomer(input: {
         phone: normalizeUsPhone(input.phone),
         birthday: input.birthday || null,
         marketing_opt_in: input.marketingOptIn,
+        referral_code: input.referralCode?.trim().toUpperCase() || null,
       },
     }),
   });

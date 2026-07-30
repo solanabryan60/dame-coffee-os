@@ -24,8 +24,27 @@ export type RewardRedemption = {
 export type RewardLedgerEntry = {
   id: string;
   points_delta: number;
-  event_type: 'purchase' | 'refund' | 'redemption' | 'cancellation' | 'birthday' | 'manual';
+  event_type:
+    | 'purchase'
+    | 'refund'
+    | 'redemption'
+    | 'cancellation'
+    | 'birthday'
+    | 'referral'
+    | 'manual';
   description: string;
+  created_at: string;
+};
+
+export type RewardPromotion = {
+  id: string;
+  name: string;
+  multiplier: number;
+  scope: 'all' | 'menu_categories';
+  eligible_categories: Array<'basics' | 'specialty' | 'foam' | 'food'>;
+  starts_at: string;
+  ends_at: string;
+  active: boolean;
   created_at: string;
 };
 
@@ -41,6 +60,8 @@ export type DameRewardsStatus = {
   } | null;
   pendingRedemptions: RewardRedemption[];
   activity: RewardLedgerEntry[];
+  activePromotions: RewardPromotion[];
+  qualifiedReferrals: number;
 };
 
 export type AdminRewardLookup = {
@@ -108,8 +129,16 @@ export async function getDameRewardsStatus(
   userId: string,
 ): Promise<DameRewardsStatus> {
   await rewardsRpc<number>(accessToken, 'expire_dame_rewards');
+  const now = encodeURIComponent(new Date().toISOString());
 
-  const [accounts, rewardTiers, redemptions, activity] = await Promise.all([
+  const [
+    accounts,
+    rewardTiers,
+    redemptions,
+    activity,
+    activePromotions,
+    qualifiedReferrals,
+  ] = await Promise.all([
     rewardsRequest<Array<{ points_balance: number; lifetime_points: number }>>(
       accessToken,
       `/rewards_accounts?user_id=eq.${encodeURIComponent(userId)}&select=points_balance,lifetime_points`,
@@ -127,6 +156,14 @@ export async function getDameRewardsStatus(
     rewardsRequest<RewardLedgerEntry[]>(
       accessToken,
       `/reward_ledger?user_id=eq.${encodeURIComponent(userId)}&select=id,points_delta,event_type,description,created_at&order=created_at.desc&limit=12`,
+    ),
+    rewardsRequest<RewardPromotion[]>(
+      accessToken,
+      `/reward_promotions?active=is.true&starts_at=lte.${now}&ends_at=gt.${now}&select=id,name,multiplier,scope,eligible_categories,starts_at,ends_at,active,created_at&order=multiplier.desc,starts_at.asc`,
+    ),
+    rewardsRequest<Array<{ id: string }>>(
+      accessToken,
+      `/reward_referrals?referrer_user_id=eq.${encodeURIComponent(userId)}&status=eq.qualified&select=id`,
     ),
   ]);
 
@@ -152,6 +189,8 @@ export async function getDameRewardsStatus(
       }))
       .filter((redemption) => redemption.status === 'pending'),
     activity,
+    activePromotions,
+    qualifiedReferrals: qualifiedReferrals.length,
   };
 }
 
@@ -202,6 +241,55 @@ export async function redeemDameReward(accessToken: string, code: string) {
   }>(accessToken, 'redeem_dame_reward', {
     p_code: code,
   });
+}
+
+export async function listRewardPromotions(accessToken: string) {
+  return rewardsRequest<RewardPromotion[]>(
+    accessToken,
+    '/reward_promotions?select=id,name,multiplier,scope,eligible_categories,starts_at,ends_at,active,created_at&order=starts_at.desc',
+  );
+}
+
+export async function createRewardPromotion(
+  accessToken: string,
+  input: Pick<
+    RewardPromotion,
+    'name' | 'scope' | 'eligible_categories' | 'starts_at' | 'ends_at'
+  >,
+) {
+  const promotions = await rewardsRequest<RewardPromotion[]>(
+    accessToken,
+    '/reward_promotions',
+    {
+      method: 'POST',
+      headers: { Prefer: 'return=representation' },
+      body: JSON.stringify({
+        ...input,
+        multiplier: 2,
+        active: true,
+      }),
+    },
+  );
+  if (!promotions[0]) throw new Error('Could not create the 2× points campaign.');
+  return promotions[0];
+}
+
+export async function setRewardPromotionActive(
+  accessToken: string,
+  promotionId: string,
+  active: boolean,
+) {
+  const promotions = await rewardsRequest<RewardPromotion[]>(
+    accessToken,
+    `/reward_promotions?id=eq.${encodeURIComponent(promotionId)}`,
+    {
+      method: 'PATCH',
+      headers: { Prefer: 'return=representation' },
+      body: JSON.stringify({ active }),
+    },
+  );
+  if (!promotions[0]) throw new Error('Could not update that points campaign.');
+  return promotions[0];
 }
 
 export type RewardsAccountPayload = {

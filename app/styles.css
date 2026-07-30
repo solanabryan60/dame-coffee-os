@@ -1247,17 +1247,103 @@ img {
 }
 
 .admin-form input,
-.admin-form textarea {
+.admin-form textarea,
+.admin-form select {
   width: 100%;
   padding: 15px 16px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: white;
   color: var(--ink);
+  font: inherit;
 }
 
 .admin-form textarea {
   resize: vertical;
+}
+
+.admin-category-options {
+  margin: 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-category-options legend {
+  padding: 0 8px;
+  color: var(--dame-red);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-category-options label {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  display: flex;
+  grid-template-columns: none;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.admin-category-options input {
+  width: 18px;
+  min-height: 18px;
+  padding: 0;
+  accent-color: var(--dame-red);
+}
+
+.admin-promotion-list {
+  margin-top: 30px;
+  border-top: 1px solid var(--line);
+}
+
+.admin-promotion-list article {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.admin-promotion-list span {
+  color: var(--dame-red);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.admin-promotion-list h3 {
+  margin: 7px 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 28px;
+  font-weight: 500;
+}
+
+.admin-promotion-list p,
+.admin-promotion-list small,
+.admin-empty-state {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.admin-promotion-list small {
+  margin-top: 6px;
+  display: block;
+  text-transform: capitalize;
+}
+
+.admin-empty-state {
+  margin-top: 26px;
 }
 
 .admin-error,
@@ -1394,6 +1480,10 @@ img {
   }
 
   .admin-reward-lookup {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-category-options {
     grid-template-columns: 1fr;
   }
 }

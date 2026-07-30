@@ -368,7 +368,7 @@ export default function OrderExperience({
           </p>
           <p className="dame-square-note">
             {rewardsAccessToken ? (
-              <>This signed-in purchase earns 1 Dame point per eligible $1.</>
+              <>This signed-in purchase earns 10 Dame points per eligible $1.</>
             ) : (
               <>Want points with this order? <Link href="/rewards#join">Join or sign in first.</Link></>
             )}

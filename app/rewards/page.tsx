@@ -12,8 +12,8 @@ export const metadata: Metadata = {
 const benefits = [
   {
     number: '01',
-    title: 'One dollar, one point',
-    text: 'Earn 1 Dame point for every eligible $1 you spend on signed-in purchases.',
+    title: 'Ten points per dollar',
+    text: 'Earn 10 Dame points for every eligible $1 you spend on signed-in purchases.',
   },
   {
     number: '02',
@@ -22,17 +22,35 @@ const benefits = [
   },
   {
     number: '03',
+    title: 'Share the Dame love',
+    text: 'Refer a friend. After their first eligible $10 purchase, you earn 500 points and they earn 250.',
+  },
+  {
+    number: '04',
+    title: 'Catch a 2× moment',
+    text: 'Selected days and menu favorites can earn double points when Dame turns on a special campaign.',
+  },
+  {
+    number: '05',
     title: 'Birthday love',
     text: 'Members will receive a birthday reward because your day deserves something special.',
   },
   {
-    number: '04',
+    number: '06',
     title: 'First to know',
     text: 'Hear about new drinks, pop-ups, special events, and limited releases before everyone else.',
   },
 ];
 
-export default function RewardsPage() {
+type RewardsPageProps = {
+  searchParams: Promise<{ ref?: string | string[] }>;
+};
+
+export default async function RewardsPage({ searchParams }: RewardsPageProps) {
+  const params = await searchParams;
+  const rawReferral = Array.isArray(params.ref) ? params.ref[0] : params.ref;
+  const referralCode = rawReferral?.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8) ?? '';
+
   return (
     <main className="dame-site dame-inner-page">
       <SiteHeader />
@@ -61,7 +79,7 @@ export default function RewardsPage() {
           <p className="dame-kicker">Why join?</p>
           <h2 id="benefits-title">Every purchase deserves a little love.</h2>
           <p>
-            Earn 1 point per eligible $1, then turn your points into drinks,
+            Earn 10 points per eligible $1, then turn your points into drinks,
             upgrades, food, and special Dame moments.
           </p>
         </div>
@@ -85,7 +103,7 @@ export default function RewardsPage() {
             your points and available rewards whenever you come back.
           </p>
         </div>
-        <RewardsSignup />
+        <RewardsSignup initialReferralCode={referralCode} />
       </section>
 
       <SiteFooter />
