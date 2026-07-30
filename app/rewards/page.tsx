@@ -40,7 +40,7 @@ export default function RewardsPage() {
       <section className="dame-rewards-hero">
         <div className="dame-rewards-copy">
           <p className="dame-kicker dame-kicker-light">Dame Rewards</p>
-          <h1>Come back.<br />Get something good.</h1>
+          <h1>Más sabor.<br />Más vida.<br />Más Dame.</h1>
           <p>
             Sip. Earn. Return. Every cup brings you closer to something special.
           </p>
