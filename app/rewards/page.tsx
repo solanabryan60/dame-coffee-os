@@ -59,8 +59,11 @@ export default function RewardsPage() {
       <section className="dame-benefits" aria-labelledby="benefits-title">
         <div className="dame-benefits-heading">
           <p className="dame-kicker">Why join?</p>
-          <h2 id="benefits-title">The benefits stay simple.</h2>
-          <p>No passport. No chasing locations. Just rewards for choosing Dame.</p>
+          <h2 id="benefits-title">Every return deserves a little love.</h2>
+          <p>
+            Earn points as you sip, then turn them into drinks, upgrades, and
+            special Dame moments.
+          </p>
         </div>
         <div className="dame-benefit-grid">
           {benefits.map((benefit) => (
