@@ -280,7 +280,7 @@ export default function RewardsDashboard() {
               <p className="dame-kicker">Share the Dame love</p>
               <h2 id="dame-referral-title">A little love for both of you.</h2>
               <p>
-                Your friend earns 250 points after their first eligible $10
+                Your friend earns 250 points after their first eligible $5
                 purchase. You earn 500 points—up to ten successful referrals
                 each month.
               </p>

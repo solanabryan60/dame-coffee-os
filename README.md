@@ -15,7 +15,7 @@ Phase 4B expands the Dame-owned rewards ledger with merchandise rewards, qualifi
 - Exchange points for one-time reward codes
 - Cancel an unused code and return the points to their balance
 - Share a personal referral link
-- Earn 500 points after a referred friend makes a first eligible $10 purchase
+- Earn 500 points after a referred friend makes a first eligible $5 purchase
 - Receive 250 welcome points when joining through a friend and completing that purchase
 - Earn extra points during active Dame 2× campaigns
 
@@ -50,7 +50,7 @@ Signed-in web orders are linked to the member before Square checkout opens. When
 
 If more than one points campaign is active, only the highest multiplier applies. Promotions do not stack.
 
-A friend referral qualifies only after the new member completes a first eligible purchase of at least $10. Self-referrals are blocked, each new member can qualify only once, and each member may receive up to ten referrer bonuses per calendar month. A qualifying refund reverses the referral points.
+A friend referral qualifies only after the new member completes a first eligible purchase of at least $5. Self-referrals are blocked, each new member can qualify only once, and each member may receive up to ten referrer bonuses per calendar month. A qualifying refund reverses the referral points.
 
 For an in-person Square POS sale, points can be matched when the order has a Square customer attached whose email or mobile number matches the member’s Dame profile.
 
@@ -66,6 +66,7 @@ Apply these SQL files in order:
 4. `supabase-phase4b-rewards-growth.sql`
 5. `supabase-phase4c-reward-refund-tracking.sql`
 6. `supabase-phase4d-reward-policy-tuning.sql`
+7. `supabase-phase4e-referral-threshold.sql`
 
 Phase 4 and 4B create:
 

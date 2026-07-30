@@ -499,7 +499,7 @@ begin
     returning * into account_row;
   end if;
 
-  if p_event_type = 'purchase' and p_amount_cents >= 1000 then
+  if p_event_type = 'purchase' and p_amount_cents >= 500 then
     select *
     into referral_row
     from public.reward_referrals
@@ -611,7 +611,7 @@ begin
           from public.reward_ledger as refund
           where refund.source_type = 'square_refund'
             and refund.related_source_id = p_related_square_id
-        ), 0) < 1000
+        ), 0) < 500
     )
   ) then
     select *

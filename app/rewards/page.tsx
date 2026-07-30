@@ -23,7 +23,7 @@ const benefits = [
   {
     number: '03',
     title: 'Share the Dame love',
-    text: 'Refer a friend. After their first eligible $10 purchase, you earn 500 points and they earn 250.',
+    text: 'Refer a friend. After their first eligible $5 purchase, you earn 500 points and they earn 250.',
   },
   {
     number: '04',
