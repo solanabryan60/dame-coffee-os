@@ -1,5 +1,6 @@
 import { createSquarePaymentLink } from '@/app/lib/square';
-import { readSiteSettings } from '@/app/lib/supabase-rest';
+import { createRewardsOrderLink } from '@/app/lib/dame-rewards';
+import { readAuthUser, readSiteSettings } from '@/app/lib/supabase-rest';
 
 type CheckoutRequest = {
   lines?: Array<{
@@ -14,6 +15,11 @@ type CheckoutRequest = {
     note?: string;
   };
 };
+
+function bearerToken(request: Request) {
+  const authorization = request.headers.get('authorization') ?? '';
+  return authorization.startsWith('Bearer ') ? authorization.slice(7) : '';
+}
 
 export async function POST(request: Request) {
   try {
@@ -45,8 +51,15 @@ export async function POST(request: Request) {
       return Response.json({ error: 'Enter your name, email, and phone number for pickup.' }, { status: 400 });
     }
 
-    const checkoutUrl = await createSquarePaymentLink(lines, customer, settings.wait_minutes);
-    return Response.json({ checkoutUrl });
+    const accessToken = bearerToken(request);
+    const rewardsUser = accessToken ? await readAuthUser(accessToken) : null;
+    const paymentLink = await createSquarePaymentLink(lines, customer, settings.wait_minutes);
+
+    if (accessToken && rewardsUser) {
+      await createRewardsOrderLink(accessToken, rewardsUser.id, paymentLink.orderId);
+    }
+
+    return Response.json({ checkoutUrl: paymentLink.url });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Checkout is temporarily unavailable.';
     return Response.json({ error: message }, { status: 500 });

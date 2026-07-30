@@ -112,51 +112,11 @@ type CheckoutCustomer = {
   note?: string;
 };
 
-export type SquareRewardsStatus = {
-  squareConfigured: boolean;
-  programActive: boolean;
-  enrolled: boolean;
-  points: number;
-  lifetimePoints: number;
-  pointsLabel: string;
-  rewardTiers: Array<{
-    id: string;
-    name: string;
-    points: number;
-  }>;
-  nextReward: {
-    name: string;
-    points: number;
-    pointsAway: number;
-  } | null;
-};
-
-type SquareCustomer = {
+export type SquareCustomer = {
   id: string;
   given_name?: string;
   email_address?: string;
   phone_number?: string;
-};
-
-type SquareLoyaltyProgram = {
-  id: string;
-  status?: 'ACTIVE' | 'INACTIVE';
-  terminology?: {
-    one?: string;
-    other?: string;
-  };
-  reward_tiers?: Array<{
-    id?: string;
-    name?: string;
-    points?: number;
-  }>;
-};
-
-type SquareLoyaltyAccount = {
-  id: string;
-  balance?: number;
-  lifetime_points?: number;
-  customer_id?: string;
 };
 
 const fallbackItems: SquareMenuItem[] = [
@@ -436,7 +396,7 @@ export async function getSquareCatalog(options: { required?: boolean } = {}): Pr
   };
 }
 
-function normalizePhone(phone: string) {
+export function normalizeSquarePhone(phone: string) {
   const digits = phone.replace(/\D/g, '');
   if (digits.length === 10) return `+1${digits}`;
   if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
@@ -467,181 +427,18 @@ async function squareRequest<T>(
 
   if (options.allowNotFound && response.status === 404) return null;
   if (!response.ok) {
-    throw new Error(payload.errors?.[0]?.detail || 'Square Rewards is temporarily unavailable.');
+    throw new Error(payload.errors?.[0]?.detail || 'Square is temporarily unavailable.');
   }
   return payload;
 }
 
-async function getLoyaltyProgram() {
-  const payload = await squareRequest<{ program?: SquareLoyaltyProgram }>(
-    '/v2/loyalty/programs/main',
+export async function getSquareCustomer(customerId: string) {
+  const payload = await squareRequest<{ customer?: SquareCustomer }>(
+    `/v2/customers/${encodeURIComponent(customerId)}`,
     {},
     { allowNotFound: true },
   );
-  return payload?.program ?? null;
-}
-
-async function findSquareCustomer(email: string) {
-  const payload = await squareRequest<{ customers?: SquareCustomer[] }>(
-    '/v2/customers/search',
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        limit: 1,
-        query: {
-          filter: {
-            email_address: {
-              exact: email.trim().toLowerCase(),
-            },
-          },
-        },
-      }),
-    },
-  );
-  return payload?.customers?.[0] ?? null;
-}
-
-async function createSquareCustomer(input: {
-  userId: string;
-  firstName: string;
-  email: string;
-  phone: string;
-}) {
-  const payload = await squareRequest<{ customer?: SquareCustomer }>(
-    '/v2/customers',
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        idempotency_key: crypto.randomUUID(),
-        given_name: input.firstName.trim().slice(0, 120),
-        email_address: input.email.trim().toLowerCase(),
-        phone_number: normalizePhone(input.phone),
-        reference_id: `dame-rewards-${input.userId}`.slice(0, 100),
-      }),
-    },
-  );
-  if (!payload?.customer) throw new Error('Square could not create your rewards profile.');
-  return payload.customer;
-}
-
-async function findLoyaltyAccount(customerId: string) {
-  const payload = await squareRequest<{ loyalty_accounts?: SquareLoyaltyAccount[] }>(
-    '/v2/loyalty/accounts/search',
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        query: { customer_ids: [customerId] },
-        limit: 1,
-      }),
-    },
-  );
-  return payload?.loyalty_accounts?.[0] ?? null;
-}
-
-async function findLoyaltyAccountByPhone(phone: string) {
-  const payload = await squareRequest<{ loyalty_accounts?: SquareLoyaltyAccount[] }>(
-    '/v2/loyalty/accounts/search',
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        query: {
-          mappings: [{ phone_number: normalizePhone(phone) }],
-        },
-        limit: 1,
-      }),
-    },
-  );
-  return payload?.loyalty_accounts?.[0] ?? null;
-}
-
-function buildRewardsStatus(
-  program: SquareLoyaltyProgram | null,
-  account: SquareLoyaltyAccount | null,
-): SquareRewardsStatus {
-  const points = account?.balance ?? 0;
-  const tiers = (program?.reward_tiers ?? [])
-    .filter((tier) => tier.id && tier.points)
-    .map((tier) => ({
-      id: tier.id!,
-      name: tier.name || 'Dame reward',
-      points: tier.points!,
-    }))
-    .sort((a, b) => a.points - b.points);
-  const nextTier = tiers.find((tier) => tier.points > points) ?? null;
-
-  return {
-    squareConfigured: Boolean(getSquareConfig()),
-    programActive: program?.status === 'ACTIVE',
-    enrolled: Boolean(account),
-    points,
-    lifetimePoints: account?.lifetime_points ?? 0,
-    pointsLabel: program?.terminology?.other || 'points',
-    rewardTiers: tiers,
-    nextReward: nextTier
-      ? {
-          name: nextTier.name,
-          points: nextTier.points,
-          pointsAway: Math.max(0, nextTier.points - points),
-        }
-      : null,
-  };
-}
-
-export async function getSquareRewardsStatus(
-  email: string,
-  phone?: string | null,
-): Promise<SquareRewardsStatus> {
-  if (!getSquareConfig()) return buildRewardsStatus(null, null);
-  const program = await getLoyaltyProgram();
-  if (!program || program.status !== 'ACTIVE') return buildRewardsStatus(program, null);
-
-  const phoneAccount = phone ? await findLoyaltyAccountByPhone(phone) : null;
-  if (phoneAccount) return buildRewardsStatus(program, phoneAccount);
-
-  const customer = await findSquareCustomer(email);
-  const account = customer ? await findLoyaltyAccount(customer.id) : null;
-  return buildRewardsStatus(program, account);
-}
-
-export async function enrollSquareRewards(input: {
-  userId: string;
-  firstName: string;
-  email: string;
-  phone: string;
-}) {
-  if (!getSquareConfig()) throw new Error('Square Rewards has not been connected yet.');
-  const program = await getLoyaltyProgram();
-  if (!program || program.status !== 'ACTIVE') {
-    throw new Error('Dame Rewards is not active in Square yet.');
-  }
-
-  const phoneAccount = await findLoyaltyAccountByPhone(input.phone);
-  if (phoneAccount) return buildRewardsStatus(program, phoneAccount);
-
-  const customer =
-    (await findSquareCustomer(input.email)) ??
-    (await createSquareCustomer(input));
-  const existing = await findLoyaltyAccount(customer.id);
-  if (existing) return buildRewardsStatus(program, existing);
-
-  const payload = await squareRequest<{ loyalty_account?: SquareLoyaltyAccount }>(
-    '/v2/loyalty/accounts',
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        idempotency_key: crypto.randomUUID(),
-        loyalty_account: {
-          program_id: program.id,
-          mapping: {
-            phone_number: normalizePhone(input.phone),
-          },
-          customer_id: customer.id,
-        },
-      }),
-    },
-  );
-  if (!payload?.loyalty_account) throw new Error('Square could not finish your enrollment.');
-  return buildRewardsStatus(program, payload.loyalty_account);
+  return payload?.customer ?? null;
 }
 
 function productionUrl() {
@@ -726,7 +523,7 @@ export async function createSquarePaymentLink(
             pickup_details: {
               recipient: {
                 display_name: customer.name.trim().slice(0, 255),
-                phone_number: normalizePhone(customer.phone),
+                phone_number: normalizeSquarePhone(customer.phone),
               },
               schedule_type: 'ASAP',
               prep_time_duration: `PT${Math.max(1, Math.min(waitMinutes, 120))}M`,
@@ -738,13 +535,12 @@ export async function createSquarePaymentLink(
       checkout_options: {
         allow_tipping: true,
         ask_for_shipping_address: false,
-        enable_loyalty: true,
         merchant_support_email: 'info@damecoffeeco.com',
         redirect_url: `${productionUrl()}/order/complete`,
       },
       pre_populated_data: {
         buyer_email: customer.email?.trim().toLowerCase() || undefined,
-        buyer_phone_number: normalizePhone(customer.phone),
+        buyer_phone_number: normalizeSquarePhone(customer.phone),
       },
       payment_note: `Dame Coffee pickup for ${customer.name.trim().slice(0, 120)}`,
     }),
@@ -752,13 +548,16 @@ export async function createSquarePaymentLink(
   });
 
   const payload = (await response.json()) as {
-    payment_link?: { url?: string };
+    payment_link?: { url?: string; order_id?: string };
     errors?: Array<{ detail?: string }>;
   };
 
-  if (!response.ok || !payload.payment_link?.url) {
+  if (!response.ok || !payload.payment_link?.url || !payload.payment_link.order_id) {
     throw new Error(payload.errors?.[0]?.detail || 'Square could not start checkout.');
   }
 
-  return payload.payment_link.url;
+  return {
+    url: payload.payment_link.url,
+    orderId: payload.payment_link.order_id,
+  };
 }

@@ -1213,6 +1213,129 @@
   line-height: 1.55;
 }
 
+.dame-reward-tier-grid .dame-button {
+  width: 100%;
+  margin-top: 24px;
+}
+
+.dame-reward-tier-grid article.is-earned .dame-button {
+  border-color: white;
+  background: white;
+  color: var(--dame-red);
+}
+
+.dame-account-rewards > header > p:last-child,
+.dame-reward-history > header > p:last-child {
+  max-width: 600px;
+  margin: -48px 0 42px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.dame-pending-rewards {
+  margin-bottom: 74px;
+}
+
+.dame-pending-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.dame-pending-grid article {
+  padding: clamp(24px, 4vw, 36px);
+  border-radius: 24px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 24px;
+  align-items: center;
+  background: var(--dame-red);
+  color: white;
+}
+
+.dame-pending-grid p,
+.dame-pending-grid span {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.dame-pending-grid p {
+  font-weight: 800;
+}
+
+.dame-pending-grid strong {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(34px, 5vw, 54px);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+.dame-pending-grid span {
+  font-size: 12px;
+}
+
+.dame-pending-grid button {
+  grid-column: 1 / -1;
+  width: fit-content;
+  margin-top: 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: white;
+  font-size: 11px;
+  font-weight: 900;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+.dame-reward-history {
+  margin-top: 86px;
+}
+
+.dame-reward-history > div {
+  border-top: 1px solid var(--line);
+}
+
+.dame-reward-history article {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  gap: 16px;
+  align-items: center;
+}
+
+.dame-reward-history article > span {
+  color: var(--dame-red);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.dame-reward-history article > span.is-positive {
+  color: var(--success);
+}
+
+.dame-reward-history article p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.dame-reward-history time {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.dame-reward-empty {
+  padding: 26px;
+  border-radius: 20px;
+  background: var(--cream);
+  color: var(--muted);
+  line-height: 1.6;
+}
+
 .dame-account-main > .dame-rewards-success,
 .dame-account-main > .dame-checkout-error {
   margin-top: 18px;
@@ -2001,6 +2124,23 @@
 
   .dame-reward-tier-grid {
     grid-template-columns: 1fr;
+  }
+
+  .dame-pending-grid article {
+    grid-template-columns: 1fr;
+  }
+
+  .dame-pending-grid strong {
+    grid-row: auto;
+    grid-column: auto;
+  }
+
+  .dame-reward-history article {
+    grid-template-columns: 54px 1fr;
+  }
+
+  .dame-reward-history time {
+    grid-column: 2;
   }
 
   .dame-estimator-fields {

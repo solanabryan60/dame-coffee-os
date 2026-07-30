@@ -204,7 +204,7 @@ export default function RewardsSignup() {
         </button>
         <p>
           {mode === 'join'
-            ? 'By joining, you agree to save your contact information for Dame Rewards and Square customer services.'
+            ? 'By joining, you agree to save your contact information for Dame Rewards.'
             : 'Your rewards account is separate from the private Dame Coffee admin.'}
         </p>
         {mode === 'signin' ? (

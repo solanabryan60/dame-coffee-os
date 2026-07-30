@@ -12,8 +12,8 @@ export const metadata: Metadata = {
 const benefits = [
   {
     number: '01',
-    title: 'Earn on every visit',
-    text: 'Your eligible Dame purchases will move you closer to free drinks, food, and more.',
+    title: 'One dollar, one point',
+    text: 'Earn 1 Dame point for every eligible $1 you spend on signed-in purchases.',
   },
   {
     number: '02',
@@ -23,7 +23,7 @@ const benefits = [
   {
     number: '03',
     title: 'Birthday love',
-    text: 'Members will receive a birthday reward because your day deserves something good.',
+    text: 'Members will receive a birthday reward because your day deserves something special.',
   },
   {
     number: '04',
@@ -61,8 +61,8 @@ export default function RewardsPage() {
           <p className="dame-kicker">Why join?</p>
           <h2 id="benefits-title">Every purchase deserves a little love.</h2>
           <p>
-            Earn points as you sip, then turn them into drinks, upgrades, and
-            special Dame moments.
+            Earn 1 point per eligible $1, then turn your points into drinks,
+            upgrades, food, and special Dame moments.
           </p>
         </div>
         <div className="dame-benefit-grid">

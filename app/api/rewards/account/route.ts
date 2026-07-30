@@ -1,4 +1,4 @@
-import { getSquareRewardsStatus } from '@/app/lib/square';
+import { getDameRewardsStatus } from '@/app/lib/dame-rewards';
 import {
   readAuthUser,
   readCustomerProfile,
@@ -21,7 +21,7 @@ export async function GET(request: Request) {
       return Response.json({ error: 'Your account needs a confirmed email address.' }, { status: 400 });
     }
     const profile = await readCustomerProfile(accessToken, user.id);
-    const rewards = await getSquareRewardsStatus(user.email, profile.phone);
+    const rewards = await getDameRewardsStatus(accessToken, user.id);
 
     return Response.json({
       user: {

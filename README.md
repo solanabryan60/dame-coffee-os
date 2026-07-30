@@ -1,62 +1,69 @@
-# Dame Coffee OS — Phase 3 Rewards
+# Dame Coffee OS — Phase 4 Dame Rewards
 
-Phase 3 adds real customer accounts and a secure Dame Rewards dashboard while preserving the focused public experience, Square-powered ordering, and private Supabase control center.
+Dame Coffee OS is the public website, pickup-ordering experience, rewards program, and private control center for Dame Coffee.
 
-## Public experience
+Phase 4 replaces the paid Square Loyalty add-on with a Dame-owned rewards ledger in Supabase. Square still handles the catalog, orders, pickup fulfillment, and secure payments.
 
-- Focused full-height homepage with a direct “Find Us Today” journey
-- Responsive navigation connecting real pages instead of one long homepage
-- Live “Us, Today” card powered by the existing admin controls
-- Correct open and closed homepage messaging
-- Ordering automatically pauses when the shop is closed or mobile ordering is off
-- Dedicated `/menu` page synced to the Square Catalog and organized into Basics, Specialty Drinks, Cold Foam Lovers, and Food Items
-- Dedicated `/order` page for live pickup ordering
-- Square-hosted checkout with item variations, modifiers, taxes, discounts, tips, and pickup fulfillment
-- Checkout automatically pauses when the shop is closed or mobile ordering is off
-- Order-complete page featuring the Dame Bean
-- Dedicated `/rewards` page where customers can join or sign in
-- Private `/rewards/account` dashboard with points, reward progress, reward tiers, and profile controls
-- Rewards members are prefilled at pickup checkout
-- Square-hosted checkout displays loyalty options when the Square Loyalty program is active
-- Dedicated `/catering` page with the approved drink, time, and price estimator
-- Clean mission and information section
-- Contact details and private admin link in the footer
-- Accessible reduced-motion behavior
+## What customers can do
 
-## Live location control center
+- See where Dame is serving today
+- Browse a live menu synced from the Square Catalog
+- Place pickup orders through Square-hosted checkout
+- Create a Dame Rewards account
+- Earn 1 Dame point per eligible $1 on signed-in purchases
+- View points and recent activity
+- Exchange points for one-time reward codes
+- Cancel an unused code and return the points to their balance
 
-Visit `/admin/login` and sign in with one of the approved Dame admin accounts. Phase 3 separates customer accounts from the private admin allowlist, so a rewards member cannot access the control center.
+The initial rewards are:
 
-The dashboard controls:
+- 25 points — free drink add-on
+- 75 points — free food item
+- 100 points — free Dame drink
 
-- Large location title
-- Address and directions
-- Hours
-- Open or closed status
-- Mobile ordering status
-- Wait time
-- Google Maps directions link
+## What Dame staff can do
 
-The public homepage reads those values from Supabase. If Supabase is temporarily unavailable, `app/site-config.ts` supplies a safe public fallback.
+The private `/admin` dashboard keeps all existing live-location controls and adds reward-code redemption.
 
-## Customer accounts and rewards
+Staff can:
 
-Supabase Auth creates and signs in Dame Rewards members. The `customer_profiles` table stores only the member profile fields needed by Dame: first name, phone, optional birthday, and marketing consent. Row-level security limits every member to their own profile.
+- Update the current location, directions, hours, wait time, and open/closed status
+- Turn mobile ordering on or off
+- Enter an eight-character customer reward code
+- See the reward and customer attached to that code
+- Mark the code used after applying the matching free item in Square POS
 
-The rewards dashboard connects to Square using server-only credentials:
+## How points are awarded
 
-- It finds or creates the matching Square customer after the member explicitly connects.
-- It enrolls the member in the active Square Loyalty program by mobile number.
-- It reads the real Square point balance and reward tiers.
-- It never exposes the Square access token to the browser.
+Signed-in web orders are linked to the member before Square checkout opens. When Square confirms a completed payment, the verified webhook awards points. Completed refunds reverse the matching points.
 
-Square Loyalty must be activated and configured in the Square Dashboard before real points or reward tiers appear. Until then, customer accounts still work and the dashboard clearly shows that rewards activation is pending.
+For an in-person Square POS sale, points can be matched when the order has a Square customer attached whose email or mobile number matches the member’s Dame profile.
+
+Webhook processing is idempotent: repeated Square notifications cannot award the same payment twice.
+
+## Database setup
+
+Apply these SQL files in order:
+
+1. `supabase-setup.sql`
+2. `supabase-phase3-rewards.sql`
+3. `supabase-phase4-owned-rewards.sql`
+
+Phase 4 creates:
+
+- `rewards_accounts`
+- `reward_definitions`
+- `rewards_order_links`
+- `reward_ledger`
+- `reward_redemptions`
+
+Every customer-facing table has Row Level Security. Members can read only their own account, order links, activity, and redemptions. Point changes and reward use are handled through protected database functions.
 
 ## Local development
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 Create `.env.local` with:
@@ -64,41 +71,74 @@ Create `.env.local` with:
 ```text
 NEXT_PUBLIC_SUPABASE_URL=your-project-url
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
+SUPABASE_SECRET_KEY=your-server-only-secret-key
+
 SQUARE_ACCESS_TOKEN=your-square-access-token
 SQUARE_LOCATION_ID=your-square-location-id
 SQUARE_ENVIRONMENT=sandbox
+SQUARE_WEBHOOK_SIGNATURE_KEY=your-square-webhook-signature-key
+SQUARE_WEBHOOK_NOTIFICATION_URL=http://localhost:3000/api/webhooks/square
+
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-Never commit passwords, service-role keys, database passwords, or secret API keys.
+Never commit passwords, database passwords, Supabase secret keys, Square access tokens, or webhook signature keys.
+
+## Square webhook
+
+Create a Square webhook subscription for:
+
+```text
+https://www.damecoffeeco.com/api/webhooks/square
+```
+
+Subscribe to:
+
+- `payment.updated`
+- `refund.updated`
+
+Copy the subscription’s signature key into the production environment variable:
+
+```text
+SQUARE_WEBHOOK_SIGNATURE_KEY
+```
+
+The notification URL used to create the Square signature must exactly match `SQUARE_WEBHOOK_NOTIFICATION_URL`.
 
 ## Production deployment
 
-The GitHub `main` branch is connected to the existing Vercel project. A merge into `main` creates a new production deployment automatically.
+The GitHub `main` branch is connected to the Dame Coffee Vercel project. Merging an approved pull request into `main` creates the production deployment.
 
-Keep these variables configured in Vercel for Production and Preview:
+Public variables for Production and Preview:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 
-Keep these Square variables restricted to Production:
+Server-only production variables:
 
+- `SUPABASE_SECRET_KEY`
 - `SQUARE_ACCESS_TOKEN`
 - `SQUARE_LOCATION_ID`
 - `SQUARE_ENVIRONMENT=production`
+- `SQUARE_WEBHOOK_SIGNATURE_KEY`
+- `SQUARE_WEBHOOK_NOTIFICATION_URL=https://www.damecoffeeco.com/api/webhooks/square`
 - `NEXT_PUBLIC_SITE_URL=https://www.damecoffeeco.com`
 
-The production access token is server-only and must never use a `NEXT_PUBLIC_` prefix. Preview deployments intentionally stay disconnected from live Square checkout until the branch is approved and merged.
+Preview deployments can display the customer rewards dashboard with the normal Supabase public variables. Live payment processing and Square webhooks remain production-only.
 
-## Phase 3 database migration
+## Verification
 
-Apply `supabase-phase3-rewards.sql` once before publishing Phase 3. It:
+Before publishing:
 
-- Creates the explicit `admin_users` allowlist and seeds only Dame's four approved admin emails
-- Replaces the old broad settings-update policy with an admin-only policy
-- Creates `customer_profiles` with row-level security
-- Creates the private Auth trigger that prepares a profile for each new rewards member
+```bash
+pnpm lint
+pnpm build
+```
 
-`supabase-setup.sql` remains the base live-location schema. Never rerun a migration blindly on production.
+Also confirm:
 
-After applying schema changes, check Supabase Security and Performance Advisors. Phase 3 has no table-policy warnings; the project may separately recommend enabling leaked-password protection in Auth settings.
+- Customers cannot see another member’s reward records
+- Repeated webhook events do not duplicate points
+- Refund events do not create negative balances
+- Used and expired reward codes cannot be redeemed again
+- `/admin` and `/admin/login` still work

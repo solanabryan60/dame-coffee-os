@@ -158,6 +158,7 @@ export default function OrderExperience({
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [note, setNote] = useState('');
+  const [rewardsAccessToken, setRewardsAccessToken] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -167,6 +168,7 @@ export default function OrderExperience({
   useEffect(() => {
     getCustomerSession().then(async (session) => {
       if (!session) return;
+      setRewardsAccessToken(session.access_token);
       setEmail(session.user.email ?? '');
       try {
         const profile = await readCustomerProfile(session.access_token, session.user.id);
@@ -214,7 +216,12 @@ export default function OrderExperience({
     try {
       const response = await fetch('/api/square/checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(rewardsAccessToken
+            ? { Authorization: `Bearer ${rewardsAccessToken}` }
+            : {}),
+        },
         body: JSON.stringify({
           lines: cart.map((line) => ({
             variationId: line.variationId,
@@ -358,6 +365,13 @@ export default function OrderExperience({
           </button>
           <p className="dame-square-note">
             Final tax and total are calculated by Square. Payment details stay with Square.
+          </p>
+          <p className="dame-square-note">
+            {rewardsAccessToken ? (
+              <>This signed-in purchase earns 1 Dame point per eligible $1.</>
+            ) : (
+              <>Want points with this order? <Link href="/rewards#join">Join or sign in first.</Link></>
+            )}
           </p>
           <Link href="/menu">Just browsing? View the menu →</Link>
         </aside>

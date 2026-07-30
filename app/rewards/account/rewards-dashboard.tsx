@@ -2,7 +2,10 @@
 
 import Link from 'next/link';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
-import type { SquareRewardsStatus } from '../../lib/square';
+import type {
+  RewardRedemption,
+  RewardsAccountPayload,
+} from '../../lib/dame-rewards';
 import {
   CustomerProfile,
   updateCustomerProfile,
@@ -12,22 +15,28 @@ import {
   getCustomerSession,
 } from '../../lib/customer-session';
 
-type AccountPayload = {
-  user: {
-    id: string;
-    email: string;
-    emailConfirmed: boolean;
-  };
-  profile: CustomerProfile;
-  rewards: SquareRewardsStatus;
-};
+function shortDate(value: string) {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+  }).format(new Date(value));
+}
+
+function expiryTime(value: string) {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(new Date(value));
+}
 
 export default function RewardsDashboard() {
-  const [account, setAccount] = useState<AccountPayload | null>(null);
+  const [account, setAccount] = useState<RewardsAccountPayload | null>(null);
   const [accessToken, setAccessToken] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [enrolling, setEnrolling] = useState(false);
+  const [workingReward, setWorkingReward] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -46,7 +55,7 @@ export default function RewardsDashboard() {
         headers: { Authorization: `Bearer ${session.access_token}` },
         cache: 'no-store',
       });
-      const payload = (await response.json()) as AccountPayload & { error?: string };
+      const payload = (await response.json()) as RewardsAccountPayload & { error?: string };
       if (!response.ok) throw new Error(payload.error || 'Could not load your rewards.');
       setAccount(payload);
     } catch (loadError) {
@@ -92,31 +101,58 @@ export default function RewardsDashboard() {
     }
   }
 
-  async function enroll() {
+  async function redeemReward(rewardId: string) {
     if (!accessToken) return;
-    setEnrolling(true);
+    setWorkingReward(rewardId);
     setMessage('');
     setError('');
     try {
-      const response = await fetch('/api/rewards/enroll', {
+      const response = await fetch('/api/rewards/redeem', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ rewardId }),
       });
       const payload = (await response.json()) as {
-        rewards?: SquareRewardsStatus;
+        redemption?: RewardRedemption;
         error?: string;
       };
-      if (!response.ok || !payload.rewards) {
-        throw new Error(payload.error || 'Could not connect your rewards.');
+      if (!response.ok || !payload.redemption) {
+        throw new Error(payload.error || 'Could not prepare that reward.');
       }
-      setAccount((current) =>
-        current ? { ...current, rewards: payload.rewards! } : current,
-      );
-      setMessage('You’re connected. Your Square points will now appear here.');
-    } catch (enrollError) {
-      setError(enrollError instanceof Error ? enrollError.message : 'Could not connect rewards.');
+      setMessage(`Your ${payload.redemption.reward_name} code is ready.`);
+      await loadAccount();
+    } catch (redeemError) {
+      setError(redeemError instanceof Error ? redeemError.message : 'Could not prepare that reward.');
     } finally {
-      setEnrolling(false);
+      setWorkingReward('');
+    }
+  }
+
+  async function cancelReward(redemptionId: string) {
+    if (!accessToken) return;
+    setWorkingReward(redemptionId);
+    setMessage('');
+    setError('');
+    try {
+      const response = await fetch('/api/rewards/cancel', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ redemptionId }),
+      });
+      const payload = (await response.json()) as { error?: string };
+      if (!response.ok) throw new Error(payload.error || 'Could not cancel that reward.');
+      setMessage('Reward cancelled. Your points are back.');
+      await loadAccount();
+    } catch (cancelError) {
+      setError(cancelError instanceof Error ? cancelError.message : 'Could not cancel that reward.');
+    } finally {
+      setWorkingReward('');
     }
   }
 
@@ -149,9 +185,7 @@ export default function RewardsDashboard() {
   const nextReward = rewards.nextReward;
   const progress = nextReward
     ? Math.max(0, Math.min(100, Math.round((rewards.points / nextReward.points) * 100)))
-    : rewards.enrolled
-      ? 100
-      : 0;
+    : 100;
 
   return (
     <>
@@ -159,82 +193,106 @@ export default function RewardsDashboard() {
         <div>
           <p className="dame-kicker dame-kicker-light">Dame Rewards</p>
           <h1>Welcome back,<br /><em>{profile.first_name || 'friend'}.</em></h1>
-          <p>Every visit moves you closer to something good.</p>
+          <p>Every purchase deserves a little love.</p>
         </div>
         <div className="dame-points-card">
           <p>Available balance</p>
           <strong>{rewards.points}</strong>
-          <span>{rewards.pointsLabel}</span>
+          <span>points</span>
           <div className="dame-points-progress" aria-label={`${progress}% toward next reward`}>
             <i style={{ width: `${progress}%` }} />
           </div>
           {nextReward ? (
-            <p>
-              <b>{nextReward.pointsAway}</b> {rewards.pointsLabel} until {nextReward.name}
-            </p>
-          ) : rewards.enrolled ? (
-            <p>Your available rewards are ready below.</p>
+            <p><b>{nextReward.pointsAway}</b> points until {nextReward.name}</p>
           ) : (
-            <p>Connect your Square rewards to start tracking points.</p>
+            <p>Every Dame reward is within reach.</p>
           )}
         </div>
       </section>
 
       <section className="dame-account-body">
         <div className="dame-account-main">
-          <header>
-            <p className="dame-kicker">Your rewards</p>
-            <h2>Something good is getting closer.</h2>
-          </header>
+          {rewards.pendingRedemptions.length ? (
+            <section className="dame-pending-rewards" aria-labelledby="ready-rewards">
+              <header>
+                <p className="dame-kicker">Ready at the cart</p>
+                <h2 id="ready-rewards">Show us this code.</h2>
+              </header>
+              <div className="dame-pending-grid">
+                {rewards.pendingRedemptions.map((redemption) => (
+                  <article key={redemption.id}>
+                    <p>{redemption.reward_name}</p>
+                    <strong>{redemption.code}</strong>
+                    <span>Valid until {expiryTime(redemption.expires_at)}</span>
+                    <button
+                      type="button"
+                      onClick={() => cancelReward(redemption.id)}
+                      disabled={workingReward === redemption.id}
+                    >
+                      {workingReward === redemption.id ? 'Cancelling…' : 'Cancel and return points'}
+                    </button>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
-          {!rewards.squareConfigured || !rewards.programActive ? (
-            <article className="dame-rewards-state">
-              <span>Phase 3</span>
-              <h3>Your Dame account is ready.</h3>
-              <p>
-                Square points will connect here as soon as the Dame Rewards
-                program is activated. Your profile is already saved.
-              </p>
-            </article>
-          ) : !rewards.enrolled ? (
-            <article className="dame-rewards-state">
-              <span>One last step</span>
-              <h3>Connect your points.</h3>
-              <p>
-                We&apos;ll connect this Dame account to your Square customer
-                profile using your confirmed email and mobile number.
-              </p>
-              <button
-                className="dame-button"
-                type="button"
-                onClick={enroll}
-                disabled={enrolling || !user.emailConfirmed}
-              >
-                {enrolling ? 'Connecting…' : 'Connect Square Rewards'}
-              </button>
-              {!user.emailConfirmed ? <small>Confirm your email first, then refresh this page.</small> : null}
-            </article>
-          ) : (
+          <section className="dame-account-rewards" aria-labelledby="your-rewards">
+            <header>
+              <p className="dame-kicker">Your rewards</p>
+              <h2 id="your-rewards">Choose your little something.</h2>
+              <p>Redeem points, then show the one-time code at the Dame cart within 24 hours.</p>
+            </header>
+
             <div className="dame-reward-tier-grid">
-              {rewards.rewardTiers.length ? rewards.rewardTiers.map((tier) => (
-                <article key={tier.id} className={rewards.points >= tier.points ? 'is-earned' : ''}>
-                  <span>{rewards.points >= tier.points ? 'Ready' : `${tier.points} ${rewards.pointsLabel}`}</span>
-                  <h3>{tier.name}</h3>
-                  <p>
-                    {rewards.points >= tier.points
-                      ? 'You have enough points for this reward.'
-                      : `${Math.max(0, tier.points - rewards.points)} to go.`}
-                  </p>
-                </article>
-              )) : (
-                <article>
-                  <span>Connected</span>
-                  <h3>{rewards.points} {rewards.pointsLabel}</h3>
-                  <p>Your Square balance is connected to Dame.</p>
-                </article>
-              )}
+              {rewards.rewardTiers.map((tier) => {
+                const ready = rewards.points >= tier.points_cost;
+                return (
+                  <article key={tier.id} className={ready ? 'is-earned' : ''}>
+                    <span>{tier.points_cost} points</span>
+                    <h3>{tier.name}</h3>
+                    <p>{tier.description}</p>
+                    <button
+                      className="dame-button"
+                      type="button"
+                      onClick={() => redeemReward(tier.id)}
+                      disabled={!ready || Boolean(workingReward)}
+                    >
+                      {workingReward === tier.id
+                        ? 'Preparing…'
+                        : ready
+                          ? 'Use my points'
+                          : `${tier.points_cost - rewards.points} to go`}
+                    </button>
+                  </article>
+                );
+              })}
             </div>
-          )}
+          </section>
+
+          <section className="dame-reward-history" aria-labelledby="reward-history">
+            <header>
+              <p className="dame-kicker">Recent activity</p>
+              <h2 id="reward-history">Your Dame moments.</h2>
+            </header>
+            {rewards.activity.length ? (
+              <div>
+                {rewards.activity.map((entry) => (
+                  <article key={entry.id}>
+                    <span className={entry.points_delta > 0 ? 'is-positive' : ''}>
+                      {entry.points_delta > 0 ? '+' : ''}{entry.points_delta}
+                    </span>
+                    <p>{entry.description}</p>
+                    <time dateTime={entry.created_at}>{shortDate(entry.created_at)}</time>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="dame-reward-empty">
+                Your first signed-in purchase will begin your rewards story.
+              </p>
+            )}
+          </section>
 
           {message ? <p className="dame-rewards-success" role="status">{message}</p> : null}
           {error ? <p className="dame-checkout-error" role="alert">{error}</p> : null}
