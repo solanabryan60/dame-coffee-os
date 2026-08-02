@@ -52,7 +52,7 @@ export default function CateringPage() {
         <article>
           <span>03</span>
           <h3>We call you</h3>
-          <p>We confirm availability, menu, travel, final price, and the deposit.</p>
+          <p>We confirm availability, menu, travel, final price, and the remaining balance.</p>
         </article>
       </section>
 
