@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import SiteFooter from './components/site-footer';
+import GoogleMap from './components/google-map';
 import SiteHeader from './components/site-header';
 import { readSiteSettings, SiteSettings } from './lib/supabase-rest';
 import { liveLocation as fallbackLocation, missionStatement } from './site-config';
@@ -120,6 +121,12 @@ export default function Home() {
             </Link>
           </div>
         </article>
+
+        <GoogleMap
+          address={location.address}
+          title={`Google Map showing ${location.title}`}
+          className="dame-home-map"
+        />
       </section>
 
       <section id="info" className="dame-info" aria-labelledby="info-title">

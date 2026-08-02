@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useMemo, useState } from 'react';
+import GoogleMap from './google-map';
 
 function money(value: number) {
   return new Intl.NumberFormat('en-US', {
@@ -17,40 +18,73 @@ function calculateEstimate(drinks: number, hours: number) {
 }
 
 export default function CateringCalculator() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('');
   const [drinks, setDrinks] = useState(100);
   const [hours, setHours] = useState(2);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   const estimate = useMemo(() => calculateEstimate(drinks, hours), [drinks, hours]);
   const mapHref = address
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
     : '';
 
-  function requestDate(event: FormEvent<HTMLFormElement>) {
+  async function requestDate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const subject = encodeURIComponent('Dame Coffee catering date request');
-    const body = encodeURIComponent(
-      [
-        'I would like to request Dame Coffee for an event.',
-        '',
-        `Address: ${address}`,
-        `Date: ${date}`,
-        `Start time: ${startTime}`,
-        `Drink amount: ${drinks}`,
-        `Service time: ${hours} hours`,
-        `Website estimate: ${money(estimate)} plus tax`,
-        '',
-        'Please call me to confirm availability, details, final pricing, and the deposit.',
-      ].join('\n'),
-    );
-    window.location.href = `mailto:info@damecoffeeco.com?subject=${subject}&body=${body}`;
+    setError('');
+    setSubmitting(true);
+
+    try {
+      const response = await fetch('/api/square/catering-deposit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          address,
+          date,
+          startTime,
+          drinks,
+          hours,
+          acceptedTerms,
+        }),
+      });
+      const payload = (await response.json()) as { checkoutUrl?: string; error?: string };
+      if (!response.ok || !payload.checkoutUrl) {
+        throw new Error(payload.error || 'Deposit checkout is temporarily unavailable.');
+      }
+      window.location.assign(payload.checkoutUrl);
+    } catch (checkoutError) {
+      setError(checkoutError instanceof Error ? checkoutError.message : 'Deposit checkout is temporarily unavailable.');
+      setSubmitting(false);
+    }
   }
 
   return (
     <form className="dame-estimator" onSubmit={requestDate}>
       <div className="dame-estimator-fields">
+        <label className="dame-field">
+          <span>Your name</span>
+          <input value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" required />
+        </label>
+
+        <label className="dame-field">
+          <span>Email</span>
+          <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" required />
+        </label>
+
+        <label className="dame-field dame-field-wide">
+          <span>Phone number</span>
+          <input type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} autoComplete="tel" required />
+        </label>
+
         <label className="dame-field dame-field-wide">
           <span>Where is your event?</span>
           <input
@@ -64,6 +98,12 @@ export default function CateringCalculator() {
             <a href={mapHref} target="_blank" rel="noreferrer">Preview this address on Google Maps ↗</a>
           ) : null}
         </label>
+
+        <GoogleMap
+          address={address}
+          title={address ? `Google Map showing ${address}` : 'Google Map for your event address'}
+          className="dame-catering-map"
+        />
 
         <label className="dame-field">
           <span>Event date</span>
@@ -127,13 +167,41 @@ export default function CateringCalculator() {
         </ul>
         <p className="dame-estimate-note">
           We&apos;ll call to confirm availability, travel, menu choices, final price,
-          and the deposit required to hold your date.
+          and the remaining balance.
         </p>
       </aside>
 
+      <section className="dame-deposit-card" aria-labelledby="deposit-title">
+        <div>
+          <p className="dame-kicker">Request your date</p>
+          <h3 id="deposit-title">$200 deposit</h3>
+          <p>
+            The deposit is applied to your final event balance. Your date is requested—not
+            confirmed—until Dame calls you and approves the event details.
+          </p>
+          <p>
+            If Dame Coffee cannot fulfill your event, we&apos;ll issue a full refund and offer
+            alternative dates or service options that may work.
+          </p>
+        </div>
+        <label className="dame-deposit-consent">
+          <input
+            type="checkbox"
+            checked={acceptedTerms}
+            onChange={(event) => setAcceptedTerms(event.target.checked)}
+            required
+          />
+          <span>I understand the $200 payment requests the date and does not confirm the event until Dame calls.</span>
+        </label>
+      </section>
+
       <div className="dame-estimator-actions">
-        <button className="dame-button" type="submit">Request this date</button>
+        {error ? <p className="dame-checkout-error" role="alert">{error}</p> : null}
+        <button className="dame-button" type="submit" disabled={submitting}>
+          {submitting ? 'Opening Square…' : 'Pay $200 deposit & request date'}
+        </button>
         <a className="dame-button dame-button-outline" href="tel:+19094519307">Call with questions</a>
+        <p className="dame-square-note">Secure checkout is handled by Square. Dame never receives your card details.</p>
       </div>
     </form>
   );

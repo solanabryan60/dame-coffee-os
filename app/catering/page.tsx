@@ -19,7 +19,7 @@ export default function CateringPage() {
           <h1>Build your event.</h1>
           <p>
             Start with 100 drinks and two hours of service. Move the sliders,
-            see your estimate immediately, and request your date when it feels right.
+            see your estimate immediately, and request your date with a secure $200 deposit.
           </p>
         </div>
         <div className="dame-catering-base">
@@ -47,7 +47,7 @@ export default function CateringPage() {
         <article>
           <span>02</span>
           <h3>Request the date</h3>
-          <p>Send the details to Dame without starting over or doing the math yourself.</p>
+          <p>Pay the $200 deposit securely with Square. It is applied to your final event balance.</p>
         </article>
         <article>
           <span>03</span>

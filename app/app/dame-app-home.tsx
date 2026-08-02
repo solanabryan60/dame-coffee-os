@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import GoogleMap from '../components/google-map';
 import type { RewardsAccountPayload } from '../lib/dame-rewards';
 import { getCustomerSession } from '../lib/customer-session';
 import { readSiteSettings, type SiteSettings } from '../lib/supabase-rest';
@@ -137,6 +138,11 @@ export default function DameAppHome() {
         </header>
         <h3>{location.title}</h3>
         <p>{location.address}</p>
+        <GoogleMap
+          address={location.address}
+          title={`Google Map showing ${location.title}`}
+          className="dame-app-map"
+        />
         <dl>
           <div><dt>Hours</dt><dd>{location.hours}</dd></div>
           <div><dt>Wait</dt><dd>{location.isOpen ? `About ${location.waitMinutes} min` : '—'}</dd></div>
