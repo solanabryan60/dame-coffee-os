@@ -9,6 +9,7 @@ const navigation = [
   { label: 'Menu', href: '/menu' },
   { label: 'Catering', href: '/catering' },
   { label: 'Rewards', href: '/rewards' },
+  { label: 'App', href: '/app' },
   { label: 'Info', href: '/#info' },
 ];
 

@@ -14,6 +14,7 @@ export default function SiteFooter() {
         <Link href="/menu">Menu</Link>
         <Link href="/catering">Catering</Link>
         <Link href="/rewards">Rewards</Link>
+        <Link href="/app">Dame App</Link>
         <Link href="/#info">Information</Link>
       </nav>
 

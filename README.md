@@ -1,8 +1,23 @@
-# Dame Coffee OS — Phase 4B Rewards Growth
+# Dame Coffee OS — Phase 5 App Foundation
 
 Dame Coffee OS is the public website, pickup-ordering experience, rewards program, and private control center for Dame Coffee.
 
-Phase 4B expands the Dame-owned rewards ledger with merchandise rewards, qualified friend referrals, and scheduled 2× points campaigns. Square still handles the catalog, orders, pickup fulfillment, and secure payments.
+Phase 5 turns the existing Dame website into an installable mobile app experience without creating a second account system. The Dame App reuses the live location, Square ordering, Supabase customer accounts, points, rewards, referrals, and promotions already in production.
+
+## Dame App
+
+Visit `/app` to open the customer app home. Customers can:
+
+- Add Dame to an iPhone or Android home screen
+- Launch Dame full-screen with a branded app icon
+- See the current location, open status, hours, and wait time
+- Open pickup ordering when Dame is accepting mobile orders
+- See their current points and next reward when signed in
+- Jump directly to the menu, ordering, catering, or rewards
+- Use a phone-friendly bottom navigation bar
+- See a branded offline screen instead of a browser error when disconnected
+
+The web app manifest starts installed sessions at `/app`. The service worker caches only the offline page and static Dame assets. API responses, customer rewards, orders, and other private data are never stored in the offline cache.
 
 ## What customers can do
 

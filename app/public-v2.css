@@ -2332,6 +2332,750 @@
   }
 }
 
+/* Dame App foundation */
+
+.dame-app-shell {
+  min-height: 100vh;
+  padding-bottom: calc(88px + env(safe-area-inset-bottom));
+  overflow: clip;
+  background:
+    radial-gradient(circle at 86% 9%, rgba(150, 16, 16, 0.08), transparent 26%),
+    var(--soft-gray);
+  color: var(--ink);
+}
+
+.dame-app-topbar {
+  min-height: 82px;
+  padding: 10px clamp(18px, 4vw, 64px);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 13px;
+  border-bottom: 1px solid rgba(150, 16, 16, 0.18);
+  background: rgba(217, 217, 217, 0.92);
+  backdrop-filter: blur(18px);
+}
+
+.dame-app-topbar > a,
+.dame-app-topbar > a img {
+  width: 58px;
+  height: 58px;
+}
+
+.dame-app-topbar > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dame-app-topbar > div span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.dame-app-topbar > div strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.dame-app-topbar > button,
+.dame-app-installed {
+  min-height: 38px;
+  padding: 9px 13px;
+  border: 1px solid var(--dame-red);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--dame-red);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dame-app-installed {
+  display: inline-flex;
+  align-items: center;
+  border-color: rgba(30, 113, 62, 0.4);
+  color: var(--success);
+}
+
+.dame-app-welcome {
+  padding: clamp(60px, 10vw, 118px) clamp(22px, 7vw, 108px) clamp(78px, 12vw, 150px);
+  position: relative;
+  background: var(--dame-red);
+  color: white;
+}
+
+.dame-app-welcome::after {
+  content: "DAME";
+  position: absolute;
+  right: -0.03em;
+  bottom: -0.24em;
+  color: rgba(255, 255, 255, 0.055);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(150px, 28vw, 480px);
+  line-height: 0.8;
+  pointer-events: none;
+}
+
+.dame-app-welcome h1 {
+  max-width: 930px;
+  margin: 24px 0 24px;
+  position: relative;
+  z-index: 1;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(54px, 8.5vw, 132px);
+  font-weight: 400;
+  letter-spacing: -0.055em;
+  line-height: 0.85;
+}
+
+.dame-app-welcome h1 em {
+  font-weight: 400;
+}
+
+.dame-app-welcome > p:last-child {
+  max-width: 510px;
+  margin: 0;
+  position: relative;
+  z-index: 1;
+  font-size: clamp(16px, 2vw, 22px);
+  line-height: 1.55;
+}
+
+.dame-app-live,
+.dame-app-rewards,
+.dame-app-quick-grid,
+.dame-app-install,
+.dame-app-footer {
+  width: min(1120px, calc(100% - 36px));
+  margin-inline: auto;
+}
+
+.dame-app-live {
+  margin-top: -46px;
+  padding: clamp(26px, 4vw, 48px);
+  position: relative;
+  z-index: 2;
+  border: 1px solid rgba(150, 16, 16, 0.16);
+  border-radius: 34px;
+  background: var(--warm-white);
+  box-shadow: 0 24px 70px rgba(31, 23, 20, 0.14);
+}
+
+.dame-app-live > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.dame-app-live h2 {
+  margin: 10px 0 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(42px, 6vw, 72px);
+  font-weight: 400;
+  letter-spacing: -0.045em;
+  line-height: 0.95;
+}
+
+.dame-app-live > h3 {
+  margin: clamp(38px, 6vw, 74px) 0 7px;
+  color: var(--dame-red);
+  font-size: clamp(26px, 4vw, 46px);
+  letter-spacing: 0.025em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.dame-app-live > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.dame-app-live dl {
+  margin: 32px 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-block: 1px solid var(--line);
+}
+
+.dame-app-live dl div {
+  padding: 18px 0;
+}
+
+.dame-app-live dl div + div {
+  padding-left: 24px;
+  border-left: 1px solid var(--line);
+}
+
+.dame-app-live dt {
+  margin-bottom: 7px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.dame-app-live dd {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(19px, 3vw, 27px);
+}
+
+.dame-app-live-actions {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.dame-app-live-actions > a:last-child {
+  color: var(--dame-red);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.dame-app-rewards {
+  margin-top: 28px;
+  padding: clamp(28px, 5vw, 54px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 20px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 34px;
+  background: var(--ink);
+  color: white;
+}
+
+.dame-app-rewards h2 {
+  margin: 12px 0 15px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(42px, 7vw, 80px);
+  font-weight: 400;
+  letter-spacing: -0.045em;
+  line-height: 0.94;
+}
+
+.dame-app-rewards h2 span {
+  font-size: 0.32em;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.dame-app-rewards > div > p:last-child {
+  max-width: 480px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.68);
+  line-height: 1.5;
+}
+
+.dame-app-rewards-mark {
+  width: clamp(92px, 12vw, 138px);
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 50%;
+  color: white;
+  transform: translateY(16px);
+}
+
+.dame-app-rewards-mark span {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.dame-app-rewards-mark strong {
+  margin-top: 4px;
+  color: var(--dame-red);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 48px;
+  line-height: 1;
+}
+
+.dame-app-rewards > a {
+  grid-column: 1 / -1;
+  padding-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+  color: white;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.dame-app-quick-grid {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid rgba(150, 16, 16, 0.18);
+  border-radius: 34px;
+  overflow: hidden;
+  background: var(--warm-white);
+}
+
+.dame-app-quick-grid a {
+  min-height: 190px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  text-decoration: none;
+  transition: background 180ms ease, color 180ms ease;
+}
+
+.dame-app-quick-grid a + a {
+  border-left: 1px solid var(--line);
+}
+
+.dame-app-quick-grid a:hover,
+.dame-app-quick-grid a:focus-visible {
+  background: var(--dame-red);
+  color: white;
+}
+
+.dame-app-quick-grid span {
+  color: var(--dame-red);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.dame-app-quick-grid a:hover span,
+.dame-app-quick-grid a:focus-visible span {
+  color: white;
+}
+
+.dame-app-quick-grid strong {
+  margin-top: auto;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 28px;
+  font-weight: 400;
+}
+
+.dame-app-quick-grid small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.dame-app-quick-grid a:hover small,
+.dame-app-quick-grid a:focus-visible small {
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.dame-app-install {
+  margin-top: 28px;
+  padding: clamp(30px, 5vw, 58px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 34px;
+  border-radius: 34px;
+  background: var(--dame-red);
+  color: white;
+}
+
+.dame-app-install h2 {
+  margin: 13px 0 12px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(38px, 5.5vw, 70px);
+  font-weight: 400;
+  letter-spacing: -0.045em;
+  line-height: 0.94;
+}
+
+.dame-app-install > div > p:last-child {
+  max-width: 610px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.55;
+}
+
+.dame-app-install > button {
+  flex: 0 0 auto;
+}
+
+.dame-app-footer {
+  padding: 48px 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.dame-app-footer p {
+  margin: 0;
+}
+
+.dame-app-footer b {
+  color: var(--dame-red);
+}
+
+.dame-app-footer a {
+  font-weight: 800;
+}
+
+.dame-app-bottom-nav {
+  display: none;
+}
+
+.dame-install-dialog-backdrop {
+  position: fixed;
+  z-index: 500;
+  inset: 0;
+  padding: 24px;
+  display: grid;
+  place-items: center;
+  background: rgba(31, 23, 20, 0.76);
+  backdrop-filter: blur(8px);
+}
+
+.dame-install-dialog {
+  width: min(480px, 100%);
+  padding: 30px;
+  position: relative;
+  border-radius: 32px;
+  background: var(--warm-white);
+  box-shadow: var(--shadow);
+}
+
+.dame-install-dialog > button {
+  width: 40px;
+  height: 40px;
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+  font-size: 25px;
+  line-height: 1;
+}
+
+.dame-install-dialog > img {
+  margin-bottom: 22px;
+}
+
+.dame-install-dialog h2 {
+  margin: 12px 0 24px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 38px;
+  font-weight: 400;
+  letter-spacing: -0.04em;
+  line-height: 0.98;
+}
+
+.dame-install-dialog ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: install-step;
+}
+
+.dame-install-dialog li {
+  min-height: 42px;
+  padding: 13px 0 13px 50px;
+  position: relative;
+  border-top: 1px solid var(--line);
+  counter-increment: install-step;
+  line-height: 1.45;
+}
+
+.dame-install-dialog li::before {
+  content: counter(install-step);
+  width: 30px;
+  height: 30px;
+  position: absolute;
+  top: 9px;
+  left: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--dame-red);
+  color: white;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.dame-install-note {
+  margin: 22px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.dame-offline {
+  min-height: 100vh;
+  padding: 48px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  background: var(--soft-gray);
+}
+
+.dame-offline img {
+  height: 210px;
+  width: auto;
+  margin-bottom: 22px;
+}
+
+.dame-offline h1 {
+  margin: 12px 0 15px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(46px, 8vw, 82px);
+  font-weight: 400;
+  letter-spacing: -0.05em;
+  line-height: 0.92;
+}
+
+.dame-offline > p:not(.dame-kicker) {
+  max-width: 460px;
+  margin: 0 0 28px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+@media (max-width: 760px) {
+  .dame-app-shell {
+    padding-bottom: calc(84px + env(safe-area-inset-bottom));
+  }
+
+  .dame-app-topbar {
+    position: sticky;
+    z-index: 50;
+    top: 0;
+    min-height: 72px;
+    padding: 8px 16px;
+  }
+
+  .dame-app-topbar > a,
+  .dame-app-topbar > a img {
+    width: 50px;
+    height: 50px;
+  }
+
+  .dame-app-topbar > button {
+    max-width: 84px;
+    padding-inline: 10px;
+  }
+
+  .dame-app-welcome {
+    padding: 54px 20px 90px;
+  }
+
+  .dame-app-welcome h1 {
+    margin-block: 20px;
+    font-size: clamp(49px, 15.5vw, 76px);
+  }
+
+  .dame-app-welcome > p:last-child {
+    max-width: 310px;
+    font-size: 15px;
+  }
+
+  .dame-app-live,
+  .dame-app-rewards,
+  .dame-app-quick-grid,
+  .dame-app-install,
+  .dame-app-footer {
+    width: calc(100% - 24px);
+  }
+
+  .dame-app-live {
+    margin-top: -38px;
+    padding: 26px 20px;
+    border-radius: 28px;
+  }
+
+  .dame-app-live h2 {
+    font-size: 48px;
+  }
+
+  .dame-app-live > h3 {
+    margin-top: 44px;
+    font-size: 30px;
+  }
+
+  .dame-app-live dl {
+    margin-block: 26px;
+  }
+
+  .dame-app-live dl div + div {
+    padding-left: 16px;
+  }
+
+  .dame-app-live dd {
+    font-size: 18px;
+  }
+
+  .dame-app-live-actions {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .dame-app-live-actions .dame-button {
+    width: 100%;
+  }
+
+  .dame-app-live-actions > a:last-child {
+    align-self: center;
+  }
+
+  .dame-app-rewards {
+    min-height: 312px;
+    padding: 30px 22px;
+    align-items: start;
+    border-radius: 28px;
+  }
+
+  .dame-app-rewards h2 {
+    font-size: 48px;
+  }
+
+  .dame-app-rewards-mark {
+    width: 82px;
+    align-self: end;
+    transform: translate(5px, 20px);
+  }
+
+  .dame-app-quick-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-radius: 28px;
+  }
+
+  .dame-app-quick-grid a {
+    min-height: 155px;
+    padding: 20px;
+  }
+
+  .dame-app-quick-grid a + a {
+    border-left: 1px solid var(--line);
+  }
+
+  .dame-app-quick-grid a:nth-child(3) {
+    border-left: 0;
+  }
+
+  .dame-app-quick-grid a:nth-child(n + 3) {
+    border-top: 1px solid var(--line);
+  }
+
+  .dame-app-quick-grid strong {
+    font-size: 25px;
+  }
+
+  .dame-app-install {
+    padding: 32px 24px;
+    align-items: stretch;
+    flex-direction: column;
+    border-radius: 28px;
+  }
+
+  .dame-app-install h2 {
+    font-size: 45px;
+  }
+
+  .dame-app-install > button {
+    width: 100%;
+  }
+
+  .dame-app-footer {
+    padding: 42px 2px 18px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dame-app-bottom-nav {
+    min-height: calc(68px + env(safe-area-inset-bottom));
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+    position: fixed;
+    z-index: 90;
+    inset: auto 0 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-top: 1px solid rgba(150, 16, 16, 0.16);
+    background: rgba(255, 253, 248, 0.96);
+    backdrop-filter: blur(18px);
+  }
+
+  .dame-app-bottom-nav a {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 2px;
+    color: var(--muted);
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .dame-app-bottom-nav a span {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 1;
+  }
+
+  .dame-app-bottom-nav a.is-active {
+    color: var(--dame-red);
+  }
+
+  .dame-install-dialog-backdrop {
+    align-items: end;
+    padding: 12px;
+  }
+
+  .dame-install-dialog {
+    padding: 28px 22px calc(28px + env(safe-area-inset-bottom));
+    border-radius: 30px;
+  }
+}
+
+@media (display-mode: standalone) {
+  .dame-app-topbar {
+    padding-top: calc(8px + env(safe-area-inset-top));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dame-app-quick-grid a,
+  .dame-app-topbar > button {
+    transition: none;
+  }
+}
+
 /* Phase 2 menu */
 .dame-menu-intro {
   min-height: 540px;

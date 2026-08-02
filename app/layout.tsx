@@ -1,5 +1,11 @@
 import './styles.css';
 import './public-v2.css';
+import AppServiceWorker from './components/app-service-worker';
+
+export const viewport = {
+  themeColor: '#961010',
+  colorScheme: 'light',
+};
 
 export const metadata = {
   metadataBase: new URL('https://www.damecoffeeco.com'),
@@ -22,12 +28,25 @@ export const metadata = {
     title: 'Dame Coffee | Crafted with Heart',
     description: 'Coffee made with intention, culture, unity, and love.',
   },
+  applicationName: 'Dame Coffee',
+  appleWebApp: {
+    capable: true,
+    title: 'Dame Coffee',
+    statusBarStyle: 'black-translucent',
+  },
+  icons: {
+    icon: '/dame-icon',
+    apple: '/dame-icon',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        <AppServiceWorker />
+      </body>
     </html>
   );
 }
