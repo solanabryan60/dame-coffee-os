@@ -1,8 +1,21 @@
-# Dame Coffee OS — Phase 6 Catering Center
+# Dame Coffee OS — Phase 7 Pickup Order Center
 
 Dame Coffee OS is the public website, pickup-ordering experience, rewards program, and private control center for Dame Coffee.
 
-Phase 6 adds a private catering request center without changing the customer-facing estimator. Every date-request deposit is saved, matched to its verified Square payment, and placed in the Dame Coffee OS admin dashboard for follow-up.
+Phase 7 adds private live pickup tracking and a focused order queue without replacing Square. Every website pickup order is saved before checkout, matched to its verified Square payment, and placed in the Dame Coffee OS pickup dashboard.
+
+## Pickup order center
+
+When a customer begins Square checkout:
+
+- Dame Coffee OS saves their pickup name, contact information, order items, customizations, quoted wait, and location snapshot
+- The customer returns from Square to a private tracking link that cannot be guessed from the order number alone
+- A verified Square `payment.updated` webhook moves the order from `Awaiting payment` to `Paid`
+- Staff use `/admin/orders` to move the order through `Preparing`, `Ready for pickup`, and `Picked up`
+- The customer tracking page refreshes automatically as staff update the order
+- Marking an order `Refund needed` sends staff to Square; a verified full Square refund automatically marks the order refunded
+
+The pickup dashboard is separate from the main control center so live orders remain fast and focused during service.
 
 ## Catering request center
 
@@ -62,7 +75,7 @@ The rewards are:
 
 ## What Dame staff can do
 
-The private `/admin` dashboard keeps all existing live-location controls and adds reward-code redemption, promotion scheduling, upcoming-event publishing, and opt-in notifications.
+The private `/admin` dashboard keeps all existing live-location controls and adds reward-code redemption, promotion scheduling, upcoming-event publishing, and opt-in notifications. The focused `/admin/orders` dashboard manages live pickup orders.
 
 Staff can:
 
@@ -77,6 +90,9 @@ Staff can:
 - Add, publish, hide, and remove upcoming events
 - See how many devices have opted in to notifications
 - Send a short notification that opens the Dame App, menu, ordering, rewards, catering, or homepage
+- Review every website pickup order and its customer, items, customizations, location, and payment state
+- Move pickup orders from paid to preparing, ready, and picked up while the customer watches their private tracker
+- Flag an order for a Square refund and have the verified refund update Dame Coffee OS automatically
 
 ## How points are awarded
 
@@ -103,6 +119,7 @@ Apply these SQL files in order:
 7. `supabase-phase4e-referral-threshold.sql`
 8. `supabase-phase5-events-notifications.sql`
 9. `supabase-phase6-catering-center.sql`
+10. `supabase-phase7-pickup-center.sql`
 
 Phase 4 and 4B create:
 
@@ -217,4 +234,9 @@ Also confirm:
 - Catering requests are visible and editable only to approved Dame admins
 - Catering payments update the matching request and do not earn rewards points
 - Full catering deposit refunds update the matching request automatically
+- Pickup tracking links require both the order ID and its private tracking key
+- Only approved Dame admins can read or update the pickup queue
+- Completed Square payments move the matching pickup order to Paid
+- Full Square refunds move the matching pickup order to Refunded
+- Customer tracking pages never expose private staff notes or Square identifiers
 - `/admin` and `/admin/login` still work

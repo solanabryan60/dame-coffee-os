@@ -9,10 +9,14 @@ import {
   findRewardUserBySquareOrder,
   findCateringRequestBySquareOrder,
   findCateringRequestBySquarePayment,
+  findPickupOrderBySquareOrder,
+  findPickupOrderBySquarePayment,
   getActiveRewardPromotions,
   hasDameRewardsServerConfig,
   markCateringDepositPaid,
   markCateringDepositRefunded,
+  markPickupOrderPaid,
+  markPickupOrderRefunded,
   recordDameSquareEvent,
   type ActiveRewardPromotion,
 } from '@/app/lib/supabase-admin';
@@ -118,6 +122,15 @@ async function handlePayment(event: SquareWebhookEvent) {
       });
       return;
     }
+
+    const pickupOrder = await findPickupOrderBySquareOrder(payment.order_id);
+    if (pickupOrder) {
+      await markPickupOrderPaid({
+        orderId: pickupOrder.id,
+        squarePaymentId: payment.id,
+        paidCents: paymentAmountCents,
+      });
+    }
   }
 
   const userId = await resolvePaymentUser(payment);
@@ -166,6 +179,15 @@ async function handleRefund(event: SquareWebhookEvent) {
       await markCateringDepositRefunded(cateringRequest.id);
     }
     return;
+  }
+
+  const pickupOrder = await findPickupOrderBySquarePayment(refund.payment_id);
+  if (
+    pickupOrder &&
+    pickupOrder.paid_cents &&
+    amountCents >= pickupOrder.paid_cents
+  ) {
+    await markPickupOrderRefunded(pickupOrder.id);
   }
 
   const purchase = await findRewardPurchaseByPayment(refund.payment_id);

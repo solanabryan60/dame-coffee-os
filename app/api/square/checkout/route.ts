@@ -1,5 +1,9 @@
 import { createSquarePaymentLink } from '@/app/lib/square';
 import { createRewardsOrderLink } from '@/app/lib/dame-rewards';
+import {
+  createPickupOrder,
+  hashPickupTrackingToken,
+} from '@/app/lib/supabase-admin';
 import { readAuthUser, readSiteSettings } from '@/app/lib/supabase-rest';
 
 type CheckoutRequest = {
@@ -38,10 +42,10 @@ export async function POST(request: Request) {
       modifierIds: Array.isArray(line.modifierIds) ? line.modifierIds.slice(0, 20) : [],
     }));
     const customer = {
-      name: body.customer?.name?.trim() ?? '',
-      email: body.customer?.email?.trim().toLowerCase() ?? '',
-      phone: body.customer?.phone?.trim() ?? '',
-      note: body.customer?.note?.trim() ?? '',
+      name: body.customer?.name?.trim().slice(0, 160) ?? '',
+      email: body.customer?.email?.trim().toLowerCase().slice(0, 320) ?? '',
+      phone: body.customer?.phone?.trim().slice(0, 40) ?? '',
+      note: body.customer?.note?.trim().slice(0, 500) ?? '',
     };
 
     if (!lines.length || lines.length > 30) {
@@ -53,7 +57,34 @@ export async function POST(request: Request) {
 
     const accessToken = bearerToken(request);
     const rewardsUser = accessToken ? await readAuthUser(accessToken) : null;
-    const paymentLink = await createSquarePaymentLink(lines, customer, settings.wait_minutes);
+    const pickupOrderId = crypto.randomUUID();
+    const trackingToken = crypto.randomUUID();
+    const trackingQuery = new URLSearchParams({
+      order: pickupOrderId,
+      key: trackingToken,
+    });
+    const paymentLink = await createSquarePaymentLink(
+      lines,
+      customer,
+      settings.wait_minutes,
+      `/order/complete?${trackingQuery}`,
+    );
+
+    await createPickupOrder({
+      id: pickupOrderId,
+      customer_user_id: rewardsUser?.id ?? null,
+      customer_name: customer.name,
+      customer_email: customer.email,
+      customer_phone: customer.phone,
+      customer_note: customer.note,
+      line_items: paymentLink.lineItems,
+      subtotal_cents: paymentLink.subtotalCents,
+      square_order_id: paymentLink.orderId,
+      tracking_token_hash: hashPickupTrackingToken(trackingToken),
+      location_title: settings.location_title,
+      location_address: settings.address,
+      quoted_wait_minutes: settings.wait_minutes,
+    });
 
     if (accessToken && rewardsUser) {
       await createRewardsOrderLink(accessToken, rewardsUser.id, paymentLink.orderId);

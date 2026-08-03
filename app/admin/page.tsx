@@ -487,6 +487,7 @@ export default function AdminDashboard() {
           <h1>Live location</h1>
         </div>
         <div className="admin-top-actions">
+          <Link className="pill solid" href="/admin/orders">Pickup orders</Link>
           <Link className="pill ghost" href="/" target="_blank">View website</Link>
           <button className="pill ghost" type="button" onClick={logout}>Sign out</button>
         </div>

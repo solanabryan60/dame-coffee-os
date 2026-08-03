@@ -86,6 +86,53 @@ export type CateringRequest = {
   updated_at: string;
 };
 
+export type PickupOrderStatus =
+  | 'awaiting_payment'
+  | 'paid'
+  | 'preparing'
+  | 'ready'
+  | 'picked_up'
+  | 'refund_pending'
+  | 'refunded'
+  | 'cancelled';
+
+export type PickupOrderLineItem = {
+  item_name: string;
+  variation_name: string;
+  quantity: number;
+  modifier_names: string[];
+  unit_amount_cents: number;
+  line_total_cents: number;
+};
+
+export type PickupOrder = {
+  id: string;
+  customer_user_id: string | null;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  customer_note: string;
+  line_items: PickupOrderLineItem[];
+  subtotal_cents: number;
+  paid_cents: number | null;
+  status: PickupOrderStatus;
+  square_order_id: string;
+  square_payment_id: string | null;
+  tracking_token_hash: string;
+  location_title: string;
+  location_address: string;
+  quoted_wait_minutes: number;
+  internal_notes: string;
+  paid_at: string | null;
+  preparing_at: string | null;
+  ready_at: string | null;
+  picked_up_at: string | null;
+  refunded_at: string | null;
+  cancelled_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
@@ -222,6 +269,57 @@ export async function listCateringRequestsForAdmin(accessToken: string) {
     '/catering_requests?select=*&order=event_date.asc,start_time.asc,created_at.desc',
     accessToken,
   );
+}
+
+export async function listPickupOrdersForAdmin(accessToken: string) {
+  return publicRequest<PickupOrder[]>(
+    '/pickup_orders?select=*&order=created_at.desc&limit=100',
+    accessToken,
+  );
+}
+
+export async function updatePickupOrderForAdmin(
+  accessToken: string,
+  orderId: string,
+  input: {
+    status: PickupOrderStatus;
+    internal_notes: string;
+  },
+) {
+  const config = requireConfig();
+  const now = new Date().toISOString();
+  const timestampFields: Partial<Pick<
+    PickupOrder,
+    'preparing_at' | 'ready_at' | 'picked_up_at' | 'cancelled_at'
+  >> = {};
+  if (input.status === 'preparing') timestampFields.preparing_at = now;
+  if (input.status === 'ready') timestampFields.ready_at = now;
+  if (input.status === 'picked_up') timestampFields.picked_up_at = now;
+  if (input.status === 'cancelled') timestampFields.cancelled_at = now;
+
+  const response = await fetch(
+    `${config.supabaseUrl}/rest/v1/pickup_orders?id=eq.${encodeURIComponent(orderId)}`,
+    {
+      method: 'PATCH',
+      headers: {
+        apikey: config.supabaseKey,
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=representation',
+      },
+      body: JSON.stringify({
+        status: input.status,
+        internal_notes: input.internal_notes.trim(),
+        ...timestampFields,
+        updated_at: now,
+      }),
+    },
+  );
+  const payload = await response.json();
+  if (!response.ok) throw new Error(authError(payload, 'Could not update that pickup order.'));
+  const order = (payload as PickupOrder[])[0];
+  if (!order) throw new Error('Could not update that pickup order.');
+  return order;
 }
 
 export async function updateCateringRequestForAdmin(

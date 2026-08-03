@@ -1,6 +1,11 @@
 import 'server-only';
 
-import { readAuthUser, type CateringRequest } from './supabase-rest';
+import { createHash } from 'node:crypto';
+import {
+  readAuthUser,
+  type CateringRequest,
+  type PickupOrder,
+} from './supabase-rest';
 
 type ProfileMatch = {
   user_id: string;
@@ -35,6 +40,23 @@ type NewCateringRequest = Pick<
   | 'estimate_cents'
   | 'deposit_cents'
   | 'square_order_id'
+>;
+
+type NewPickupOrder = Pick<
+  PickupOrder,
+  | 'id'
+  | 'customer_user_id'
+  | 'customer_name'
+  | 'customer_email'
+  | 'customer_phone'
+  | 'customer_note'
+  | 'line_items'
+  | 'subtotal_cents'
+  | 'square_order_id'
+  | 'tracking_token_hash'
+  | 'location_title'
+  | 'location_address'
+  | 'quoted_wait_minutes'
 >;
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -110,6 +132,88 @@ export async function deletePushSubscription(endpoint: string) {
   await adminRequest<unknown>(
     `/push_subscriptions?endpoint=eq.${encodeURIComponent(endpoint)}`,
     { method: 'DELETE', headers: { Prefer: 'return=minimal' } },
+  );
+}
+
+export function hashPickupTrackingToken(token: string) {
+  return createHash('sha256').update(token).digest('hex');
+}
+
+export async function createPickupOrder(input: NewPickupOrder) {
+  const rows = await adminRequest<PickupOrder[]>('/pickup_orders', {
+    method: 'POST',
+    headers: { Prefer: 'return=representation' },
+    body: JSON.stringify({
+      ...input,
+      status: 'awaiting_payment',
+      internal_notes: '',
+    }),
+  });
+  const order = rows[0];
+  if (!order) throw new Error('Could not save the pickup order.');
+  return order;
+}
+
+export async function findPickupOrderBySquareOrder(squareOrderId: string) {
+  const rows = await adminRequest<PickupOrder[]>(
+    `/pickup_orders?square_order_id=eq.${encodeURIComponent(squareOrderId)}&select=*&limit=1`,
+  );
+  return rows[0] ?? null;
+}
+
+export async function findPickupOrderBySquarePayment(squarePaymentId: string) {
+  const rows = await adminRequest<PickupOrder[]>(
+    `/pickup_orders?square_payment_id=eq.${encodeURIComponent(squarePaymentId)}&select=*&limit=1`,
+  );
+  return rows[0] ?? null;
+}
+
+export async function findPickupOrderByTracking(input: {
+  orderId: string;
+  trackingToken: string;
+}) {
+  const tokenHash = hashPickupTrackingToken(input.trackingToken);
+  const rows = await adminRequest<PickupOrder[]>(
+    `/pickup_orders?id=eq.${encodeURIComponent(input.orderId)}&tracking_token_hash=eq.${encodeURIComponent(tokenHash)}&select=*&limit=1`,
+  );
+  return rows[0] ?? null;
+}
+
+export async function markPickupOrderPaid(input: {
+  orderId: string;
+  squarePaymentId: string;
+  paidCents: number;
+}) {
+  const now = new Date().toISOString();
+  await adminRequest<unknown>(
+    `/pickup_orders?id=eq.${encodeURIComponent(input.orderId)}&status=eq.awaiting_payment`,
+    {
+      method: 'PATCH',
+      headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify({
+        status: 'paid',
+        square_payment_id: input.squarePaymentId,
+        paid_cents: input.paidCents,
+        paid_at: now,
+        updated_at: now,
+      }),
+    },
+  );
+}
+
+export async function markPickupOrderRefunded(orderId: string) {
+  const now = new Date().toISOString();
+  await adminRequest<unknown>(
+    `/pickup_orders?id=eq.${encodeURIComponent(orderId)}`,
+    {
+      method: 'PATCH',
+      headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify({
+        status: 'refunded',
+        refunded_at: now,
+        updated_at: now,
+      }),
+    },
   );
 }
 

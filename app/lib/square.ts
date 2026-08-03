@@ -114,6 +114,15 @@ type CheckoutCustomer = {
   note?: string;
 };
 
+export type PickupOrderLineItemSnapshot = {
+  item_name: string;
+  variation_name: string;
+  quantity: number;
+  modifier_names: string[];
+  unit_amount_cents: number;
+  line_total_cents: number;
+};
+
 export type SquareCustomer = {
   id: string;
   given_name?: string;
@@ -501,6 +510,7 @@ export async function createSquarePaymentLink(
   lines: CheckoutLine[],
   customer: CheckoutCustomer,
   waitMinutes: number,
+  redirectPath = '/order/complete',
 ) {
   const catalog = await getSquareCatalog({ required: true });
   const config = getSquareConfig();
@@ -508,13 +518,14 @@ export async function createSquarePaymentLink(
 
   const variationItems = new Map(
     catalog.items.flatMap((item) =>
-      item.variations.map((variation) => [variation.id, item] as const),
+      item.variations.map((variation) => [variation.id, { item, variation }] as const),
     ),
   );
 
-  const lineItems = lines.map((line) => {
-    const item = variationItems.get(line.variationId);
-    if (!item) throw new Error('One item is no longer available.');
+  const preparedLines = lines.map((line) => {
+    const match = variationItems.get(line.variationId);
+    if (!match) throw new Error('One item is no longer available.');
+    const { item, variation } = match;
     if (!Number.isInteger(line.quantity) || line.quantity < 1 || line.quantity > 12) {
       throw new Error('Choose a quantity between 1 and 12.');
     }
@@ -537,15 +548,36 @@ export async function createSquarePaymentLink(
       }
     }
 
+    const selectedModifiers = item.modifierGroups.flatMap((group) =>
+      group.options.filter((option) => line.modifierIds.includes(option.id)),
+    );
+    const unitAmountCents = variation.priceAmount + selectedModifiers.reduce(
+      (total, modifier) => total + modifier.priceAmount,
+      0,
+    );
+
     return {
-      quantity: String(line.quantity),
-      catalog_object_id: line.variationId,
-      modifiers: line.modifierIds.map((id) => ({
-        catalog_object_id: id,
-        quantity: '1',
-      })),
+      squareLine: {
+        quantity: String(line.quantity),
+        catalog_object_id: line.variationId,
+        modifiers: line.modifierIds.map((id) => ({
+          catalog_object_id: id,
+          quantity: '1',
+        })),
+      },
+      snapshot: {
+        item_name: item.name,
+        variation_name: variation.name,
+        quantity: line.quantity,
+        modifier_names: selectedModifiers.map((modifier) => modifier.name),
+        unit_amount_cents: unitAmountCents,
+        line_total_cents: unitAmountCents * line.quantity,
+      } satisfies PickupOrderLineItemSnapshot,
     };
   });
+
+  const snapshots = preparedLines.map((line) => line.snapshot);
+  const subtotalCents = snapshots.reduce((total, line) => total + line.line_total_cents, 0);
 
   const response = await fetch(`${config.baseUrl}/v2/online-checkout/payment-links`, {
     method: 'POST',
@@ -559,7 +591,7 @@ export async function createSquarePaymentLink(
       description: 'Dame Coffee pickup order',
       order: {
         location_id: config.locationId,
-        line_items: lineItems,
+        line_items: preparedLines.map((line) => line.squareLine),
         pricing_options: {
           auto_apply_discounts: true,
           auto_apply_taxes: true,
@@ -584,7 +616,7 @@ export async function createSquarePaymentLink(
         allow_tipping: true,
         ask_for_shipping_address: false,
         merchant_support_email: 'info@damecoffeeco.com',
-        redirect_url: `${productionUrl()}/order/complete`,
+        redirect_url: `${productionUrl()}${redirectPath.startsWith('/') ? redirectPath : `/${redirectPath}`}`,
       },
       pre_populated_data: {
         buyer_email: customer.email?.trim().toLowerCase() || undefined,
@@ -607,6 +639,8 @@ export async function createSquarePaymentLink(
   return {
     url: payload.payment_link.url,
     orderId: payload.payment_link.order_id,
+    lineItems: snapshots,
+    subtotalCents,
   };
 }
 
