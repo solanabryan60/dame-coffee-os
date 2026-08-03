@@ -1038,7 +1038,8 @@
 }
 
 .dame-rewards-form label,
-.dame-field > span {
+.dame-field > span,
+.dame-field > label {
   font-size: 11px;
   font-weight: 900;
   letter-spacing: 0.1em;
@@ -1779,6 +1780,78 @@
   font-size: 12px;
   font-weight: 800;
   text-decoration: none;
+}
+
+.dame-field > small {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.dame-address-autocomplete {
+  position: relative;
+}
+
+.dame-address-suggestions {
+  position: absolute;
+  z-index: 30;
+  inset: calc(100% + 7px) 0 auto;
+  padding: 7px;
+  border: 1px solid rgba(150, 16, 16, 0.2);
+  border-radius: 16px;
+  display: grid;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 20px 48px rgba(50, 25, 20, 0.16);
+}
+
+.dame-address-suggestions button {
+  width: 100%;
+  padding: 12px 13px;
+  border: 0;
+  border-radius: 10px;
+  display: grid;
+  gap: 3px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dame-address-suggestions button:hover,
+.dame-address-suggestions button:focus-visible,
+.dame-address-suggestions button.is-highlighted {
+  outline: none;
+  background: var(--cream);
+}
+
+.dame-address-suggestions button strong {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.dame-address-suggestions button span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.dame-address-loading {
+  margin: 0;
+  padding: 12px 13px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.dame-address-attribution {
+  padding: 8px 13px 5px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-align: right;
+  text-transform: uppercase;
 }
 
 .dame-slider-block {

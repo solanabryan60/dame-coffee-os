@@ -1,8 +1,22 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
+import {
+  FormEvent,
+  KeyboardEvent,
+  useEffect,
+  useId,
+  useMemo,
+  useState,
+} from 'react';
 import { calculateCateringEstimateDollars } from '../lib/catering-pricing';
 import GoogleMap from './google-map';
+
+type AddressSuggestion = {
+  placeId: string;
+  fullText: string;
+  mainText: string;
+  secondaryText: string;
+};
 
 function money(value: number) {
   return new Intl.NumberFormat('en-US', {
@@ -13,6 +27,7 @@ function money(value: number) {
 }
 
 export default function CateringCalculator() {
+  const addressListId = useId();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -22,6 +37,10 @@ export default function CateringCalculator() {
   const [drinks, setDrinks] = useState(100);
   const [hours, setHours] = useState(2);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [addressFocused, setAddressFocused] = useState(false);
+  const [addressSuggestions, setAddressSuggestions] = useState<AddressSuggestion[]>([]);
+  const [addressSearchLoading, setAddressSearchLoading] = useState(false);
+  const [highlightedAddress, setHighlightedAddress] = useState(-1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -32,6 +51,70 @@ export default function CateringCalculator() {
   const mapHref = address
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
     : '';
+
+  useEffect(() => {
+    const input = address.trim();
+    if (!addressFocused || input.length < 4) {
+      setAddressSuggestions([]);
+      setAddressSearchLoading(false);
+      setHighlightedAddress(-1);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setAddressSearchLoading(true);
+      try {
+        const response = await fetch(
+          `/api/places/autocomplete?input=${encodeURIComponent(input)}`,
+          { signal: controller.signal },
+        );
+        const payload = (await response.json()) as { suggestions?: AddressSuggestion[] };
+        setAddressSuggestions(response.ok ? (payload.suggestions ?? []) : []);
+        setHighlightedAddress(-1);
+      } catch (searchError) {
+        if ((searchError as { name?: string }).name !== 'AbortError') {
+          setAddressSuggestions([]);
+        }
+      } finally {
+        if (!controller.signal.aborted) setAddressSearchLoading(false);
+      }
+    }, 320);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [address, addressFocused]);
+
+  function chooseAddress(suggestion: AddressSuggestion) {
+    setAddress(suggestion.fullText);
+    setAddressSuggestions([]);
+    setAddressFocused(false);
+    setHighlightedAddress(-1);
+  }
+
+  function handleAddressKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (!addressSuggestions.length) return;
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setHighlightedAddress((current) =>
+        current >= addressSuggestions.length - 1 ? 0 : current + 1,
+      );
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setHighlightedAddress((current) =>
+        current <= 0 ? addressSuggestions.length - 1 : current - 1,
+      );
+    } else if (event.key === 'Enter' && highlightedAddress >= 0) {
+      event.preventDefault();
+      chooseAddress(addressSuggestions[highlightedAddress]);
+    } else if (event.key === 'Escape') {
+      setAddressSuggestions([]);
+      setHighlightedAddress(-1);
+    }
+  }
 
   async function requestDate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -83,19 +166,61 @@ export default function CateringCalculator() {
           <input type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} autoComplete="tel" required />
         </label>
 
-        <label className="dame-field dame-field-wide">
-          <span>Where is your event?</span>
-          <input
-            value={address}
-            onChange={(event) => setAddress(event.target.value)}
-            placeholder="Enter the full event address"
-            autoComplete="street-address"
-            required
-          />
+        <div className="dame-field dame-field-wide">
+          <label htmlFor="dame-event-address">Where is your event?</label>
+          <div
+            className="dame-address-autocomplete"
+            onFocus={() => setAddressFocused(true)}
+            onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                setAddressFocused(false);
+              }
+            }}
+          >
+            <input
+              id="dame-event-address"
+              value={address}
+              onChange={(event) => setAddress(event.target.value)}
+              onKeyDown={handleAddressKeyDown}
+              placeholder="Start typing the event address"
+              autoComplete="off"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-expanded={addressFocused && (addressSearchLoading || addressSuggestions.length > 0)}
+              aria-controls={addressListId}
+              aria-activedescendant={highlightedAddress >= 0 ? `${addressListId}-${highlightedAddress}` : undefined}
+              aria-describedby="dame-address-help"
+              required
+            />
+            {addressFocused && (addressSearchLoading || addressSuggestions.length > 0) ? (
+              <div id={addressListId} className="dame-address-suggestions" role="listbox">
+                {addressSearchLoading ? (
+                  <p className="dame-address-loading">Finding addresses…</p>
+                ) : null}
+                {addressSuggestions.map((suggestion, index) => (
+                  <button
+                    key={suggestion.placeId}
+                    id={`${addressListId}-${index}`}
+                    type="button"
+                    role="option"
+                    aria-selected={highlightedAddress === index}
+                    className={highlightedAddress === index ? 'is-highlighted' : ''}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => chooseAddress(suggestion)}
+                  >
+                    <strong>{suggestion.mainText}</strong>
+                    <span>{suggestion.secondaryText}</span>
+                  </button>
+                ))}
+                <span className="dame-address-attribution">Powered by Google</span>
+              </div>
+            ) : null}
+          </div>
+          <small id="dame-address-help">Choose a suggestion to fill in the complete address.</small>
           {mapHref ? (
             <a href={mapHref} target="_blank" rel="noreferrer">Preview this address on Google Maps ↗</a>
           ) : null}
-        </label>
+        </div>
 
         <GoogleMap
           address={address}

@@ -123,6 +123,8 @@ SQUARE_WEBHOOK_NOTIFICATION_URL=http://localhost:3000/api/webhooks/square
 
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
+GOOGLE_MAPS_API_KEY=your-server-only-google-maps-key
+
 NEXT_PUBLIC_VAPID_PUBLIC_KEY=your-web-push-public-key
 VAPID_PRIVATE_KEY=your-server-only-web-push-private-key
 ```
@@ -169,6 +171,7 @@ Server-only production variables:
 - `SQUARE_WEBHOOK_SIGNATURE_KEY`
 - `SQUARE_WEBHOOK_NOTIFICATION_URL=https://www.damecoffeeco.com/api/webhooks/square`
 - `NEXT_PUBLIC_SITE_URL=https://www.damecoffeeco.com`
+- `GOOGLE_MAPS_API_KEY`
 - `VAPID_PRIVATE_KEY`
 
 Preview deployments can display the customer rewards dashboard with the normal Supabase public variables. Live payment processing and Square webhooks remain production-only.
