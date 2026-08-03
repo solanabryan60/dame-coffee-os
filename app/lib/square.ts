@@ -621,7 +621,10 @@ export type CateringDepositRequest = {
   hours: number;
 };
 
-export async function createSquareCateringDepositLink(request: CateringDepositRequest) {
+export async function createSquareCateringDepositLink(
+  request: CateringDepositRequest,
+  requestId: string,
+) {
   const config = getSquareConfig();
   if (!config) throw new Error('Square payments have not been configured yet.');
 
@@ -659,7 +662,7 @@ export async function createSquareCateringDepositLink(request: CateringDepositRe
         allow_tipping: false,
         ask_for_shipping_address: false,
         merchant_support_email: 'info@damecoffeeco.com',
-        redirect_url: `${productionUrl()}/catering/complete`,
+        redirect_url: `${productionUrl()}/catering/complete?request=${encodeURIComponent(requestId)}`,
       },
       pre_populated_data: {
         buyer_email: request.email.trim().toLowerCase(),

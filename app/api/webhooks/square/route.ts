@@ -7,8 +7,12 @@ import {
   findRewardUserByContact,
   findRewardPurchaseByPayment,
   findRewardUserBySquareOrder,
+  findCateringRequestBySquareOrder,
+  findCateringRequestBySquarePayment,
   getActiveRewardPromotions,
   hasDameRewardsServerConfig,
+  markCateringDepositPaid,
+  markCateringDepositRefunded,
   recordDameSquareEvent,
   type ActiveRewardPromotion,
 } from '@/app/lib/supabase-admin';
@@ -105,6 +109,17 @@ async function handlePayment(event: SquareWebhookEvent) {
   const paymentAmountCents = payment.amount_money?.amount ?? 0;
   if (paymentAmountCents <= 0) return;
 
+  if (payment.order_id) {
+    const cateringRequest = await findCateringRequestBySquareOrder(payment.order_id);
+    if (cateringRequest) {
+      await markCateringDepositPaid({
+        requestId: cateringRequest.id,
+        squarePaymentId: payment.id,
+      });
+      return;
+    }
+  }
+
   const userId = await resolvePaymentUser(payment);
   if (!userId) return;
 
@@ -144,6 +159,14 @@ async function handleRefund(event: SquareWebhookEvent) {
 
   const amountCents = refund.amount_money?.amount ?? 0;
   if (amountCents <= 0) return;
+
+  const cateringRequest = await findCateringRequestBySquarePayment(refund.payment_id);
+  if (cateringRequest) {
+    if (amountCents >= cateringRequest.deposit_cents) {
+      await markCateringDepositRefunded(cateringRequest.id);
+    }
+    return;
+  }
 
   const purchase = await findRewardPurchaseByPayment(refund.payment_id);
   if (!purchase) return;

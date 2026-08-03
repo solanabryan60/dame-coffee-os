@@ -1370,6 +1370,205 @@ img {
   margin-top: 26px;
 }
 
+.admin-catering-center {
+  margin-top: 26px;
+}
+
+.admin-catering-summary {
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-catering-summary article {
+  min-height: 120px;
+  padding: 20px;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: var(--cream);
+}
+
+.admin-catering-summary strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 44px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.admin-catering-summary span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.admin-catering-list {
+  margin-top: 28px;
+  display: grid;
+  gap: 20px;
+}
+
+.admin-catering-request {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: #fff;
+}
+
+.admin-catering-request > header {
+  padding: 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  background: var(--cream);
+}
+
+.admin-catering-request > header span {
+  color: var(--dame-red);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.admin-catering-request > header h3 {
+  margin: 8px 0 5px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(30px, 5vw, 44px);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.admin-catering-request > header p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.admin-catering-price {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  text-align: right;
+}
+
+.admin-catering-price strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 34px;
+  font-weight: 500;
+}
+
+.admin-catering-price small {
+  color: var(--muted);
+}
+
+.admin-catering-details {
+  padding: 22px 24px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.35fr;
+  gap: 22px;
+}
+
+.admin-catering-details > div {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 6px;
+}
+
+.admin-catering-details small {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.admin-catering-details a {
+  overflow-wrap: anywhere;
+  color: var(--dame-red);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.admin-catering-details span,
+.admin-catering-details strong {
+  line-height: 1.4;
+}
+
+.admin-catering-workflow {
+  padding: 24px;
+  display: grid;
+  grid-template-columns: minmax(190px, 0.45fr) 1fr;
+  gap: 18px;
+  align-items: end;
+}
+
+.admin-catering-workflow label {
+  display: grid;
+  gap: 9px;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.admin-catering-workflow select,
+.admin-catering-workflow textarea {
+  width: 100%;
+  padding: 14px 15px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: white;
+  color: var(--ink);
+  font: inherit;
+}
+
+.admin-catering-workflow textarea {
+  resize: vertical;
+}
+
+.admin-catering-workflow > .pill,
+.admin-refund-reminder {
+  grid-column: 1 / -1;
+}
+
+.admin-refund-reminder {
+  padding: 18px;
+  border: 1px solid #d9a43a;
+  border-radius: 16px;
+  background: #fff8e8;
+  color: #6d4a04;
+}
+
+.admin-refund-reminder p {
+  margin: 6px 0;
+  line-height: 1.5;
+}
+
+.admin-refund-reminder a {
+  color: inherit;
+  font-weight: 900;
+}
+
+.admin-catering-request.is-confirmed {
+  border-color: #95c8a6;
+}
+
+.admin-catering-request.is-refund_pending {
+  border-color: #d9a43a;
+}
+
+.admin-catering-request.is-refunded,
+.admin-catering-request.is-cancelled,
+.admin-catering-request.is-completed {
+  opacity: 0.78;
+}
+
 .admin-error,
 .admin-success {
   padding: 13px 15px;
@@ -1509,5 +1708,33 @@ img {
 
   .admin-category-options {
     grid-template-columns: 1fr;
+  }
+
+  .admin-catering-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-catering-request > header,
+  .admin-catering-workflow {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .admin-catering-request > header {
+    flex-direction: column;
+  }
+
+  .admin-catering-price {
+    justify-items: start;
+    text-align: left;
+  }
+
+  .admin-catering-details {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-catering-workflow > .pill,
+  .admin-refund-reminder {
+    grid-column: auto;
   }
 }

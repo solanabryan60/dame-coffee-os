@@ -1,4 +1,6 @@
+import { calculateCateringEstimateCents } from '@/app/lib/catering-pricing';
 import { createSquareCateringDepositLink } from '@/app/lib/square';
+import { createCateringRequest } from '@/app/lib/supabase-admin';
 
 type CateringDepositBody = {
   name?: string;
@@ -52,8 +54,23 @@ export async function POST(request: Request) {
       return Response.json({ error: 'Accept the deposit and date-request terms to continue.' }, { status: 400 });
     }
 
-    const paymentLink = await createSquareCateringDepositLink(details);
-    return Response.json({ checkoutUrl: paymentLink.url });
+    const requestId = crypto.randomUUID();
+    const paymentLink = await createSquareCateringDepositLink(details, requestId);
+    await createCateringRequest({
+      id: requestId,
+      name: details.name,
+      email: details.email,
+      phone: details.phone,
+      address: details.address,
+      event_date: details.date,
+      start_time: details.startTime,
+      drinks: details.drinks,
+      service_hours: details.hours,
+      estimate_cents: calculateCateringEstimateCents(details.drinks, details.hours),
+      deposit_cents: 20000,
+      square_order_id: paymentLink.orderId,
+    });
+    return Response.json({ checkoutUrl: paymentLink.url, requestId });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Deposit checkout is temporarily unavailable.';
     return Response.json({ error: message }, { status: 500 });

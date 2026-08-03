@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { readAuthUser } from './supabase-rest';
+import { readAuthUser, type CateringRequest } from './supabase-rest';
 
 type ProfileMatch = {
   user_id: string;
@@ -20,6 +20,22 @@ export type ActiveRewardPromotion = {
   scope: 'all' | 'menu_categories';
   eligible_categories: string[];
 };
+
+type NewCateringRequest = Pick<
+  CateringRequest,
+  | 'id'
+  | 'name'
+  | 'email'
+  | 'phone'
+  | 'address'
+  | 'event_date'
+  | 'start_time'
+  | 'drinks'
+  | 'service_hours'
+  | 'estimate_cents'
+  | 'deposit_cents'
+  | 'square_order_id'
+>;
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseSecret =
@@ -100,6 +116,71 @@ export async function deletePushSubscription(endpoint: string) {
 export async function listPushSubscriptions() {
   return adminRequest<StoredPushSubscription[]>(
     '/push_subscriptions?select=id,endpoint,p256dh,auth&order=created_at.asc',
+  );
+}
+
+export async function createCateringRequest(input: NewCateringRequest) {
+  const rows = await adminRequest<CateringRequest[]>('/catering_requests', {
+    method: 'POST',
+    headers: { Prefer: 'return=representation' },
+    body: JSON.stringify({
+      ...input,
+      status: 'awaiting_payment',
+      internal_notes: '',
+    }),
+  });
+  const cateringRequest = rows[0];
+  if (!cateringRequest) throw new Error('Could not save the catering request.');
+  return cateringRequest;
+}
+
+export async function findCateringRequestBySquareOrder(squareOrderId: string) {
+  const rows = await adminRequest<CateringRequest[]>(
+    `/catering_requests?square_order_id=eq.${encodeURIComponent(squareOrderId)}&select=*&limit=1`,
+  );
+  return rows[0] ?? null;
+}
+
+export async function findCateringRequestBySquarePayment(squarePaymentId: string) {
+  const rows = await adminRequest<CateringRequest[]>(
+    `/catering_requests?square_payment_id=eq.${encodeURIComponent(squarePaymentId)}&select=*&limit=1`,
+  );
+  return rows[0] ?? null;
+}
+
+export async function markCateringDepositPaid(input: {
+  requestId: string;
+  squarePaymentId: string;
+}) {
+  const now = new Date().toISOString();
+  await adminRequest<unknown>(
+    `/catering_requests?id=eq.${encodeURIComponent(input.requestId)}`,
+    {
+      method: 'PATCH',
+      headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify({
+        status: 'deposit_paid',
+        square_payment_id: input.squarePaymentId,
+        deposit_paid_at: now,
+        updated_at: now,
+      }),
+    },
+  );
+}
+
+export async function markCateringDepositRefunded(requestId: string) {
+  const now = new Date().toISOString();
+  await adminRequest<unknown>(
+    `/catering_requests?id=eq.${encodeURIComponent(requestId)}`,
+    {
+      method: 'PATCH',
+      headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify({
+        status: 'refunded',
+        refunded_at: now,
+        updated_at: now,
+      }),
+    },
   );
 }
 

@@ -1,8 +1,22 @@
-# Dame Coffee OS — Phase 5 App Foundation
+# Dame Coffee OS — Phase 6 Catering Center
 
 Dame Coffee OS is the public website, pickup-ordering experience, rewards program, and private control center for Dame Coffee.
 
-Phase 5 turns the existing Dame website into an installable mobile app experience without creating a second account system. The Dame App reuses the live location, Square ordering, Supabase customer accounts, points, rewards, referrals, and promotions already in production.
+Phase 6 adds a private catering request center without changing the customer-facing estimator. Every date-request deposit is saved, matched to its verified Square payment, and placed in the Dame Coffee OS admin dashboard for follow-up.
+
+## Catering request center
+
+When a customer submits the catering estimator:
+
+- Dame Coffee OS saves their contact details, event address, date, time, drink count, service hours, estimate, and Square order ID
+- The request begins as `Awaiting deposit`
+- A verified Square `payment.updated` webhook marks the $200 deposit paid
+- Catering deposits are excluded from customer rewards points
+- Staff can call or email the customer, open the event address in Google Maps, keep private notes, and move the request through the catering workflow
+- Marking a request `Refund needed` gives staff a direct path to Square transactions
+- A verified full Square refund automatically marks the request refunded
+
+The dashboard supports these stages: awaiting deposit, deposit paid, contacted, confirmed, alternative proposed, refund needed, refunded, cancelled, and completed.
 
 ## Dame App
 
@@ -88,6 +102,7 @@ Apply these SQL files in order:
 6. `supabase-phase4d-reward-policy-tuning.sql`
 7. `supabase-phase4e-referral-threshold.sql`
 8. `supabase-phase5-events-notifications.sql`
+9. `supabase-phase6-catering-center.sql`
 
 Phase 4 and 4B create:
 
@@ -199,4 +214,7 @@ Also confirm:
 - Hidden or past events do not appear publicly
 - Notification permission is requested only after a customer chooses to opt in
 - Notification sending remains limited to approved Dame admins
+- Catering requests are visible and editable only to approved Dame admins
+- Catering payments update the matching request and do not earn rewards points
+- Full catering deposit refunds update the matching request automatically
 - `/admin` and `/admin/login` still work

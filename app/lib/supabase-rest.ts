@@ -52,6 +52,40 @@ export type UpcomingEvent = {
   updated_at: string;
 };
 
+export type CateringRequestStatus =
+  | 'awaiting_payment'
+  | 'deposit_paid'
+  | 'contacted'
+  | 'confirmed'
+  | 'alternate_proposed'
+  | 'refund_pending'
+  | 'refunded'
+  | 'cancelled'
+  | 'completed';
+
+export type CateringRequest = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  event_date: string;
+  start_time: string;
+  drinks: number;
+  service_hours: number;
+  estimate_cents: number;
+  deposit_cents: number;
+  status: CateringRequestStatus;
+  square_order_id: string;
+  square_payment_id: string | null;
+  internal_notes: string;
+  deposit_paid_at: string | null;
+  confirmed_at: string | null;
+  refunded_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
@@ -181,6 +215,48 @@ export async function deleteUpcomingEvent(accessToken: string, eventId: string) 
     const payload = await response.json().catch(() => null);
     throw new Error(authError(payload, 'Could not remove that event.'));
   }
+}
+
+export async function listCateringRequestsForAdmin(accessToken: string) {
+  return publicRequest<CateringRequest[]>(
+    '/catering_requests?select=*&order=event_date.asc,start_time.asc,created_at.desc',
+    accessToken,
+  );
+}
+
+export async function updateCateringRequestForAdmin(
+  accessToken: string,
+  requestId: string,
+  input: {
+    status: CateringRequestStatus;
+    internal_notes: string;
+  },
+) {
+  const config = requireConfig();
+  const now = new Date().toISOString();
+  const response = await fetch(
+    `${config.supabaseUrl}/rest/v1/catering_requests?id=eq.${encodeURIComponent(requestId)}`,
+    {
+      method: 'PATCH',
+      headers: {
+        apikey: config.supabaseKey,
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=representation',
+      },
+      body: JSON.stringify({
+        status: input.status,
+        internal_notes: input.internal_notes.trim(),
+        ...(input.status === 'confirmed' ? { confirmed_at: now } : {}),
+        updated_at: now,
+      }),
+    },
+  );
+  const payload = await response.json();
+  if (!response.ok) throw new Error(authError(payload, 'Could not update that catering request.'));
+  const cateringRequest = (payload as CateringRequest[])[0];
+  if (!cateringRequest) throw new Error('Could not update that catering request.');
+  return cateringRequest;
 }
 
 export async function loginAdmin(email: string, password: string) {

@@ -4,13 +4,17 @@ import Link from 'next/link';
 import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
+  CateringRequest,
+  CateringRequestStatus,
   createUpcomingEvent,
   deleteUpcomingEvent,
+  listCateringRequestsForAdmin,
   listUpcomingEventsForAdmin,
   readSiteSettings,
   setUpcomingEventPublished,
   SiteSettings,
   UpcomingEvent,
+  updateCateringRequestForAdmin,
   updateSiteSettings,
 } from '../lib/supabase-rest';
 import {
@@ -24,6 +28,38 @@ import {
 } from '../lib/dame-rewards';
 
 const TOKEN_KEY = 'dame_admin_access_token';
+
+const CATERING_STATUS_OPTIONS: Array<{
+  value: CateringRequestStatus;
+  label: string;
+}> = [
+  { value: 'awaiting_payment', label: 'Awaiting deposit' },
+  { value: 'deposit_paid', label: 'Deposit paid' },
+  { value: 'contacted', label: 'Customer contacted' },
+  { value: 'confirmed', label: 'Event confirmed' },
+  { value: 'alternate_proposed', label: 'Alternative proposed' },
+  { value: 'refund_pending', label: 'Refund needed' },
+  { value: 'refunded', label: 'Refunded' },
+  { value: 'cancelled', label: 'Cancelled' },
+  { value: 'completed', label: 'Completed' },
+];
+
+function formatCateringMoney(cents: number) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(cents / 100);
+}
+
+function formatCateringDate(value: string) {
+  return new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(new Date(`${value}T12:00:00`));
+}
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -67,6 +103,10 @@ export default function AdminDashboard() {
   const [notificationError, setNotificationError] = useState('');
   const [subscriberCount, setSubscriberCount] = useState<number | null>(null);
   const [sendingNotification, setSendingNotification] = useState(false);
+  const [cateringRequests, setCateringRequests] = useState<CateringRequest[]>([]);
+  const [cateringMessage, setCateringMessage] = useState('');
+  const [cateringError, setCateringError] = useState('');
+  const [savingCateringId, setSavingCateringId] = useState<string | null>(null);
 
   useEffect(() => {
     const token = window.localStorage.getItem(TOKEN_KEY);
@@ -79,6 +119,7 @@ export default function AdminDashboard() {
       readSiteSettings(),
       listRewardPromotions(token),
       listUpcomingEventsForAdmin(token),
+      listCateringRequestsForAdmin(token),
       fetch('/api/admin/notifications', {
         headers: { Authorization: `Bearer ${token}` },
         cache: 'no-store',
@@ -88,10 +129,11 @@ export default function AdminDashboard() {
         return payload as { subscribers: number };
       }),
     ])
-      .then(([siteSettings, rewardPromotions, upcomingEvents, notifications]) => {
+      .then(([siteSettings, rewardPromotions, upcomingEvents, requests, notifications]) => {
         setSettings(siteSettings);
         setPromotions(rewardPromotions);
         setEvents(upcomingEvents);
+        setCateringRequests(requests);
         setSubscriberCount(notifications.subscribers);
       })
       .catch((loadError) => {
@@ -396,6 +438,47 @@ export default function AdminDashboard() {
     }
   }
 
+  function editCateringRequest(
+    requestId: string,
+    changes: Partial<Pick<CateringRequest, 'status' | 'internal_notes'>>,
+  ) {
+    setCateringRequests((current) =>
+      current.map((request) =>
+        request.id === requestId ? { ...request, ...changes } : request,
+      ),
+    );
+  }
+
+  async function saveCateringRequest(request: CateringRequest) {
+    const token = window.localStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      router.replace('/admin/login');
+      return;
+    }
+
+    setSavingCateringId(request.id);
+    setCateringMessage('');
+    setCateringError('');
+    try {
+      const updated = await updateCateringRequestForAdmin(token, request.id, {
+        status: request.status,
+        internal_notes: request.internal_notes,
+      });
+      setCateringRequests((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item)),
+      );
+      setCateringMessage(`${request.name}'s catering request is updated.`);
+    } catch (failure) {
+      setCateringError(
+        failure instanceof Error
+          ? failure.message
+          : 'Could not update that catering request.',
+      );
+    } finally {
+      setSavingCateringId(null);
+    }
+  }
+
   return (
     <main className="admin-shell">
       <header className="admin-topbar">
@@ -514,6 +597,126 @@ export default function AdminDashboard() {
             </button>
           </form>
         ) : null}
+      </section>
+
+      <section className="admin-card admin-catering-center">
+        <div className="admin-section-heading">
+          <div>
+            <p className="eyebrow">Catering requests</p>
+            <h2>Every event, in one place</h2>
+          </div>
+          <p>Review deposits, call customers, confirm dates, and keep private notes with each request.</p>
+        </div>
+
+        <div className="admin-catering-summary" aria-label="Catering request summary">
+          <article>
+            <strong>{cateringRequests.filter((request) => request.status === 'deposit_paid').length}</strong>
+            <span>New deposits</span>
+          </article>
+          <article>
+            <strong>{cateringRequests.filter((request) => request.status === 'confirmed').length}</strong>
+            <span>Confirmed</span>
+          </article>
+          <article>
+            <strong>{cateringRequests.filter((request) => request.status === 'refund_pending').length}</strong>
+            <span>Refunds needed</span>
+          </article>
+          <article>
+            <strong>{cateringRequests.filter((request) => request.event_date >= new Date().toISOString().slice(0, 10) && !['cancelled', 'refunded'].includes(request.status)).length}</strong>
+            <span>Upcoming</span>
+          </article>
+        </div>
+
+        {cateringRequests.length ? (
+          <div className="admin-catering-list">
+            {cateringRequests.map((request) => (
+              <article className={`admin-catering-request is-${request.status}`} key={request.id}>
+                <header>
+                  <div>
+                    <span>{CATERING_STATUS_OPTIONS.find((option) => option.value === request.status)?.label}</span>
+                    <h3>{request.name}</h3>
+                    <p>{formatCateringDate(request.event_date)} · {request.start_time.slice(0, 5)}</p>
+                  </div>
+                  <div className="admin-catering-price">
+                    <strong>{formatCateringMoney(request.estimate_cents)}</strong>
+                    <small>estimated + tax</small>
+                  </div>
+                </header>
+
+                <div className="admin-catering-details">
+                  <div>
+                    <small>Customer</small>
+                    <a href={`tel:${request.phone}`}>{request.phone}</a>
+                    <a href={`mailto:${request.email}`}>{request.email}</a>
+                  </div>
+                  <div>
+                    <small>Package</small>
+                    <strong>{request.drinks} drinks · {request.service_hours} hours</strong>
+                    <span>{request.deposit_paid_at ? '$200 deposit received' : '$200 deposit not completed'}</span>
+                  </div>
+                  <div className="admin-catering-address">
+                    <small>Event address</small>
+                    <span>{request.address}</span>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(request.address)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >Open map ↗</a>
+                  </div>
+                </div>
+
+                <div className="admin-catering-workflow">
+                  <label>
+                    Request status
+                    <select
+                      value={request.status}
+                      onChange={(event) => editCateringRequest(
+                        request.id,
+                        { status: event.target.value as CateringRequestStatus },
+                      )}
+                    >
+                      {CATERING_STATUS_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Private notes
+                    <textarea
+                      value={request.internal_notes}
+                      onChange={(event) => editCateringRequest(
+                        request.id,
+                        { internal_notes: event.target.value },
+                      )}
+                      placeholder="Menu choices, travel details, call notes, staffing, or balance due."
+                      maxLength={2000}
+                      rows={3}
+                    />
+                  </label>
+                  {request.status === 'refund_pending' ? (
+                    <div className="admin-refund-reminder">
+                      <strong>Refund this $200 deposit in Square.</strong>
+                      <p>Once Square confirms the full refund, Dame Coffee OS will mark this request refunded automatically.</p>
+                      <a href="https://app.squareup.com/dashboard/sales/transactions" target="_blank" rel="noreferrer">Open Square transactions ↗</a>
+                    </div>
+                  ) : null}
+                  <button
+                    className="pill solid"
+                    type="button"
+                    onClick={() => saveCateringRequest(request)}
+                    disabled={savingCateringId === request.id}
+                  >
+                    {savingCateringId === request.id ? 'Saving…' : 'Save request'}
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="admin-empty-state">New paid catering requests will appear here automatically.</p>
+        )}
+        {cateringMessage ? <p className="admin-success">{cateringMessage}</p> : null}
+        {cateringError ? <p className="admin-error">{cateringError}</p> : null}
       </section>
 
       <section className="admin-card admin-rewards-card">
