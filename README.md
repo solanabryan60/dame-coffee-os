@@ -262,3 +262,7 @@ Also confirm:
 - Sold-out controls are writable only by approved Dame admins
 - Sold-out items remain visible to customers but cannot be checked out
 - `/admin` and `/admin/login` still work
+
+## Dame Insights
+
+The admin overview includes a private Square-powered sales dashboard with Today, Week, Month, Quarter, and Year views. It combines completed register and online orders for the configured `SQUARE_LOCATION_ID` and shows net sales, total collected, order count, average order, sales rhythm, and top-selling items. The Square token stays server-only, and every analytics request requires an approved Dame admin session.
