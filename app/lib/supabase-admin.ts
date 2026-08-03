@@ -1,5 +1,7 @@
 import 'server-only';
 
+import { readAuthUser } from './supabase-rest';
+
 type ProfileMatch = {
   user_id: string;
 };
@@ -52,6 +54,53 @@ async function adminRequest<T>(path: string, init: RequestInit = {}): Promise<T>
   const payload = response.status === 204 ? null : await response.json();
   if (!response.ok) throw new Error(messageFrom(payload, 'The rewards service is unavailable.'));
   return payload as T;
+}
+
+export type StoredPushSubscription = {
+  id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+};
+
+export async function requireDameAdmin(accessToken: string) {
+  if (!accessToken) throw new Error('Please sign in to Dame Coffee OS again.');
+  const user = await readAuthUser(accessToken);
+  const membership = await adminRequest<Array<{ user_id: string }>>(
+    `/admin_users?user_id=eq.${encodeURIComponent(user.id)}&select=user_id&limit=1`,
+  );
+  if (!membership[0]) throw new Error('This account does not have Dame Coffee OS access.');
+  return user;
+}
+
+export async function savePushSubscription(input: {
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+}) {
+  await adminRequest<unknown[]>('/push_subscriptions?on_conflict=endpoint', {
+    method: 'POST',
+    headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify({
+      endpoint: input.endpoint,
+      p256dh: input.p256dh,
+      auth: input.auth,
+      updated_at: new Date().toISOString(),
+    }),
+  });
+}
+
+export async function deletePushSubscription(endpoint: string) {
+  await adminRequest<unknown>(
+    `/push_subscriptions?endpoint=eq.${encodeURIComponent(endpoint)}`,
+    { method: 'DELETE', headers: { Prefer: 'return=minimal' } },
+  );
+}
+
+export async function listPushSubscriptions() {
+  return adminRequest<StoredPushSubscription[]>(
+    '/push_subscriptions?select=id,endpoint,p256dh,auth&order=created_at.asc',
+  );
 }
 
 export async function findRewardUserBySquareOrder(squareOrderId: string) {

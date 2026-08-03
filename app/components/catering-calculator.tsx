@@ -1,6 +1,22 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
+import {
+  FormEvent,
+  KeyboardEvent,
+  useEffect,
+  useId,
+  useMemo,
+  useState,
+} from 'react';
+import { calculateCateringEstimateDollars } from '../lib/catering-pricing';
+import GoogleMap from './google-map';
+
+type AddressSuggestion = {
+  placeId: string;
+  fullText: string;
+  mainText: string;
+  secondaryText: string;
+};
 
 function money(value: number) {
   return new Intl.NumberFormat('en-US', {
@@ -10,60 +26,207 @@ function money(value: number) {
   }).format(value);
 }
 
-function calculateEstimate(drinks: number, hours: number) {
-  const drinkUpgrade = ((drinks - 100) / 50) * 150;
-  const timeUpgrade = hours === 2 ? 0 : hours === 4 ? 150 : 150 + ((hours - 4) / 2) * 300;
-  return 600 + drinkUpgrade + timeUpgrade;
-}
-
 export default function CateringCalculator() {
+  const addressListId = useId();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('');
   const [drinks, setDrinks] = useState(100);
   const [hours, setHours] = useState(2);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [addressFocused, setAddressFocused] = useState(false);
+  const [addressSuggestions, setAddressSuggestions] = useState<AddressSuggestion[]>([]);
+  const [addressSearchLoading, setAddressSearchLoading] = useState(false);
+  const [highlightedAddress, setHighlightedAddress] = useState(-1);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
-  const estimate = useMemo(() => calculateEstimate(drinks, hours), [drinks, hours]);
+  const estimate = useMemo(
+    () => calculateCateringEstimateDollars(drinks, hours),
+    [drinks, hours],
+  );
   const mapHref = address
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
     : '';
 
-  function requestDate(event: FormEvent<HTMLFormElement>) {
+  useEffect(() => {
+    const input = address.trim();
+    if (!addressFocused || input.length < 4) {
+      setAddressSuggestions([]);
+      setAddressSearchLoading(false);
+      setHighlightedAddress(-1);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setAddressSearchLoading(true);
+      try {
+        const response = await fetch(
+          `/api/places/autocomplete?input=${encodeURIComponent(input)}`,
+          { signal: controller.signal },
+        );
+        const payload = (await response.json()) as { suggestions?: AddressSuggestion[] };
+        setAddressSuggestions(response.ok ? (payload.suggestions ?? []) : []);
+        setHighlightedAddress(-1);
+      } catch (searchError) {
+        if ((searchError as { name?: string }).name !== 'AbortError') {
+          setAddressSuggestions([]);
+        }
+      } finally {
+        if (!controller.signal.aborted) setAddressSearchLoading(false);
+      }
+    }, 320);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [address, addressFocused]);
+
+  function chooseAddress(suggestion: AddressSuggestion) {
+    setAddress(suggestion.fullText);
+    setAddressSuggestions([]);
+    setAddressFocused(false);
+    setHighlightedAddress(-1);
+  }
+
+  function handleAddressKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (!addressSuggestions.length) return;
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setHighlightedAddress((current) =>
+        current >= addressSuggestions.length - 1 ? 0 : current + 1,
+      );
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setHighlightedAddress((current) =>
+        current <= 0 ? addressSuggestions.length - 1 : current - 1,
+      );
+    } else if (event.key === 'Enter' && highlightedAddress >= 0) {
+      event.preventDefault();
+      chooseAddress(addressSuggestions[highlightedAddress]);
+    } else if (event.key === 'Escape') {
+      setAddressSuggestions([]);
+      setHighlightedAddress(-1);
+    }
+  }
+
+  async function requestDate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const subject = encodeURIComponent('Dame Coffee catering date request');
-    const body = encodeURIComponent(
-      [
-        'I would like to request Dame Coffee for an event.',
-        '',
-        `Address: ${address}`,
-        `Date: ${date}`,
-        `Start time: ${startTime}`,
-        `Drink amount: ${drinks}`,
-        `Service time: ${hours} hours`,
-        `Website estimate: ${money(estimate)} plus tax`,
-        '',
-        'Please call me to confirm availability, details, final pricing, and the deposit.',
-      ].join('\n'),
-    );
-    window.location.href = `mailto:info@damecoffeeco.com?subject=${subject}&body=${body}`;
+    setError('');
+    setSubmitting(true);
+
+    try {
+      const response = await fetch('/api/square/catering-deposit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          address,
+          date,
+          startTime,
+          drinks,
+          hours,
+          acceptedTerms,
+        }),
+      });
+      const payload = (await response.json()) as { checkoutUrl?: string; error?: string };
+      if (!response.ok || !payload.checkoutUrl) {
+        throw new Error(payload.error || 'Deposit checkout is temporarily unavailable.');
+      }
+      window.location.assign(payload.checkoutUrl);
+    } catch (checkoutError) {
+      setError(checkoutError instanceof Error ? checkoutError.message : 'Deposit checkout is temporarily unavailable.');
+      setSubmitting(false);
+    }
   }
 
   return (
     <form className="dame-estimator" onSubmit={requestDate}>
       <div className="dame-estimator-fields">
+        <label className="dame-field">
+          <span>Your name</span>
+          <input value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" required />
+        </label>
+
+        <label className="dame-field">
+          <span>Email</span>
+          <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" required />
+        </label>
+
         <label className="dame-field dame-field-wide">
-          <span>Where is your event?</span>
-          <input
-            value={address}
-            onChange={(event) => setAddress(event.target.value)}
-            placeholder="Enter the full event address"
-            autoComplete="street-address"
-            required
-          />
+          <span>Phone number</span>
+          <input type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} autoComplete="tel" required />
+        </label>
+
+        <div className="dame-field dame-field-wide">
+          <label htmlFor="dame-event-address">Where is your event?</label>
+          <div
+            className="dame-address-autocomplete"
+            onFocus={() => setAddressFocused(true)}
+            onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                setAddressFocused(false);
+              }
+            }}
+          >
+            <input
+              id="dame-event-address"
+              value={address}
+              onChange={(event) => setAddress(event.target.value)}
+              onKeyDown={handleAddressKeyDown}
+              placeholder="Start typing the event address"
+              autoComplete="off"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-expanded={addressFocused && (addressSearchLoading || addressSuggestions.length > 0)}
+              aria-controls={addressListId}
+              aria-activedescendant={highlightedAddress >= 0 ? `${addressListId}-${highlightedAddress}` : undefined}
+              aria-describedby="dame-address-help"
+              required
+            />
+            {addressFocused && (addressSearchLoading || addressSuggestions.length > 0) ? (
+              <div id={addressListId} className="dame-address-suggestions" role="listbox">
+                {addressSearchLoading ? (
+                  <p className="dame-address-loading">Finding addresses…</p>
+                ) : null}
+                {addressSuggestions.map((suggestion, index) => (
+                  <button
+                    key={suggestion.placeId}
+                    id={`${addressListId}-${index}`}
+                    type="button"
+                    role="option"
+                    aria-selected={highlightedAddress === index}
+                    className={highlightedAddress === index ? 'is-highlighted' : ''}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => chooseAddress(suggestion)}
+                  >
+                    <strong>{suggestion.mainText}</strong>
+                    <span>{suggestion.secondaryText}</span>
+                  </button>
+                ))}
+                <span className="dame-address-attribution">Powered by Google</span>
+              </div>
+            ) : null}
+          </div>
+          <small id="dame-address-help">Choose a suggestion to fill in the complete address.</small>
           {mapHref ? (
             <a href={mapHref} target="_blank" rel="noreferrer">Preview this address on Google Maps ↗</a>
           ) : null}
-        </label>
+        </div>
+
+        <GoogleMap
+          address={address}
+          title={address ? `Google Map showing ${address}` : 'Google Map for your event address'}
+          className="dame-catering-map"
+        />
 
         <label className="dame-field">
           <span>Event date</span>
@@ -127,13 +290,41 @@ export default function CateringCalculator() {
         </ul>
         <p className="dame-estimate-note">
           We&apos;ll call to confirm availability, travel, menu choices, final price,
-          and the deposit required to hold your date.
+          and the remaining balance.
         </p>
       </aside>
 
+      <section className="dame-deposit-card" aria-labelledby="deposit-title">
+        <div>
+          <p className="dame-kicker">Request your date</p>
+          <h3 id="deposit-title">$200 deposit</h3>
+          <p>
+            The deposit is applied to your final event balance. Your date is requested—not
+            confirmed—until Dame calls you and approves the event details.
+          </p>
+          <p>
+            If Dame Coffee cannot fulfill your event, we&apos;ll issue a full refund and offer
+            alternative dates or service options that may work.
+          </p>
+        </div>
+        <label className="dame-deposit-consent">
+          <input
+            type="checkbox"
+            checked={acceptedTerms}
+            onChange={(event) => setAcceptedTerms(event.target.checked)}
+            required
+          />
+          <span>I understand the $200 payment requests the date and does not confirm the event until Dame calls.</span>
+        </label>
+      </section>
+
       <div className="dame-estimator-actions">
-        <button className="dame-button" type="submit">Request this date</button>
+        {error ? <p className="dame-checkout-error" role="alert">{error}</p> : null}
+        <button className="dame-button" type="submit" disabled={submitting}>
+          {submitting ? 'Opening Square…' : 'Pay $200 deposit & request date'}
+        </button>
         <a className="dame-button dame-button-outline" href="tel:+19094519307">Call with questions</a>
+        <p className="dame-square-note">Secure checkout is handled by Square. Dame never receives your card details.</p>
       </div>
     </form>
   );

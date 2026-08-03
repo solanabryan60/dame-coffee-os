@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import CateringCalculator from '../components/catering-calculator';
 import SiteFooter from '../components/site-footer';
 import SiteHeader from '../components/site-header';
+import { CATERING_BASE_PRICE_DOLLARS } from '../lib/catering-pricing';
 
 export const metadata: Metadata = {
   title: 'Catering',
@@ -19,13 +20,14 @@ export default function CateringPage() {
           <h1>Build your event.</h1>
           <p>
             Start with 100 drinks and two hours of service. Move the sliders,
-            see your estimate immediately, and request your date when it feels right.
+            see your estimate immediately, and request your date with a secure $200 deposit.
           </p>
         </div>
         <div className="dame-catering-base">
           <span>Starting package</span>
-          <strong>$600</strong>
+          <strong>${CATERING_BASE_PRICE_DOLLARS}</strong>
           <p>100 drinks · 2 hours</p>
+          <small>Plus applicable tax</small>
         </div>
       </section>
 
@@ -47,12 +49,12 @@ export default function CateringPage() {
         <article>
           <span>02</span>
           <h3>Request the date</h3>
-          <p>Send the details to Dame without starting over or doing the math yourself.</p>
+          <p>Pay the $200 deposit securely with Square. It is applied to your final event balance.</p>
         </article>
         <article>
           <span>03</span>
           <h3>We call you</h3>
-          <p>We confirm availability, menu, travel, final price, and the deposit.</p>
+          <p>We confirm availability, menu, travel, final price, and the remaining balance.</p>
         </article>
       </section>
 

@@ -1,6 +1,6 @@
 {
   "name": "dame-coffee-os",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "private": true,
   "packageManager": "pnpm@11.9.0",
   "scripts": {
@@ -12,12 +12,14 @@
   "dependencies": {
     "next": "15.5.21",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "web-push": "3.6.7"
   },
   "devDependencies": {
-    "typescript": "^5.7.3",
     "@types/node": "^22.10.5",
     "@types/react": "^19.0.3",
-    "@types/react-dom": "^19.0.2"
+    "@types/react-dom": "^19.0.2",
+    "@types/web-push": "3.6.4",
+    "typescript": "^5.7.3"
   }
 }

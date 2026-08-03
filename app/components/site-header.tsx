@@ -9,6 +9,7 @@ const navigation = [
   { label: 'Menu', href: '/menu' },
   { label: 'Catering', href: '/catering' },
   { label: 'Rewards', href: '/rewards' },
+  { label: 'App', href: '/app' },
   { label: 'Info', href: '/#info' },
 ];
 
@@ -23,7 +24,7 @@ export default function SiteHeader({ overlay = false }: { overlay?: boolean }) {
   return (
     <header className={`dame-header ${overlay ? 'dame-header-overlay' : ''} ${menuOpen ? 'menu-open' : ''}`}>
       <Link className="dame-logo" href="/" aria-label="Dame Coffee home" onClick={() => setMenuOpen(false)}>
-        <Image src="/assets/logo.png" alt="Dame Coffee" width={500} height={500} priority />
+        <Image src="/assets/dame-logo-red.jpg" alt="Dame Coffee" width={954} height={843} priority />
       </Link>
 
       <nav className="dame-desktop-nav" aria-label="Main navigation">

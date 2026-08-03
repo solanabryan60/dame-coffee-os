@@ -1,3 +1,5 @@
+import { calculateCateringEstimateCents } from './catering-pricing';
+
 const SQUARE_API_VERSION = '2026-07-15';
 
 export type MenuCategoryId = 'basics' | 'specialty' | 'foam' | 'food';
@@ -600,6 +602,81 @@ export async function createSquarePaymentLink(
 
   if (!response.ok || !payload.payment_link?.url || !payload.payment_link.order_id) {
     throw new Error(payload.errors?.[0]?.detail || 'Square could not start checkout.');
+  }
+
+  return {
+    url: payload.payment_link.url,
+    orderId: payload.payment_link.order_id,
+  };
+}
+
+export type CateringDepositRequest = {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  date: string;
+  startTime: string;
+  drinks: number;
+  hours: number;
+};
+
+export async function createSquareCateringDepositLink(request: CateringDepositRequest) {
+  const config = getSquareConfig();
+  if (!config) throw new Error('Square payments have not been configured yet.');
+
+  const estimateCents = calculateCateringEstimateCents(request.drinks, request.hours);
+  const eventSummary = [
+    `Event: ${request.date} at ${request.startTime}`,
+    `Address: ${request.address}`,
+    `Package: ${request.drinks} drinks / ${request.hours} hours`,
+    `Website estimate: ${moneyLabel(estimateCents)} plus applicable tax`,
+    'This $200 deposit requests the date and is applied to the final balance after Dame confirms availability.',
+  ].join('\n');
+
+  const response = await fetch(`${config.baseUrl}/v2/online-checkout/payment-links`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${config.accessToken}`,
+      'Content-Type': 'application/json',
+      'Square-Version': SQUARE_API_VERSION,
+    },
+    body: JSON.stringify({
+      idempotency_key: crypto.randomUUID(),
+      description: 'Dame Coffee catering date-request deposit',
+      order: {
+        location_id: config.locationId,
+        line_items: [
+          {
+            name: 'Catering date-request deposit',
+            quantity: '1',
+            base_price_money: { amount: 20000, currency: 'USD' },
+            note: eventSummary.slice(0, 2000),
+          },
+        ],
+      },
+      checkout_options: {
+        allow_tipping: false,
+        ask_for_shipping_address: false,
+        merchant_support_email: 'info@damecoffeeco.com',
+        redirect_url: `${productionUrl()}/catering/complete`,
+      },
+      pre_populated_data: {
+        buyer_email: request.email.trim().toLowerCase(),
+        buyer_phone_number: normalizeSquarePhone(request.phone),
+      },
+      payment_note: `Dame catering request for ${request.name.trim().slice(0, 120)} · ${request.date}`,
+    }),
+    cache: 'no-store',
+  });
+
+  const payload = (await response.json()) as {
+    payment_link?: { url?: string; order_id?: string };
+    errors?: Array<{ detail?: string }>;
+  };
+
+  if (!response.ok || !payload.payment_link?.url || !payload.payment_link.order_id) {
+    throw new Error(payload.errors?.[0]?.detail || 'Square could not start the deposit checkout.');
   }
 
   return {

@@ -5,7 +5,7 @@ export default function SiteFooter() {
   return (
     <footer className="dame-footer" id="contact">
       <div className="dame-footer-brand">
-        <Image src="/assets/logo.png" alt="Dame Coffee" width={500} height={500} />
+        <Image src="/assets/dame-logo-red.jpg" alt="Dame Coffee" width={954} height={843} />
         <p>Made with culture, unity, and love.</p>
       </div>
 
@@ -14,6 +14,7 @@ export default function SiteFooter() {
         <Link href="/menu">Menu</Link>
         <Link href="/catering">Catering</Link>
         <Link href="/rewards">Rewards</Link>
+        <Link href="/app">Dame App</Link>
         <Link href="/#info">Information</Link>
       </nav>
 
