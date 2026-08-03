@@ -258,8 +258,8 @@ export default function OrderExperience({
   const total = cart.reduce((sum, line) => sum + line.unitAmount * line.quantity, 0);
   const groupOrder: Record<SquareMenuItem['category'], number> = {
     foam: 0,
-    basics: 1,
-    specialty: 2,
+    specialty: 1,
+    basics: 2,
     food: 3,
   };
   const itemGroups = items.reduce<Array<{ id: SquareMenuItem['category']; label: string; items: SquareMenuItem[] }>>(
