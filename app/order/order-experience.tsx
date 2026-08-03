@@ -43,6 +43,7 @@ function ItemOrderCard({
   disabled: boolean;
   onAdd: (line: Omit<CartLine, 'id' | 'quantity'>) => void;
 }) {
+  const [customizing, setCustomizing] = useState(false);
   const [variationId, setVariationId] = useState(item.variations[0]?.id ?? '');
   const [selections, setSelections] = useState<Record<string, string[]>>({});
   const variation = item.variations.find((entry) => entry.id === variationId) ?? item.variations[0];
@@ -73,7 +74,7 @@ function ItemOrderCard({
   }
 
   return (
-    <article className="dame-order-item">
+    <article className={`dame-order-item ${customizing ? 'is-customizing' : ''}`}>
       <div className="dame-order-item-heading">
         <div>
           <p>{item.categoryLabel}</p>
@@ -83,63 +84,79 @@ function ItemOrderCard({
       </div>
       <p className="dame-order-description">{item.description || 'Made fresh and served cold.'}</p>
 
-      {item.variations.length > 1 ? (
-        <label className="dame-order-select">
-          <span>Choose one</span>
-          <select value={variationId} onChange={(event) => setVariationId(event.target.value)}>
-            {item.variations.map((entry) => (
-              <option key={entry.id} value={entry.id}>
-                {entry.name} · {entry.priceLabel}
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : null}
-
-      {item.modifierGroups.map((group) => (
-        <fieldset key={group.id} className="dame-order-modifiers">
-          <legend>
-            {group.name}
-            {group.minSelected > 0 ? <span>Choose {group.minSelected}</span> : <span>Optional</span>}
-          </legend>
-          <div>
-            {group.options.map((option) => {
-              const checked = (selections[group.id] ?? []).includes(option.id);
-              return (
-                <label key={option.id}>
-                  <input
-                    type={group.selectionType === 'SINGLE' ? 'radio' : 'checkbox'}
-                    name={`${item.id}-${group.id}`}
-                    checked={checked}
-                    onChange={() => toggleModifier(group, option.id)}
-                  />
-                  <span>{option.name}</span>
-                  <small>{option.priceLabel}</small>
-                </label>
-              );
-            })}
-          </div>
-        </fieldset>
-      ))}
-
       <button
-        className="dame-button"
+        className="dame-order-customize-toggle"
         type="button"
-        disabled={disabled || !variation || !requiredChoicesComplete}
-        onClick={() => {
-          if (!variation) return;
-          onAdd({
-            itemName: item.name,
-            variationId: variation.id,
-            variationName: variation.name,
-            unitAmount,
-            modifierIds: selectedModifiers.map((modifier) => modifier.id),
-            modifierNames: selectedModifiers.map((modifier) => modifier.name),
-          });
-        }}
+        aria-expanded={customizing}
+        aria-controls={`customize-${item.id}`}
+        onClick={() => setCustomizing((current) => !current)}
       >
-        {disabled ? 'Ordering paused' : requiredChoicesComplete ? 'Add to order' : 'Finish choices'}
+        <span>{customizing ? 'Hide options' : 'Customize'}</span>
+        <span aria-hidden="true">{customizing ? '−' : '+'}</span>
       </button>
+
+      {customizing ? (
+        <div id={`customize-${item.id}`} className="dame-order-customizer">
+          {item.variations.length > 1 ? (
+            <label className="dame-order-select">
+              <span>Choose one</span>
+              <select value={variationId} onChange={(event) => setVariationId(event.target.value)}>
+                {item.variations.map((entry) => (
+                  <option key={entry.id} value={entry.id}>
+                    {entry.name} · {entry.priceLabel}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+
+          {item.modifierGroups.map((group) => (
+            <fieldset key={group.id} className="dame-order-modifiers">
+              <legend>
+                {group.name}
+                {group.minSelected > 0 ? <span>Choose {group.minSelected}</span> : <span>Optional</span>}
+              </legend>
+              <div>
+                {group.options.map((option) => {
+                  const checked = (selections[group.id] ?? []).includes(option.id);
+                  return (
+                    <label key={option.id} className={checked ? 'is-selected' : ''}>
+                      <input
+                        type={group.selectionType === 'SINGLE' ? 'radio' : 'checkbox'}
+                        name={`${item.id}-${group.id}`}
+                        checked={checked}
+                        onChange={() => toggleModifier(group, option.id)}
+                      />
+                      <span>{option.name}</span>
+                      <small>{option.priceLabel}</small>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+          ))}
+
+          <button
+            className="dame-button"
+            type="button"
+            disabled={disabled || !variation || !requiredChoicesComplete}
+            onClick={() => {
+              if (!variation) return;
+              onAdd({
+                itemName: item.name,
+                variationId: variation.id,
+                variationName: variation.name,
+                unitAmount,
+                modifierIds: selectedModifiers.map((modifier) => modifier.id),
+                modifierNames: selectedModifiers.map((modifier) => modifier.name),
+              });
+              setCustomizing(false);
+            }}
+          >
+            {disabled ? 'Ordering paused' : requiredChoicesComplete ? `Add to order · ${money(unitAmount)}` : 'Finish choices'}
+          </button>
+        </div>
+      ) : null}
     </article>
   );
 }
@@ -164,6 +181,19 @@ export default function OrderExperience({
 
   const orderingEnabled = location.isOpen && location.mobileOrdering && squareConfigured;
   const total = cart.reduce((sum, line) => sum + line.unitAmount * line.quantity, 0);
+  const itemGroups = items.reduce<Array<{ label: string; items: SquareMenuItem[] }>>(
+    (groups, item) => {
+      const label = item.categoryLabel || 'More from Dame';
+      const existingGroup = groups.find((group) => group.label === label);
+      if (existingGroup) {
+        existingGroup.items.push(item);
+      } else {
+        groups.push({ label, items: [item] });
+      }
+      return groups;
+    },
+    [],
+  );
 
   useEffect(() => {
     getCustomerSession().then(async (session) => {
@@ -286,14 +316,24 @@ export default function OrderExperience({
             <p className="dame-kicker">Build your order</p>
             <h2>Made how you like it.</h2>
           </header>
-          <div className="dame-order-grid">
-            {items.map((item) => (
-              <ItemOrderCard
-                key={item.id}
-                item={item}
-                disabled={!orderingEnabled}
-                onAdd={addLine}
-              />
+          <div className="dame-order-groups">
+            {itemGroups.map((group) => (
+              <section key={group.label} className="dame-order-group" aria-labelledby={`order-group-${group.label.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`}>
+                <header>
+                  <p>Choose your Dame</p>
+                  <h3 id={`order-group-${group.label.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`}>{group.label}</h3>
+                </header>
+                <div className="dame-order-grid">
+                  {group.items.map((item) => (
+                    <ItemOrderCard
+                      key={item.id}
+                      item={item}
+                      disabled={!orderingEnabled}
+                      onAdd={addLine}
+                    />
+                  ))}
+                </div>
+              </section>
             ))}
           </div>
         </div>
