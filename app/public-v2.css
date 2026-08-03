@@ -1722,7 +1722,7 @@
   line-height: 0.8;
 }
 
-.dame-page-hero .dame-catering-base > p {
+.dame-page-hero > .dame-catering-base > p:last-child {
   width: fit-content;
   margin: 22px 0 0;
   padding: 10px 14px;
