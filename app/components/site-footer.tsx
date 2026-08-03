@@ -5,7 +5,7 @@ export default function SiteFooter() {
   return (
     <footer className="dame-footer" id="contact">
       <div className="dame-footer-brand">
-        <Image src="/assets/logo.png" alt="Dame Coffee" width={500} height={500} />
+        <Image src="/assets/dame-logo-red.jpg" alt="Dame Coffee" width={954} height={843} />
         <p>Made with culture, unity, and love.</p>
       </div>
 

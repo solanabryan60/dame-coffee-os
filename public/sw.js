@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dame-app-v1';
+const CACHE_NAME = 'dame-app-v2';
 const APP_SHELL = [
   '/offline',
   '/dame-icon',
@@ -44,4 +44,41 @@ self.addEventListener('fetch', (event) => {
       }),
     );
   }
+});
+
+self.addEventListener('push', (event) => {
+  let data = {
+    title: 'Dame Coffee',
+    body: 'Something special is brewing.',
+    url: '/app',
+  };
+
+  if (event.data) {
+    try {
+      data = { ...data, ...event.data.json() };
+    } catch {
+      data.body = event.data.text();
+    }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: '/dame-icon',
+      badge: '/dame-icon',
+      tag: 'dame-coffee-update',
+      data: { url: data.url || '/app' },
+    }),
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = new URL(event.notification.data?.url || '/app', self.location.origin).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      const existing = clients.find((client) => client.url === url);
+      return existing ? existing.focus() : self.clients.openWindow(url);
+    }),
+  );
 });

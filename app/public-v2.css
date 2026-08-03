@@ -40,23 +40,15 @@
 .dame-logo {
   position: relative;
   z-index: 102;
-  width: 104px;
-  height: 60px;
+  width: 82px;
+  height: 72px;
   display: block;
 }
 
 .dame-logo img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-}
-
-.dame-header-overlay .dame-logo img {
-  filter: brightness(0) invert(1);
-}
-
-.dame-header.menu-open .dame-logo img {
-  filter: brightness(0) invert(1);
+  object-fit: cover;
 }
 
 .dame-desktop-nav {
@@ -546,6 +538,147 @@
 .dame-info-links a:hover,
 .dame-info-links a:focus-visible {
   color: var(--dame-red);
+}
+
+/* Upcoming events */
+.dame-upcoming-events {
+  padding: clamp(82px, 10vw, 145px) clamp(22px, 7vw, 110px);
+  background: var(--warm-white);
+}
+
+.dame-upcoming-events > header {
+  margin-bottom: clamp(38px, 6vw, 72px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.55fr);
+  gap: 40px;
+  align-items: end;
+}
+
+.dame-upcoming-events h2 {
+  margin: 16px 0 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(48px, 7vw, 94px);
+  font-weight: 400;
+  letter-spacing: -0.055em;
+  line-height: 0.9;
+}
+
+.dame-upcoming-events > header > p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.dame-event-list {
+  border-top: 1px solid var(--line);
+}
+
+.dame-event-list article {
+  min-height: 150px;
+  padding: 28px 0;
+  display: grid;
+  grid-template-columns: minmax(110px, 0.25fr) minmax(0, 1fr) auto;
+  gap: clamp(24px, 5vw, 70px);
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+}
+
+.dame-event-list time {
+  color: var(--dame-red);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.dame-event-list h3 {
+  margin: 0 0 8px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(27px, 4vw, 43px);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+
+.dame-event-list p,
+.dame-event-list small {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.dame-event-list small {
+  margin-top: 7px;
+  display: block;
+  font-size: 12px;
+}
+
+.dame-event-meta {
+  min-width: 118px;
+  display: grid;
+  justify-items: end;
+  gap: 13px;
+}
+
+.dame-event-meta > span {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.dame-event-meta a {
+  color: var(--dame-red);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+/* Opt-in notifications */
+.dame-notification-opt-in {
+  padding: clamp(70px, 8vw, 116px) clamp(22px, 7vw, 110px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.55fr);
+  gap: clamp(46px, 8vw, 130px);
+  align-items: end;
+  background: var(--dame-red);
+  color: white;
+}
+
+.dame-notification-opt-in .dame-kicker {
+  color: rgba(255, 255, 255, 0.66);
+}
+
+.dame-notification-opt-in h2 {
+  margin: 17px 0 20px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(48px, 6.8vw, 92px);
+  font-weight: 400;
+  letter-spacing: -0.055em;
+  line-height: 0.9;
+}
+
+.dame-notification-opt-in > div > p:last-child {
+  max-width: 670px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.76);
+  line-height: 1.6;
+}
+
+.dame-notification-action {
+  display: grid;
+  gap: 12px;
+}
+
+.dame-notification-action > p,
+.dame-notification-action small {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.45;
+}
+
+.dame-notification-action small {
+  font-size: 11px;
 }
 
 /* Shared inner pages */
@@ -1589,7 +1722,7 @@
   line-height: 0.8;
 }
 
-.dame-catering-base p {
+.dame-page-hero .dame-catering-base > p {
   width: fit-content;
   margin: 22px 0 0;
   padding: 10px 14px;
@@ -1896,10 +2029,9 @@
 }
 
 .dame-footer-brand img {
-  width: 190px;
-  height: 110px;
-  object-fit: contain;
-  filter: brightness(0) invert(1);
+  width: 150px;
+  height: 132px;
+  object-fit: cover;
 }
 
 .dame-footer-brand > p {
@@ -2207,8 +2339,31 @@
   }
 
   .dame-logo {
-    width: 88px;
+    width: 64px;
     height: 56px;
+  }
+
+  .dame-upcoming-events > header,
+  .dame-notification-opt-in {
+    grid-template-columns: 1fr;
+  }
+
+  .dame-upcoming-events > header {
+    gap: 20px;
+  }
+
+  .dame-event-list article {
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .dame-event-meta {
+    grid-column: 2;
+    justify-items: start;
+  }
+
+  .dame-notification-opt-in {
+    gap: 32px;
   }
 
   .dame-inner-page {
@@ -2605,6 +2760,31 @@
 .dame-app-footer {
   width: min(1120px, calc(100% - 36px));
   margin-inline: auto;
+}
+
+.dame-app-shell > .dame-upcoming-events.is-compact,
+.dame-app-shell > .dame-notification-opt-in.is-compact {
+  width: min(1120px, calc(100% - 36px));
+  margin: 28px auto 0;
+  border-radius: 34px;
+}
+
+.dame-app-shell > .dame-upcoming-events.is-compact,
+.dame-app-shell > .dame-notification-opt-in.is-compact {
+  padding: clamp(28px, 5vw, 54px);
+}
+
+.dame-upcoming-events.is-compact > header {
+  margin-bottom: 30px;
+}
+
+.dame-upcoming-events.is-compact h2,
+.dame-notification-opt-in.is-compact h2 {
+  font-size: clamp(42px, 7vw, 70px);
+}
+
+.dame-upcoming-events.is-compact .dame-event-list article {
+  min-height: 122px;
 }
 
 .dame-app-live {
@@ -3064,6 +3244,17 @@
   .dame-app-install,
   .dame-app-footer {
     width: calc(100% - 24px);
+  }
+
+  .dame-app-shell > .dame-upcoming-events.is-compact,
+  .dame-app-shell > .dame-notification-opt-in.is-compact {
+    width: calc(100% - 24px);
+    border-radius: 28px;
+  }
+
+  .dame-app-shell > .dame-upcoming-events.is-compact,
+  .dame-app-shell > .dame-notification-opt-in.is-compact {
+    padding: 30px 22px;
   }
 
   .dame-app-live {

@@ -4,9 +4,16 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import GoogleMap from '../components/google-map';
+import NotificationOptIn from '../components/notification-opt-in';
+import UpcomingEvents from '../components/upcoming-events';
 import type { RewardsAccountPayload } from '../lib/dame-rewards';
 import { getCustomerSession } from '../lib/customer-session';
-import { readSiteSettings, type SiteSettings } from '../lib/supabase-rest';
+import {
+  readSiteSettings,
+  readUpcomingEvents,
+  type SiteSettings,
+  type UpcomingEvent,
+} from '../lib/supabase-rest';
 import { liveLocation as fallbackLocation } from '../site-config';
 
 type InstallPromptEvent = Event & {
@@ -21,6 +28,7 @@ function isStandaloneApp() {
 
 export default function DameAppHome() {
   const [remoteLocation, setRemoteLocation] = useState<SiteSettings | null>(null);
+  const [events, setEvents] = useState<UpcomingEvent[]>([]);
   const [rewards, setRewards] = useState<RewardsAccountPayload | null>(null);
   const [accountReady, setAccountReady] = useState(false);
   const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
@@ -54,6 +62,9 @@ export default function DameAppHome() {
   useEffect(() => {
     readSiteSettings().then(setRemoteLocation).catch(() => {
       // The public fallback keeps the app useful if live settings are temporarily unavailable.
+    });
+    readUpcomingEvents().then(setEvents).catch(() => {
+      // The app still works if upcoming events are temporarily unavailable.
     });
 
     getCustomerSession()
@@ -154,6 +165,10 @@ export default function DameAppHome() {
           <a href={location.mapsUrl} target="_blank" rel="noreferrer">Directions <span>↗</span></a>
         </div>
       </section>
+
+      <UpcomingEvents events={events} compact />
+
+      <NotificationOptIn compact />
 
       <section className="dame-app-rewards" aria-labelledby="dame-app-rewards-title">
         <div>

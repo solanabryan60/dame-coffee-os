@@ -4,8 +4,13 @@ import Link from 'next/link';
 import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
+  createUpcomingEvent,
+  deleteUpcomingEvent,
+  listUpcomingEventsForAdmin,
   readSiteSettings,
+  setUpcomingEventPublished,
   SiteSettings,
+  UpcomingEvent,
   updateSiteSettings,
 } from '../lib/supabase-rest';
 import {
@@ -43,6 +48,25 @@ export default function AdminDashboard() {
   const [promotionMessage, setPromotionMessage] = useState('');
   const [promotionError, setPromotionError] = useState('');
   const [savingPromotion, setSavingPromotion] = useState(false);
+  const [events, setEvents] = useState<UpcomingEvent[]>([]);
+  const [eventTitle, setEventTitle] = useState('');
+  const [eventDate, setEventDate] = useState('');
+  const [eventStartTime, setEventStartTime] = useState('');
+  const [eventEndTime, setEventEndTime] = useState('');
+  const [eventAddress, setEventAddress] = useState('');
+  const [eventDetails, setEventDetails] = useState('');
+  const [eventMapsUrl, setEventMapsUrl] = useState('');
+  const [eventPublished, setEventPublished] = useState(true);
+  const [eventMessage, setEventMessage] = useState('');
+  const [eventError, setEventError] = useState('');
+  const [savingEvent, setSavingEvent] = useState(false);
+  const [notificationTitle, setNotificationTitle] = useState('Dame Coffee is brewing');
+  const [notificationMessage, setNotificationMessage] = useState('');
+  const [notificationUrl, setNotificationUrl] = useState('/app');
+  const [notificationStatus, setNotificationStatus] = useState('');
+  const [notificationError, setNotificationError] = useState('');
+  const [subscriberCount, setSubscriberCount] = useState<number | null>(null);
+  const [sendingNotification, setSendingNotification] = useState(false);
 
   useEffect(() => {
     const token = window.localStorage.getItem(TOKEN_KEY);
@@ -54,10 +78,21 @@ export default function AdminDashboard() {
     Promise.all([
       readSiteSettings(),
       listRewardPromotions(token),
+      listUpcomingEventsForAdmin(token),
+      fetch('/api/admin/notifications', {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: 'no-store',
+      }).then(async (response) => {
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || 'Could not load notifications.');
+        return payload as { subscribers: number };
+      }),
     ])
-      .then(([siteSettings, rewardPromotions]) => {
+      .then(([siteSettings, rewardPromotions, upcomingEvents, notifications]) => {
         setSettings(siteSettings);
         setPromotions(rewardPromotions);
+        setEvents(upcomingEvents);
+        setSubscriberCount(notifications.subscribers);
       })
       .catch((loadError) => {
         setError(loadError instanceof Error ? loadError.message : 'Could not load settings.');
@@ -245,6 +280,122 @@ export default function AdminDashboard() {
     }
   }
 
+  async function addEvent(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const token = window.localStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      router.replace('/admin/login');
+      return;
+    }
+    setSavingEvent(true);
+    setEventMessage('');
+    setEventError('');
+    try {
+      const created = await createUpcomingEvent(token, {
+        title: eventTitle.trim(),
+        event_date: eventDate,
+        start_time: eventStartTime || null,
+        end_time: eventEndTime || null,
+        address: eventAddress.trim(),
+        details: eventDetails.trim(),
+        maps_url: eventMapsUrl.trim(),
+        is_published: eventPublished,
+      });
+      setEvents((current) => [...current, created].sort((a, b) =>
+        `${a.event_date}${a.start_time || ''}`.localeCompare(`${b.event_date}${b.start_time || ''}`),
+      ));
+      setEventTitle('');
+      setEventDate('');
+      setEventStartTime('');
+      setEventEndTime('');
+      setEventAddress('');
+      setEventDetails('');
+      setEventMapsUrl('');
+      setEventPublished(true);
+      setEventMessage(created.is_published ? 'Event published.' : 'Event saved as hidden.');
+    } catch (failure) {
+      setEventError(failure instanceof Error ? failure.message : 'Could not add that event.');
+    } finally {
+      setSavingEvent(false);
+    }
+  }
+
+  async function toggleEvent(event: UpcomingEvent) {
+    const token = window.localStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      router.replace('/admin/login');
+      return;
+    }
+    setSavingEvent(true);
+    setEventMessage('');
+    setEventError('');
+    try {
+      const updated = await setUpcomingEventPublished(token, event.id, !event.is_published);
+      setEvents((current) => current.map((item) => item.id === updated.id ? updated : item));
+      setEventMessage(updated.is_published ? `${updated.title} is live.` : `${updated.title} is hidden.`);
+    } catch (failure) {
+      setEventError(failure instanceof Error ? failure.message : 'Could not update that event.');
+    } finally {
+      setSavingEvent(false);
+    }
+  }
+
+  async function removeEvent(event: UpcomingEvent) {
+    if (!window.confirm(`Remove ${event.title}?`)) return;
+    const token = window.localStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      router.replace('/admin/login');
+      return;
+    }
+    setSavingEvent(true);
+    setEventMessage('');
+    setEventError('');
+    try {
+      await deleteUpcomingEvent(token, event.id);
+      setEvents((current) => current.filter((item) => item.id !== event.id));
+      setEventMessage('Event removed.');
+    } catch (failure) {
+      setEventError(failure instanceof Error ? failure.message : 'Could not remove that event.');
+    } finally {
+      setSavingEvent(false);
+    }
+  }
+
+  async function sendNotification(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const token = window.localStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      router.replace('/admin/login');
+      return;
+    }
+    setSendingNotification(true);
+    setNotificationStatus('');
+    setNotificationError('');
+    try {
+      const response = await fetch('/api/admin/notifications', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: notificationTitle,
+          message: notificationMessage,
+          url: notificationUrl,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Could not send that notification.');
+      setSubscriberCount(payload.subscribers);
+      setNotificationMessage('');
+      setNotificationStatus(`Sent to ${payload.sent} ${payload.sent === 1 ? 'device' : 'devices'}.`);
+    } catch (failure) {
+      setNotificationError(failure instanceof Error ? failure.message : 'Could not send that notification.');
+    } finally {
+      setSendingNotification(false);
+    }
+  }
+
   return (
     <main className="admin-shell">
       <header className="admin-topbar">
@@ -363,6 +514,120 @@ export default function AdminDashboard() {
             </button>
           </form>
         ) : null}
+      </section>
+
+      <section className="admin-card admin-rewards-card">
+        <div className="admin-section-heading">
+          <div>
+            <p className="eyebrow">Upcoming events</p>
+            <h2>Tell everyone where Dame is headed</h2>
+          </div>
+          <p>Published events appear automatically on the website and in the Dame App.</p>
+        </div>
+
+        <form className="admin-form admin-grid" onSubmit={addEvent}>
+          <label className="admin-wide">
+            Event name
+            <input value={eventTitle} onChange={(event) => setEventTitle(event.target.value)} placeholder="Walnut Family Festival" maxLength={120} required />
+          </label>
+          <label>
+            Date
+            <input
+              type="date"
+              value={eventDate}
+              min={new Date().toISOString().slice(0, 10)}
+              onChange={(event) => setEventDate(event.target.value)}
+              required
+            />
+          </label>
+          <label>
+            Starts
+            <input type="time" value={eventStartTime} onChange={(event) => setEventStartTime(event.target.value)} />
+          </label>
+          <label>
+            Ends
+            <input type="time" value={eventEndTime} onChange={(event) => setEventEndTime(event.target.value)} />
+          </label>
+          <label className="admin-wide">
+            Address
+            <input value={eventAddress} onChange={(event) => setEventAddress(event.target.value)} placeholder="Full event address" maxLength={300} required />
+          </label>
+          <label className="admin-wide">
+            Google Maps link
+            <input type="url" value={eventMapsUrl} onChange={(event) => setEventMapsUrl(event.target.value)} placeholder="https://maps.google.com/..." />
+          </label>
+          <label className="admin-wide">
+            Helpful details
+            <textarea value={eventDetails} onChange={(event) => setEventDetails(event.target.value)} placeholder="Where to find the cart, event notes, or what makes this stop special." maxLength={800} rows={3} />
+          </label>
+          <div className="toggle-panel admin-wide">
+            <div>
+              <strong>Publish this event</strong>
+              <span>{eventPublished ? 'Visible to everyone' : 'Save it hidden'}</span>
+            </div>
+            <button type="button" className={`toggle ${eventPublished ? 'on' : ''}`} onClick={() => setEventPublished((current) => !current)} aria-pressed={eventPublished}><i /></button>
+          </div>
+          <button className="pill solid admin-wide" type="submit" disabled={savingEvent}>
+            {savingEvent ? 'Saving…' : 'Add upcoming event'}
+          </button>
+        </form>
+
+        {events.length ? (
+          <div className="admin-promotion-list">
+            {events.map((event) => (
+              <article key={event.id}>
+                <div>
+                  <span>{event.is_published ? 'Published' : 'Hidden'}</span>
+                  <h3>{event.title}</h3>
+                  <p>{event.event_date}{event.start_time ? ` · ${event.start_time.slice(0, 5)}` : ''} · {event.address}</p>
+                  {event.details ? <small>{event.details}</small> : null}
+                </div>
+                <div className="admin-event-actions">
+                  <button className={`toggle ${event.is_published ? 'on' : ''}`} type="button" aria-label={`${event.is_published ? 'Hide' : 'Publish'} ${event.title}`} aria-pressed={event.is_published} disabled={savingEvent} onClick={() => toggleEvent(event)}><i /></button>
+                  <button className="admin-text-button" type="button" disabled={savingEvent} onClick={() => removeEvent(event)}>Remove</button>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : <p className="admin-empty-state">No upcoming events yet.</p>}
+        {eventMessage ? <p className="admin-success">{eventMessage}</p> : null}
+        {eventError ? <p className="admin-error">{eventError}</p> : null}
+      </section>
+
+      <section className="admin-card admin-rewards-card">
+        <div className="admin-section-heading">
+          <div>
+            <p className="eyebrow">Dame notifications</p>
+            <h2>Send a thoughtful update</h2>
+          </div>
+          <p>{subscriberCount === null ? 'Loading opted-in devices…' : `${subscriberCount} ${subscriberCount === 1 ? 'device has' : 'devices have'} opted in.`}</p>
+        </div>
+        <form className="admin-form admin-grid" onSubmit={sendNotification}>
+          <label className="admin-wide">
+            Notification title
+            <input value={notificationTitle} onChange={(event) => setNotificationTitle(event.target.value)} maxLength={80} required />
+          </label>
+          <label className="admin-wide">
+            Message
+            <textarea value={notificationMessage} onChange={(event) => setNotificationMessage(event.target.value)} placeholder="We’re brewing in Walnut until 2 PM. Come say hi." maxLength={180} rows={3} required />
+          </label>
+          <label className="admin-wide">
+            Opens this page
+            <select value={notificationUrl} onChange={(event) => setNotificationUrl(event.target.value)}>
+              <option value="/app">Dame App</option>
+              <option value="/">Home</option>
+              <option value="/menu">Menu</option>
+              <option value="/order">Order pickup</option>
+              <option value="/rewards">Rewards</option>
+              <option value="/catering">Catering</option>
+            </select>
+          </label>
+          <button className="pill solid admin-wide" type="submit" disabled={sendingNotification || subscriberCount === 0}>
+            {sendingNotification ? 'Sending…' : subscriberCount === 0 ? 'Waiting for opt-ins' : 'Send notification'}
+          </button>
+        </form>
+        {notificationStatus ? <p className="admin-success">{notificationStatus}</p> : null}
+        {notificationError ? <p className="admin-error">{notificationError}</p> : null}
       </section>
 
       <section className="admin-card admin-rewards-card">

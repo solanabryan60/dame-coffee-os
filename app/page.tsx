@@ -5,16 +5,27 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import SiteFooter from './components/site-footer';
 import GoogleMap from './components/google-map';
+import NotificationOptIn from './components/notification-opt-in';
 import SiteHeader from './components/site-header';
-import { readSiteSettings, SiteSettings } from './lib/supabase-rest';
+import UpcomingEvents from './components/upcoming-events';
+import {
+  readSiteSettings,
+  readUpcomingEvents,
+  SiteSettings,
+  UpcomingEvent,
+} from './lib/supabase-rest';
 import { liveLocation as fallbackLocation, missionStatement } from './site-config';
 
 export default function Home() {
   const [remoteLocation, setRemoteLocation] = useState<SiteSettings | null>(null);
+  const [events, setEvents] = useState<UpcomingEvent[]>([]);
 
   useEffect(() => {
     readSiteSettings().then(setRemoteLocation).catch(() => {
       // The public fallback keeps today’s information visible if Supabase is unavailable.
+    });
+    readUpcomingEvents().then(setEvents).catch(() => {
+      // Events stay hidden if they are temporarily unavailable.
     });
   }, []);
 
@@ -128,6 +139,10 @@ export default function Home() {
           className="dame-home-map"
         />
       </section>
+
+      <UpcomingEvents events={events} />
+
+      <NotificationOptIn />
 
       <section id="info" className="dame-info" aria-labelledby="info-title">
         <div className="dame-info-photo">

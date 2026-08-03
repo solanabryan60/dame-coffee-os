@@ -15,6 +15,8 @@ Visit `/app` to open the customer app home. Customers can:
 - See their current points and next reward when signed in
 - Jump directly to the menu, ordering, catering, or rewards
 - Use a phone-friendly bottom navigation bar
+- See published upcoming events and open their directions
+- Choose whether to receive Dame updates on supported phones and browsers
 - See a branded offline screen instead of a browser error when disconnected
 
 The web app manifest starts installed sessions at `/app`. The service worker caches only the offline page and static Dame assets. API responses, customer rewards, orders, and other private data are never stored in the offline cache.
@@ -46,7 +48,7 @@ The rewards are:
 
 ## What Dame staff can do
 
-The private `/admin` dashboard keeps all existing live-location controls and adds reward-code redemption plus promotion scheduling.
+The private `/admin` dashboard keeps all existing live-location controls and adds reward-code redemption, promotion scheduling, upcoming-event publishing, and opt-in notifications.
 
 Staff can:
 
@@ -58,6 +60,9 @@ Staff can:
 - Schedule a named 2× points campaign for any date and time
 - Apply a campaign to every eligible purchase or selected menu categories
 - Turn a campaign on or off without deleting it
+- Add, publish, hide, and remove upcoming events
+- See how many devices have opted in to notifications
+- Send a short notification that opens the Dame App, menu, ordering, rewards, catering, or homepage
 
 ## How points are awarded
 
@@ -82,6 +87,7 @@ Apply these SQL files in order:
 5. `supabase-phase4c-reward-refund-tracking.sql`
 6. `supabase-phase4d-reward-policy-tuning.sql`
 7. `supabase-phase4e-referral-threshold.sql`
+8. `supabase-phase5-events-notifications.sql`
 
 Phase 4 and 4B create:
 
@@ -116,6 +122,9 @@ SQUARE_WEBHOOK_SIGNATURE_KEY=your-square-webhook-signature-key
 SQUARE_WEBHOOK_NOTIFICATION_URL=http://localhost:3000/api/webhooks/square
 
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
+
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=your-web-push-public-key
+VAPID_PRIVATE_KEY=your-server-only-web-push-private-key
 ```
 
 Never commit passwords, database passwords, Supabase secret keys, Square access tokens, or webhook signature keys.
@@ -149,6 +158,7 @@ Public variables for Production and Preview:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- `NEXT_PUBLIC_VAPID_PUBLIC_KEY`
 
 Server-only production variables:
 
@@ -159,6 +169,7 @@ Server-only production variables:
 - `SQUARE_WEBHOOK_SIGNATURE_KEY`
 - `SQUARE_WEBHOOK_NOTIFICATION_URL=https://www.damecoffeeco.com/api/webhooks/square`
 - `NEXT_PUBLIC_SITE_URL=https://www.damecoffeeco.com`
+- `VAPID_PRIVATE_KEY`
 
 Preview deployments can display the customer rewards dashboard with the normal Supabase public variables. Live payment processing and Square webhooks remain production-only.
 
@@ -181,4 +192,8 @@ Also confirm:
 - The highest eligible live promotion is applied only once
 - Category-limited promotions match Square Catalog categories
 - Used and expired reward codes cannot be redeemed again
+- Published future events appear on the website and Dame App
+- Hidden or past events do not appear publicly
+- Notification permission is requested only after a customer chooses to opt in
+- Notification sending remains limited to approved Dame admins
 - `/admin` and `/admin/login` still work

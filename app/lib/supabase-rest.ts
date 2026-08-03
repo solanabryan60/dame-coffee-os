@@ -38,6 +38,20 @@ export type CustomerProfile = {
   updated_at: string;
 };
 
+export type UpcomingEvent = {
+  id: string;
+  title: string;
+  event_date: string;
+  start_time: string | null;
+  end_time: string | null;
+  address: string;
+  details: string;
+  maps_url: string;
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
@@ -69,6 +83,104 @@ export async function readSiteSettings(): Promise<SiteSettings> {
   const rows = (await response.json()) as SiteSettings[];
   if (!rows[0]) throw new Error('The site_settings row has not been created.');
   return rows[0];
+}
+
+async function publicRequest<T>(path: string, accessToken?: string): Promise<T> {
+  const config = requireConfig();
+  const response = await fetch(`${config.supabaseUrl}/rest/v1${path}`, {
+    headers: {
+      apikey: config.supabaseKey,
+      Authorization: `Bearer ${accessToken || config.supabaseKey}`,
+    },
+    cache: 'no-store',
+  });
+  const payload = await response.json();
+  if (!response.ok) throw new Error(authError(payload, 'Could not load Dame Coffee.'));
+  return payload as T;
+}
+
+export async function readUpcomingEvents(): Promise<UpcomingEvent[]> {
+  const today = new Date().toISOString().slice(0, 10);
+  return publicRequest<UpcomingEvent[]>(
+    `/upcoming_events?is_published=is.true&event_date=gte.${today}&select=*&order=event_date.asc,start_time.asc&limit=8`,
+  );
+}
+
+export async function listUpcomingEventsForAdmin(accessToken: string) {
+  return publicRequest<UpcomingEvent[]>(
+    '/upcoming_events?select=*&order=event_date.asc,start_time.asc',
+    accessToken,
+  );
+}
+
+export async function createUpcomingEvent(
+  accessToken: string,
+  input: Omit<UpcomingEvent, 'id' | 'created_at' | 'updated_at'>,
+) {
+  const config = requireConfig();
+  const response = await fetch(`${config.supabaseUrl}/rest/v1/upcoming_events`, {
+    method: 'POST',
+    headers: {
+      apikey: config.supabaseKey,
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+    },
+    body: JSON.stringify(input),
+  });
+  const payload = await response.json();
+  if (!response.ok) throw new Error(authError(payload, 'Could not add that event.'));
+  const event = (payload as UpcomingEvent[])[0];
+  if (!event) throw new Error('Could not add that event.');
+  return event;
+}
+
+export async function setUpcomingEventPublished(
+  accessToken: string,
+  eventId: string,
+  isPublished: boolean,
+) {
+  const config = requireConfig();
+  const response = await fetch(
+    `${config.supabaseUrl}/rest/v1/upcoming_events?id=eq.${encodeURIComponent(eventId)}`,
+    {
+      method: 'PATCH',
+      headers: {
+        apikey: config.supabaseKey,
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=representation',
+      },
+      body: JSON.stringify({
+        is_published: isPublished,
+        updated_at: new Date().toISOString(),
+      }),
+    },
+  );
+  const payload = await response.json();
+  if (!response.ok) throw new Error(authError(payload, 'Could not update that event.'));
+  const event = (payload as UpcomingEvent[])[0];
+  if (!event) throw new Error('Could not update that event.');
+  return event;
+}
+
+export async function deleteUpcomingEvent(accessToken: string, eventId: string) {
+  const config = requireConfig();
+  const response = await fetch(
+    `${config.supabaseUrl}/rest/v1/upcoming_events?id=eq.${encodeURIComponent(eventId)}`,
+    {
+      method: 'DELETE',
+      headers: {
+        apikey: config.supabaseKey,
+        Authorization: `Bearer ${accessToken}`,
+        Prefer: 'return=minimal',
+      },
+    },
+  );
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(authError(payload, 'Could not remove that event.'));
+  }
 }
 
 export async function loginAdmin(email: string, password: string) {

@@ -1342,6 +1342,30 @@ img {
   text-transform: capitalize;
 }
 
+.admin-event-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.admin-text-button {
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: #961010;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.admin-text-button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
 .admin-empty-state {
   margin-top: 26px;
 }
