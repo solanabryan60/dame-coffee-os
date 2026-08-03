@@ -9,8 +9,11 @@ import {
   type PickupOrderStatus,
   updatePickupOrderForAdmin,
 } from '../../lib/supabase-rest';
-
-const TOKEN_KEY = 'dame_admin_access_token';
+import {
+  clearAdminSession,
+  getAdminAccessToken,
+  isAdminSessionError,
+} from '../../lib/admin-session';
 
 const STATUS_OPTIONS: Array<{ value: PickupOrderStatus; label: string }> = [
   { value: 'awaiting_payment', label: 'Awaiting payment' },
@@ -64,7 +67,7 @@ export default function AdminPickupOrdersPage() {
   const dirtyOrderIds = useRef(new Set<string>());
 
   const loadOrders = useCallback(async (quiet = false) => {
-    const token = window.localStorage.getItem(TOKEN_KEY);
+    const token = await getAdminAccessToken();
     if (!token) {
       router.replace('/admin/login');
       return;
@@ -75,6 +78,11 @@ export default function AdminPickupOrdersPage() {
       setOrders(await listPickupOrdersForAdmin(token));
       setError('');
     } catch (loadError) {
+      if (isAdminSessionError(loadError)) {
+        clearAdminSession();
+        router.replace('/admin/login');
+        return;
+      }
       setError(loadError instanceof Error ? loadError.message : 'Could not load pickup orders.');
     } finally {
       setLoading(false);
@@ -110,7 +118,7 @@ export default function AdminPickupOrdersPage() {
   }
 
   async function saveOrder(order: PickupOrder) {
-    const token = window.localStorage.getItem(TOKEN_KEY);
+    const token = await getAdminAccessToken();
     if (!token) {
       router.replace('/admin/login');
       return;
@@ -127,6 +135,11 @@ export default function AdminPickupOrdersPage() {
       setOrders((current) => current.map((item) => item.id === updated.id ? updated : item));
       setMessage(`Order #${order.id.slice(0, 6).toUpperCase()} updated.`);
     } catch (saveError) {
+      if (isAdminSessionError(saveError)) {
+        clearAdminSession();
+        router.replace('/admin/login');
+        return;
+      }
       setError(saveError instanceof Error ? saveError.message : 'Could not update that order.');
     } finally {
       setSavingId(null);
@@ -134,7 +147,7 @@ export default function AdminPickupOrdersPage() {
   }
 
   function logout() {
-    window.localStorage.removeItem(TOKEN_KEY);
+    clearAdminSession();
     router.replace('/admin/login');
   }
 

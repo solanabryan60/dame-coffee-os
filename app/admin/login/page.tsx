@@ -4,8 +4,7 @@ import Link from 'next/link';
 import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { loginAdmin } from '../../lib/supabase-rest';
-
-const TOKEN_KEY = 'dame_admin_access_token';
+import { getAdminAccessToken, saveAdminSession } from '../../lib/admin-session';
 
 export default function AdminLogin() {
   const router = useRouter();
@@ -15,7 +14,13 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (window.localStorage.getItem(TOKEN_KEY)) router.replace('/admin');
+    let active = true;
+    void getAdminAccessToken().then((token) => {
+      if (active && token) router.replace('/admin');
+    });
+    return () => {
+      active = false;
+    };
   }, [router]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -24,7 +29,7 @@ export default function AdminLogin() {
     setLoading(true);
     try {
       const session = await loginAdmin(email.trim(), password);
-      window.localStorage.setItem(TOKEN_KEY, session.access_token);
+      saveAdminSession(session);
       router.replace('/admin');
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : 'Login failed.');

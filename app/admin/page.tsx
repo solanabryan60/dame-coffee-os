@@ -26,8 +26,11 @@ import {
   RewardPromotion,
   setRewardPromotionActive,
 } from '../lib/dame-rewards';
-
-const TOKEN_KEY = 'dame_admin_access_token';
+import {
+  clearAdminSession,
+  getAdminAccessToken,
+  isAdminSessionError,
+} from '../lib/admin-session';
 
 const CATERING_STATUS_OPTIONS: Array<{
   value: CateringRequestStatus;
@@ -109,40 +112,53 @@ export default function AdminDashboard() {
   const [savingCateringId, setSavingCateringId] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = window.localStorage.getItem(TOKEN_KEY);
-    if (!token) {
-      router.replace('/admin/login');
-      return;
-    }
+    let active = true;
+    void (async () => {
+      const token = await getAdminAccessToken();
+      if (!token) {
+        router.replace('/admin/login');
+        return;
+      }
 
-    Promise.all([
-      readSiteSettings(),
-      listRewardPromotions(token),
-      listUpcomingEventsForAdmin(token),
-      listCateringRequestsForAdmin(token),
-      fetch('/api/admin/notifications', {
-        headers: { Authorization: `Bearer ${token}` },
-        cache: 'no-store',
-      }).then(async (response) => {
-        const payload = await response.json();
-        if (!response.ok) throw new Error(payload.error || 'Could not load notifications.');
-        return payload as { subscribers: number };
-      }),
-    ])
-      .then(([siteSettings, rewardPromotions, upcomingEvents, requests, notifications]) => {
+      try {
+        const [siteSettings, rewardPromotions, upcomingEvents, requests, notifications] = await Promise.all([
+          readSiteSettings(),
+          listRewardPromotions(token),
+          listUpcomingEventsForAdmin(token),
+          listCateringRequestsForAdmin(token),
+          fetch('/api/admin/notifications', {
+            headers: { Authorization: `Bearer ${token}` },
+            cache: 'no-store',
+          }).then(async (response) => {
+            const payload = await response.json();
+            if (!response.ok) throw new Error(payload.error || 'Could not load notifications.');
+            return payload as { subscribers: number };
+          }),
+        ]);
+        if (!active) return;
         setSettings(siteSettings);
         setPromotions(rewardPromotions);
         setEvents(upcomingEvents);
         setCateringRequests(requests);
         setSubscriberCount(notifications.subscribers);
-      })
-      .catch((loadError) => {
-        setError(loadError instanceof Error ? loadError.message : 'Could not load settings.');
-      });
+      } catch (loadError) {
+        if (isAdminSessionError(loadError)) {
+          clearAdminSession();
+          router.replace('/admin/login');
+          return;
+        }
+        if (active) {
+          setError(loadError instanceof Error ? loadError.message : 'Could not load settings.');
+        }
+      }
+    })();
+    return () => {
+      active = false;
+    };
   }, [router]);
 
   function logout() {
-    window.localStorage.removeItem(TOKEN_KEY);
+    clearAdminSession();
     router.replace('/admin/login');
   }
 
@@ -158,7 +174,7 @@ export default function AdminDashboard() {
     setSaving(true);
 
     try {
-      const token = window.localStorage.getItem(TOKEN_KEY);
+      const token = await getAdminAccessToken();
       if (!token) {
         router.replace('/admin/login');
         return;
@@ -169,7 +185,8 @@ export default function AdminDashboard() {
       const text = saveError instanceof Error ? saveError.message : 'Could not save changes.';
       setError(text);
       if (/jwt|token|unauthorized/i.test(text)) {
-        window.localStorage.removeItem(TOKEN_KEY);
+        clearAdminSession();
+        router.replace('/admin/login');
       }
     } finally {
       setSaving(false);
@@ -178,7 +195,7 @@ export default function AdminDashboard() {
 
   async function checkReward(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const token = window.localStorage.getItem(TOKEN_KEY);
+    const token = await getAdminAccessToken();
     if (!token) {
       router.replace('/admin/login');
       return;
@@ -201,7 +218,7 @@ export default function AdminDashboard() {
   }
 
   async function markRewardUsed() {
-    const token = window.localStorage.getItem(TOKEN_KEY);
+    const token = await getAdminAccessToken();
     if (!token || !reward) {
       router.replace('/admin/login');
       return;
@@ -235,7 +252,7 @@ export default function AdminDashboard() {
 
   async function addPromotion(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const token = window.localStorage.getItem(TOKEN_KEY);
+    const token = await getAdminAccessToken();
     if (!token) {
       router.replace('/admin/login');
       return;
@@ -288,7 +305,7 @@ export default function AdminDashboard() {
   }
 
   async function togglePromotion(promotion: RewardPromotion) {
-    const token = window.localStorage.getItem(TOKEN_KEY);
+    const token = await getAdminAccessToken();
     if (!token) {
       router.replace('/admin/login');
       return;
@@ -324,7 +341,7 @@ export default function AdminDashboard() {
 
   async function addEvent(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const token = window.localStorage.getItem(TOKEN_KEY);
+    const token = await getAdminAccessToken();
     if (!token) {
       router.replace('/admin/login');
       return;
@@ -363,7 +380,7 @@ export default function AdminDashboard() {
   }
 
   async function toggleEvent(event: UpcomingEvent) {
-    const token = window.localStorage.getItem(TOKEN_KEY);
+    const token = await getAdminAccessToken();
     if (!token) {
       router.replace('/admin/login');
       return;
@@ -384,7 +401,7 @@ export default function AdminDashboard() {
 
   async function removeEvent(event: UpcomingEvent) {
     if (!window.confirm(`Remove ${event.title}?`)) return;
-    const token = window.localStorage.getItem(TOKEN_KEY);
+    const token = await getAdminAccessToken();
     if (!token) {
       router.replace('/admin/login');
       return;
@@ -405,7 +422,7 @@ export default function AdminDashboard() {
 
   async function sendNotification(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const token = window.localStorage.getItem(TOKEN_KEY);
+    const token = await getAdminAccessToken();
     if (!token) {
       router.replace('/admin/login');
       return;
@@ -450,7 +467,7 @@ export default function AdminDashboard() {
   }
 
   async function saveCateringRequest(request: CateringRequest) {
-    const token = window.localStorage.getItem(TOKEN_KEY);
+    const token = await getAdminAccessToken();
     if (!token) {
       router.replace('/admin/login');
       return;

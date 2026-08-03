@@ -9,8 +9,11 @@ import {
   setMenuItemSoldOut,
   type MenuItemAvailability,
 } from '../../lib/supabase-rest';
-
-const TOKEN_KEY = 'dame_admin_access_token';
+import {
+  clearAdminSession,
+  getAdminAccessToken,
+  isAdminSessionError,
+} from '../../lib/admin-session';
 const CATEGORY_ORDER: Record<SquareMenuItem['category'], number> = {
   foam: 0,
   specialty: 1,
@@ -47,24 +50,39 @@ export default function AdminMenuAvailability({ items }: { items: SquareMenuItem
   }, [items]);
 
   useEffect(() => {
-    const token = window.localStorage.getItem(TOKEN_KEY);
-    if (!token) {
-      router.replace('/admin/login');
-      return;
-    }
-    listMenuAvailabilityForAdmin(token)
-      .then((rows) => {
-        setAvailability(rows);
-        setError('');
-      })
-      .catch((loadError) => {
-        setError(loadError instanceof Error ? loadError.message : 'Could not load menu availability.');
-      })
-      .finally(() => setLoading(false));
+    let active = true;
+    void (async () => {
+      const token = await getAdminAccessToken();
+      if (!token) {
+        router.replace('/admin/login');
+        return;
+      }
+      try {
+        const rows = await listMenuAvailabilityForAdmin(token);
+        if (active) {
+          setAvailability(rows);
+          setError('');
+        }
+      } catch (loadError) {
+        if (isAdminSessionError(loadError)) {
+          clearAdminSession();
+          router.replace('/admin/login');
+          return;
+        }
+        if (active) {
+          setError(loadError instanceof Error ? loadError.message : 'Could not load menu availability.');
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
   }, [router]);
 
   async function toggleItem(item: SquareMenuItem) {
-    const token = window.localStorage.getItem(TOKEN_KEY);
+    const token = await getAdminAccessToken();
     if (!token) {
       router.replace('/admin/login');
       return;
@@ -82,6 +100,11 @@ export default function AdminMenuAvailability({ items }: { items: SquareMenuItem
       ]);
       setMessage(`${item.name} is now ${nextSoldOut ? 'sold out' : 'available'} everywhere.`);
     } catch (saveError) {
+      if (isAdminSessionError(saveError)) {
+        clearAdminSession();
+        router.replace('/admin/login');
+        return;
+      }
       setError(saveError instanceof Error ? saveError.message : 'Could not update that item.');
     } finally {
       setSavingId(null);
@@ -89,7 +112,7 @@ export default function AdminMenuAvailability({ items }: { items: SquareMenuItem
   }
 
   function logout() {
-    window.localStorage.removeItem(TOKEN_KEY);
+    clearAdminSession();
     router.replace('/admin/login');
   }
 
