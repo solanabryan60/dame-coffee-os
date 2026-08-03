@@ -1,7 +1,9 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import {
   getSquareCustomer,
+  getSquarePickupFulfillmentState,
   getSquareOrderRewardContext,
+  type SquareFulfillmentState,
 } from '@/app/lib/square';
 import {
   findRewardUserByContact,
@@ -17,6 +19,7 @@ import {
   markCateringDepositRefunded,
   markPickupOrderPaid,
   markPickupOrderRefunded,
+  syncPickupOrderFulfillmentStatus,
   recordDameSquareEvent,
   type ActiveRewardPromotion,
 } from '@/app/lib/supabase-admin';
@@ -45,9 +48,26 @@ type SquareWebhookEvent = {
         status?: string;
         amount_money?: SquareMoney;
       };
+      order_updated?: {
+        order_id?: string;
+      };
+      order_fulfillment_updated?: {
+        order_id?: string;
+        fulfillment_update?: Array<{
+          new_state?: SquareFulfillmentState;
+        }>;
+      };
     };
   };
 };
+
+function dameStatusFromSquare(state: SquareFulfillmentState | null) {
+  if (state === 'RESERVED') return 'preparing' as const;
+  if (state === 'PREPARED') return 'ready' as const;
+  if (state === 'COMPLETED') return 'picked_up' as const;
+  if (state === 'CANCELED' || state === 'FAILED') return 'cancelled' as const;
+  return null;
+}
 
 function notificationUrl() {
   return (
@@ -219,6 +239,26 @@ async function handleRefund(event: SquareWebhookEvent) {
   });
 }
 
+async function handleOrderFulfillment(event: SquareWebhookEvent) {
+  const fulfillmentUpdate = event.data?.object?.order_fulfillment_updated;
+  const orderUpdate = event.data?.object?.order_updated;
+  const orderId = fulfillmentUpdate?.order_id ?? orderUpdate?.order_id;
+  if (!orderId) return;
+
+  const pickupOrder = await findPickupOrderBySquareOrder(orderId);
+  if (!pickupOrder) return;
+
+  const directState = fulfillmentUpdate?.fulfillment_update
+    ?.map((update) => update.new_state)
+    .filter((state): state is SquareFulfillmentState => Boolean(state))
+    .at(-1);
+  const squareState = directState ?? await getSquarePickupFulfillmentState(orderId);
+  const dameStatus = dameStatusFromSquare(squareState);
+  if (!dameStatus) return;
+
+  await syncPickupOrderFulfillmentStatus(pickupOrder.id, dameStatus);
+}
+
 export async function POST(request: Request) {
   if (!process.env.SQUARE_WEBHOOK_SIGNATURE_KEY || !hasDameRewardsServerConfig()) {
     return Response.json({ error: 'Rewards webhook is not configured.' }, { status: 503 });
@@ -236,6 +276,12 @@ export async function POST(request: Request) {
     const event = JSON.parse(rawBody) as SquareWebhookEvent;
     if (event.type === 'payment.updated') await handlePayment(event);
     if (event.type === 'refund.updated') await handleRefund(event);
+    if (
+      event.type === 'order.updated' ||
+      event.type === 'order.fulfillment.updated'
+    ) {
+      await handleOrderFulfillment(event);
+    }
     return Response.json({ received: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Webhook processing failed.';

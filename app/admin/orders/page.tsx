@@ -156,9 +156,9 @@ export default function AdminPickupOrdersPage() {
         <div className="admin-section-heading">
           <div>
             <p className="eyebrow">Live queue</p>
-            <h2>From paid to picked up.</h2>
+            <h2>Square leads. Dame follows.</h2>
           </div>
-          <p>Move each order forward here. The customer’s private tracking page updates automatically.</p>
+          <p>Update fulfillment on the Square machine. This queue and the customer’s private tracking page will follow automatically; these controls remain available as a backup.</p>
         </div>
 
         <div className="admin-catering-summary" aria-label="Pickup order summary">

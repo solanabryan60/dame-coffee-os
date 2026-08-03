@@ -12,6 +12,7 @@ When a customer begins Square checkout:
 - The customer returns from Square to a private tracking link that cannot be guessed from the order number alone
 - A verified Square `payment.updated` webhook moves the order from `Awaiting payment` to `Paid`
 - Staff use `/admin/orders` to move the order through `Preparing`, `Ready for pickup`, and `Picked up`
+- Status changes made in Square Order Manager automatically move the Dame tracker through Preparing, Ready, Picked up, or Cancelled
 - The customer tracking page refreshes automatically as staff update the order
 - Marking an order `Refund needed` sends staff to Square; a verified full Square refund automatically marks the order refunded
 
@@ -175,6 +176,8 @@ Subscribe to:
 
 - `payment.updated`
 - `refund.updated`
+- `order.updated`
+- `order.fulfillment.updated`
 
 Copy the subscription’s signature key into the production environment variable:
 

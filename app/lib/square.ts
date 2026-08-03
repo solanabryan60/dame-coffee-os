@@ -138,7 +138,19 @@ type SquareOrder = {
   total_tax_money?: SquareMoney;
   total_tip_money?: SquareMoney;
   total_service_charge_money?: SquareMoney;
+  fulfillments?: Array<{
+    type?: string;
+    state?: SquareFulfillmentState;
+  }>;
 };
+
+export type SquareFulfillmentState =
+  | 'PROPOSED'
+  | 'RESERVED'
+  | 'PREPARED'
+  | 'COMPLETED'
+  | 'CANCELED'
+  | 'FAILED';
 
 const fallbackItems: SquareMenuItem[] = [
   {
@@ -496,6 +508,18 @@ export async function getSquareOrderRewardContext(orderId: string) {
     eligibleAmountCents,
     categories: [...categories],
   };
+}
+
+export async function getSquarePickupFulfillmentState(orderId: string) {
+  const payload = await squareRequest<{ order?: SquareOrder }>(
+    `/v2/orders/${encodeURIComponent(orderId)}`,
+    {},
+    { allowNotFound: true },
+  );
+  const pickup = payload?.order?.fulfillments?.find(
+    (fulfillment) => fulfillment.type === 'PICKUP',
+  );
+  return pickup?.state ?? null;
 }
 
 function productionUrl() {

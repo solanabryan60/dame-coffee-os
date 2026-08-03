@@ -217,6 +217,33 @@ export async function markPickupOrderRefunded(orderId: string) {
   );
 }
 
+export async function syncPickupOrderFulfillmentStatus(
+  orderId: string,
+  status: Extract<PickupOrder['status'], 'preparing' | 'ready' | 'picked_up' | 'cancelled'>,
+) {
+  const now = new Date().toISOString();
+  const timestamp = status === 'preparing'
+    ? { preparing_at: now }
+    : status === 'ready'
+      ? { ready_at: now }
+      : status === 'picked_up'
+        ? { picked_up_at: now }
+        : { cancelled_at: now };
+
+  await adminRequest<unknown>(
+    `/pickup_orders?id=eq.${encodeURIComponent(orderId)}&status=not.in.(refunded,refund_pending)`,
+    {
+      method: 'PATCH',
+      headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify({
+        status,
+        ...timestamp,
+        updated_at: now,
+      }),
+    },
+  );
+}
+
 export async function listPushSubscriptions() {
   return adminRequest<StoredPushSubscription[]>(
     '/push_subscriptions?select=id,endpoint,p256dh,auth&order=created_at.asc',
