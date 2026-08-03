@@ -8,6 +8,7 @@ import { readCustomerProfile } from '../lib/supabase-rest';
 
 type CartLine = {
   id: string;
+  itemId: string;
   itemName: string;
   variationId: string;
   variationName: string;
@@ -34,26 +35,55 @@ function money(amount: number) {
   }).format(amount / 100);
 }
 
+function isExclusiveModifierGroup(group: SquareMenuModifierGroup) {
+  return /\b(milk|coffee)\b/i.test(group.name);
+}
+
 function ItemOrderCard({
   item,
   disabled,
+  editingLine,
   onAdd,
+  onUpdate,
+  onCancelEdit,
 }: {
   item: SquareMenuItem;
   disabled: boolean;
+  editingLine?: CartLine;
   onAdd: (line: Omit<CartLine, 'id' | 'quantity'>) => void;
+  onUpdate: (id: string, line: Omit<CartLine, 'id' | 'quantity'>) => void;
+  onCancelEdit: () => void;
 }) {
   const [customizing, setCustomizing] = useState(false);
   const [variationId, setVariationId] = useState(item.variations[0]?.id ?? '');
   const [selections, setSelections] = useState<Record<string, string[]>>({});
   const variation = item.variations.find((entry) => entry.id === variationId) ?? item.variations[0];
 
+  useEffect(() => {
+    if (!editingLine) return;
+
+    const restoredSelections = item.modifierGroups.reduce<Record<string, string[]>>(
+      (groups, group) => {
+        const optionIds = new Set(group.options.map((option) => option.id));
+        groups[group.id] = editingLine.modifierIds.filter((id) => optionIds.has(id));
+        return groups;
+      },
+      {},
+    );
+
+    setVariationId(editingLine.variationId);
+    setSelections(restoredSelections);
+    setCustomizing(true);
+  }, [editingLine, item]);
+
   const selectedModifiers = item.modifierGroups.flatMap((group) => {
     const selectedIds = selections[group.id] ?? [];
     return group.options.filter((option) => selectedIds.includes(option.id));
   });
   const requiredChoicesComplete = item.modifierGroups.every(
-    (group) => (selections[group.id]?.length ?? 0) >= group.minSelected,
+    (group) =>
+      (selections[group.id]?.length ?? 0) >=
+      (isExclusiveModifierGroup(group) ? Math.min(group.minSelected, 1) : group.minSelected),
   );
   const unitAmount =
     (variation?.priceAmount ?? 0) +
@@ -62,19 +92,18 @@ function ItemOrderCard({
   function toggleModifier(group: SquareMenuModifierGroup, modifierId: string) {
     setSelections((current) => {
       const selected = current[group.id] ?? [];
-      if (group.selectionType === 'SINGLE') {
+      if (isExclusiveModifierGroup(group)) {
         return { ...current, [group.id]: selected.includes(modifierId) ? [] : [modifierId] };
       }
       if (selected.includes(modifierId)) {
         return { ...current, [group.id]: selected.filter((id) => id !== modifierId) };
       }
-      if (group.maxSelected && selected.length >= group.maxSelected) return current;
       return { ...current, [group.id]: [...selected, modifierId] };
     });
   }
 
   return (
-    <article className={`dame-order-item ${customizing ? 'is-customizing' : ''}`}>
+    <article id={`order-item-${item.id}`} className={`dame-order-item ${customizing ? 'is-customizing' : ''}`}>
       <div className="dame-order-item-heading">
         <div>
           <p>{item.categoryLabel}</p>
@@ -89,7 +118,10 @@ function ItemOrderCard({
         type="button"
         aria-expanded={customizing}
         aria-controls={`customize-${item.id}`}
-        onClick={() => setCustomizing((current) => !current)}
+        onClick={() => {
+          if (customizing && editingLine) onCancelEdit();
+          setCustomizing((current) => !current);
+        }}
       >
         <span>{customizing ? 'Hide options' : 'Customize'}</span>
         <span aria-hidden="true">{customizing ? '−' : '+'}</span>
@@ -114,15 +146,22 @@ function ItemOrderCard({
             <fieldset key={group.id} className="dame-order-modifiers">
               <legend>
                 {group.name}
-                {group.minSelected > 0 ? <span>Choose {group.minSelected}</span> : <span>Optional</span>}
+                {isExclusiveModifierGroup(group) ? (
+                  <span>{group.minSelected > 0 ? 'Choose one' : 'Optional · one only'}</span>
+                ) : (
+                  <span>{group.minSelected > 0 ? `Choose ${group.minSelected}+` : 'Pick any'}</span>
+                )}
               </legend>
               <div>
                 {group.options.map((option) => {
                   const checked = (selections[group.id] ?? []).includes(option.id);
                   return (
-                    <label key={option.id} className={checked ? 'is-selected' : ''}>
+                    <label
+                      key={option.id}
+                      className={`${checked ? 'is-selected' : ''} ${isExclusiveModifierGroup(group) ? 'is-exclusive' : ''}`.trim()}
+                    >
                       <input
-                        type={group.selectionType === 'SINGLE' ? 'radio' : 'checkbox'}
+                        type="checkbox"
                         name={`${item.id}-${group.id}`}
                         checked={checked}
                         onChange={() => toggleModifier(group, option.id)}
@@ -142,19 +181,41 @@ function ItemOrderCard({
             disabled={disabled || !variation || !requiredChoicesComplete}
             onClick={() => {
               if (!variation) return;
-              onAdd({
+              const nextLine = {
+                itemId: item.id,
                 itemName: item.name,
                 variationId: variation.id,
                 variationName: variation.name,
                 unitAmount,
                 modifierIds: selectedModifiers.map((modifier) => modifier.id),
                 modifierNames: selectedModifiers.map((modifier) => modifier.name),
-              });
+              };
+              if (editingLine) {
+                onUpdate(editingLine.id, nextLine);
+              } else {
+                onAdd(nextLine);
+              }
               setCustomizing(false);
             }}
           >
-            {disabled ? 'Ordering paused' : requiredChoicesComplete ? `Add to order · ${money(unitAmount)}` : 'Finish choices'}
+            {disabled
+              ? 'Ordering paused'
+              : requiredChoicesComplete
+                ? `${editingLine ? 'Save changes' : 'Add to order'} · ${money(unitAmount)}`
+                : 'Finish choices'}
           </button>
+          {editingLine ? (
+            <button
+              className="dame-order-cancel-edit"
+              type="button"
+              onClick={() => {
+                onCancelEdit();
+                setCustomizing(false);
+              }}
+            >
+              Cancel edit
+            </button>
+          ) : null}
         </div>
       ) : null}
     </article>
@@ -171,6 +232,7 @@ export default function OrderExperience({
   location: Location;
 }) {
   const [cart, setCart] = useState<CartLine[]>([]);
+  const [editingLineId, setEditingLineId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -219,6 +281,27 @@ export default function OrderExperience({
         quantity: 1,
       },
     ]);
+  }
+
+  function updateLine(id: string, line: Omit<CartLine, 'id' | 'quantity'>) {
+    setCart((current) =>
+      current.map((existing) =>
+        existing.id === id
+          ? { ...line, id: existing.id, quantity: existing.quantity }
+          : existing,
+      ),
+    );
+    setEditingLineId(null);
+  }
+
+  function editLine(line: CartLine) {
+    setEditingLineId(line.id);
+    window.requestAnimationFrame(() => {
+      document.getElementById(`order-item-${line.itemId}`)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    });
   }
 
   function changeQuantity(id: string, change: number) {
@@ -329,7 +412,10 @@ export default function OrderExperience({
                       key={item.id}
                       item={item}
                       disabled={!orderingEnabled}
+                      editingLine={cart.find((line) => line.id === editingLineId && line.itemId === item.id)}
                       onAdd={addLine}
+                      onUpdate={updateLine}
+                      onCancelEdit={() => setEditingLineId(null)}
                     />
                   ))}
                 </div>
@@ -355,6 +441,9 @@ export default function OrderExperience({
                     <h3>{line.itemName}</h3>
                     {line.variationName !== 'Regular' ? <p>{line.variationName}</p> : null}
                     {line.modifierNames.length ? <p>{line.modifierNames.join(' · ')}</p> : null}
+                    <button className="dame-cart-edit" type="button" onClick={() => editLine(line)}>
+                      Edit
+                    </button>
                   </div>
                   <div className="dame-quantity">
                     <button type="button" onClick={() => changeQuantity(line.id, -1)} aria-label={`Remove one ${line.itemName}`}>−</button>

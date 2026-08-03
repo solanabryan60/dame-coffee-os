@@ -116,6 +116,10 @@ type CheckoutCustomer = {
   note?: string;
 };
 
+function isExclusiveModifierGroup(groupName: string) {
+  return /\b(milk|coffee)\b/i.test(groupName);
+}
+
 export type PickupOrderLineItemSnapshot = {
   item_name: string;
   variation_name: string;
@@ -576,10 +580,13 @@ export async function createSquarePaymentLink(
     for (const group of item.modifierGroups) {
       const groupOptionIds = new Set(group.options.map((option) => option.id));
       const selectedCount = line.modifierIds.filter((id) => groupOptionIds.has(id)).length;
-      if (selectedCount < group.minSelected) {
+      const minimum = isExclusiveModifierGroup(group.name)
+        ? Math.min(group.minSelected, 1)
+        : group.minSelected;
+      if (selectedCount < minimum) {
         throw new Error(`Choose the required ${group.name} option.`);
       }
-      if (group.maxSelected !== null && selectedCount > group.maxSelected) {
+      if (isExclusiveModifierGroup(group.name) && selectedCount > 1) {
         throw new Error(`Too many ${group.name} options were selected.`);
       }
     }

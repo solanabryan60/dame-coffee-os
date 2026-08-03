@@ -4415,6 +4415,21 @@
   margin-top: 6px;
 }
 
+.dame-order-cancel-edit {
+  width: 100%;
+  margin-top: 12px;
+  padding: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--dame-red);
+  cursor: pointer;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 .dame-order-customizer > .dame-button:disabled,
 .dame-checkout-button:disabled {
   border-color: #a79d98;
@@ -4488,6 +4503,26 @@
   color: var(--muted);
   font-size: 11px;
   line-height: 1.4;
+}
+
+.dame-cart-edit {
+  margin-top: 10px;
+  padding: 0 0 2px;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  background: transparent;
+  color: var(--dame-red);
+  cursor: pointer;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.dame-cart-edit:hover,
+.dame-order-cancel-edit:hover {
+  color: var(--ink);
 }
 
 .dame-quantity {
