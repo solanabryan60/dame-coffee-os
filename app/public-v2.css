@@ -1722,17 +1722,22 @@
   line-height: 0.8;
 }
 
-.dame-page-hero > .dame-catering-base > p:last-child {
-  width: fit-content;
+.dame-page-hero > .dame-catering-base > p {
   margin: 22px 0 0;
-  padding: 10px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.64);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
   color: #ffffff;
-  font-size: 14px;
+  font-size: clamp(18px, 2vw, 24px);
   font-weight: 900;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
+}
+
+.dame-catering-base small {
+  margin-top: 8px;
+  display: block;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
 }
 
 .dame-catering-builder {
@@ -2656,36 +2661,38 @@
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 13px;
+  gap: 18px;
   border-bottom: 1px solid rgba(150, 16, 16, 0.18);
   background: rgba(217, 217, 217, 0.92);
   backdrop-filter: blur(18px);
 }
 
-.dame-app-topbar > a,
-.dame-app-topbar > a img {
-  width: 58px;
+.dame-app-wordmark {
+  width: 112px;
   height: 58px;
+  display: block;
+  overflow: hidden;
 }
 
-.dame-app-topbar > div {
+.dame-app-wordmark img {
+  width: 112px;
+  height: 112px;
+  display: block;
+  object-fit: cover;
+  transform: translateY(-27px);
+}
+
+.dame-app-name {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.dame-app-topbar > div span {
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.dame-app-topbar > div strong {
+.dame-app-name strong {
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 20px;
+  font-size: clamp(26px, 3vw, 38px);
   font-weight: 400;
+  letter-spacing: -0.04em;
 }
 
 .dame-app-topbar > button,
@@ -3213,10 +3220,19 @@
     padding: 8px 16px;
   }
 
-  .dame-app-topbar > a,
-  .dame-app-topbar > a img {
-    width: 50px;
-    height: 50px;
+  .dame-app-wordmark {
+    width: 84px;
+    height: 46px;
+  }
+
+  .dame-app-wordmark img {
+    width: 84px;
+    height: 84px;
+    transform: translateY(-19px);
+  }
+
+  .dame-app-name strong {
+    font-size: 24px;
   }
 
   .dame-app-topbar > button {
@@ -3482,17 +3498,20 @@
 }
 
 .dame-menu-stamp span {
-  font-size: clamp(26px, 4vw, 48px);
+  font-family: "Arial Black", Impact, Haettenschweiler, sans-serif;
+  font-size: clamp(30px, 4.4vw, 54px);
   font-weight: 900;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.19em;
+  line-height: 0.9;
 }
 
 .dame-menu-stamp strong {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(58px, 8vw, 100px);
-  font-weight: 500;
-  letter-spacing: -0.08em;
-  line-height: 0.82;
+  margin-top: 14px;
+  font-family: "Arial Black", Impact, Haettenschweiler, sans-serif;
+  font-size: clamp(54px, 7vw, 88px);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 0.86;
 }
 
 .dame-menu-browser {

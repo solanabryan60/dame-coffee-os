@@ -27,6 +27,7 @@ export default function CateringPage() {
           <span>Starting package</span>
           <strong>${CATERING_BASE_PRICE_DOLLARS}</strong>
           <p>100 drinks · 2 hours</p>
+          <small>Plus applicable tax</small>
         </div>
       </section>
 

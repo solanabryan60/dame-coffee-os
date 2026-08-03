@@ -111,11 +111,16 @@ export default function DameAppHome() {
   return (
     <main className="dame-app-shell">
       <header className="dame-app-topbar">
-        <Link href="/" aria-label="Dame Coffee website">
-          <Image src="/dame-icon" alt="Dame Coffee" width={72} height={72} priority unoptimized />
+        <Link className="dame-app-wordmark" href="/" aria-label="Dame Coffee website">
+          <Image
+            src="/assets/logo.png"
+            alt="Dame Coffee"
+            width={500}
+            height={500}
+            priority
+          />
         </Link>
-        <div>
-          <span>Dame Coffee</span>
+        <div className="dame-app-name">
           <strong>Dame App</strong>
         </div>
         {!installed ? (
