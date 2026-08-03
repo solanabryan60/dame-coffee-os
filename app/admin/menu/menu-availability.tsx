@@ -14,6 +14,7 @@ import {
   getAdminAccessToken,
   isAdminSessionError,
 } from '../../lib/admin-session';
+import AdminHeader from '../admin-header';
 const CATEGORY_ORDER: Record<SquareMenuItem['category'], number> = {
   foam: 0,
   specialty: 1,
@@ -111,25 +112,11 @@ export default function AdminMenuAvailability({ items }: { items: SquareMenuItem
     }
   }
 
-  function logout() {
-    clearAdminSession();
-    router.replace('/admin/login');
-  }
-
   return (
     <main className="admin-shell admin-menu-shell">
-      <header className="admin-topbar">
-        <div>
-          <p className="eyebrow">DAME COFFEE OS</p>
-          <h1>Menu availability</h1>
-        </div>
-        <div className="admin-top-actions">
-          <Link className="pill solid" href="/admin/orders">Pickup orders</Link>
-          <Link className="pill ghost" href="/admin">Control center</Link>
-          <Link className="pill ghost" href="/order" target="_blank">View ordering</Link>
-          <button className="pill ghost" type="button" onClick={logout}>Sign out</button>
-        </div>
-      </header>
+      <AdminHeader title="Menu availability">
+        <Link className="pill solid" href="/order" target="_blank">View ordering</Link>
+      </AdminHeader>
 
       <section className="admin-card admin-menu-overview">
         <div className="admin-section-heading">

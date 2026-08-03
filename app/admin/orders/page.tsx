@@ -14,6 +14,7 @@ import {
   getAdminAccessToken,
   isAdminSessionError,
 } from '../../lib/admin-session';
+import AdminHeader from '../admin-header';
 
 const STATUS_OPTIONS: Array<{ value: PickupOrderStatus; label: string }> = [
   { value: 'awaiting_payment', label: 'Awaiting payment' },
@@ -146,25 +147,11 @@ export default function AdminPickupOrdersPage() {
     }
   }
 
-  function logout() {
-    clearAdminSession();
-    router.replace('/admin/login');
-  }
-
   return (
     <main className="admin-shell admin-orders-shell">
-      <header className="admin-topbar">
-        <div>
-          <p className="eyebrow">DAME COFFEE OS</p>
-          <h1>Pickup orders</h1>
-        </div>
-        <div className="admin-top-actions">
-          <Link className="pill ghost" href="/admin">Control center</Link>
-          <Link className="pill ghost" href="/admin/menu">Menu availability</Link>
-          <Link className="pill ghost" href="/order" target="_blank">View ordering</Link>
-          <button className="pill ghost" type="button" onClick={logout}>Sign out</button>
-        </div>
-      </header>
+      <AdminHeader title="Pickup orders">
+        <Link className="pill solid" href="/order" target="_blank">View ordering</Link>
+      </AdminHeader>
 
       <section className="admin-order-overview admin-card">
         <div className="admin-section-heading">

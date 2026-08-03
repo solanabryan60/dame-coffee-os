@@ -9,9 +9,8 @@ export type LiveLocation = {
   mapsUrl: string;
 };
 
-// Temporary control center for the live location section.
-// Edit these values in GitHub and Vercel will redeploy automatically.
-// In the next phase, these fields will move into the private admin dashboard.
+// Public fallback used only when the live Supabase settings are unavailable.
+// Normal location updates are managed from the private operations center.
 export const liveLocation: LiveLocation = {
   title: 'VENICE BEACH',
   address: 'Ocean Front Walk near The Waterfront, Venice, CA',

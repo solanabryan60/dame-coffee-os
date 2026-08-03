@@ -1,8 +1,22 @@
-# Dame Coffee OS — Phase 8 Menu Availability
+# Dame Coffee OS — Phase 9 Operations Center
 
 Dame Coffee OS is the public website, pickup-ordering experience, rewards program, and private control center for Dame Coffee.
 
-Phase 8 adds phone-friendly menu availability controls. Approved staff can mark a Square item sold out or available from Dame Coffee OS, and both the public menu and pickup checkout update immediately.
+Phase 9 turns the private admin area into a focused, phone-friendly operations center. The overview shows what needs attention, then routes staff into a dedicated workspace for location, pickup orders, menu availability, catering, rewards, events, or notifications.
+
+## Operations center
+
+Visit `/admin` for the daily overview. Each workspace now has one purpose:
+
+- `/admin/location` — current location, hours, wait time, open status, and mobile ordering
+- `/admin/orders` — live Square-connected pickup queue
+- `/admin/menu` — website menu availability overrides
+- `/admin/catering` — deposits, event details, customer contact, notes, and status
+- `/admin/rewards` — customer reward-code redemption and 2× points campaigns
+- `/admin/events` — public upcoming-event publishing
+- `/admin/notifications` — opt-in customer updates
+
+The navigation stays available across every workspace, and the existing Supabase permissions and automatically refreshed admin session protect every private action.
 
 ## Pickup order center
 
