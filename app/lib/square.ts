@@ -639,6 +639,7 @@ export async function createSquarePaymentLink(
             pickup_details: {
               recipient: {
                 display_name: customer.name.trim().slice(0, 255),
+                email_address: customer.email?.trim().toLowerCase().slice(0, 255) || undefined,
                 phone_number: normalizeSquarePhone(customer.phone),
               },
               schedule_type: 'ASAP',
@@ -653,10 +654,6 @@ export async function createSquarePaymentLink(
         ask_for_shipping_address: false,
         merchant_support_email: 'info@damecoffeeco.com',
         redirect_url: `${productionUrl()}${redirectPath.startsWith('/') ? redirectPath : `/${redirectPath}`}`,
-      },
-      pre_populated_data: {
-        buyer_email: customer.email?.trim().toLowerCase() || undefined,
-        buyer_phone_number: normalizeSquarePhone(customer.phone),
       },
       payment_note: `Dame Coffee pickup for ${customer.name.trim().slice(0, 120)}`,
     }),
