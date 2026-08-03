@@ -1,11 +1,7 @@
 'use client';
 
 import { FormEvent, useMemo, useState } from 'react';
-import {
-  calculateCateringEstimateDollars,
-  CATERING_ADDITIONAL_DRINK_DOLLARS,
-  CATERING_ADDITIONAL_HOUR_DOLLARS,
-} from '../lib/catering-pricing';
+import { calculateCateringEstimateDollars } from '../lib/catering-pricing';
 import GoogleMap from './google-map';
 
 function money(value: number) {
@@ -164,8 +160,6 @@ export default function CateringCalculator() {
         <ul>
           <li>{drinks} drinks</li>
           <li>{hours} hours of service</li>
-          <li>Additional drinks are ${CATERING_ADDITIONAL_DRINK_DOLLARS} each</li>
-          <li>Additional service is ${CATERING_ADDITIONAL_HOUR_DOLLARS} per hour</li>
           <li>Standard travel included in the estimate</li>
           <li>Cold brew and matcha service</li>
         </ul>
