@@ -56,6 +56,11 @@ export async function GET(request: Request) {
     });
 
     if (!response.ok) {
+      const upstreamMessage = (await response.text()).slice(0, 800);
+      console.error('Google Places autocomplete request failed.', {
+        status: response.status,
+        upstreamMessage,
+      });
       return Response.json({ suggestions: [] }, { status: 502 });
     }
 
@@ -79,7 +84,8 @@ export async function GET(request: Request) {
       { suggestions, configured: true },
       { headers: { 'Cache-Control': 'private, max-age=30' } },
     );
-  } catch {
+  } catch (error) {
+    console.error('Google Places autocomplete could not be reached.', error);
     return Response.json({ suggestions: [] }, { status: 502 });
   }
 }
