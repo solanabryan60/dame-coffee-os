@@ -63,6 +63,8 @@ type CatalogObject = {
   modifier_list_data?: {
     name?: string;
     selection_type?: 'SINGLE' | 'MULTIPLE';
+    min_selected_modifiers?: number;
+    max_selected_modifiers?: number;
     modifiers?: CatalogObject[];
   };
   modifier_data?: {
@@ -394,12 +396,22 @@ export async function getSquareCatalog(options: { required?: boolean } = {}): Pr
 
           if (!options.length) return null;
 
+          const itemMin = info.min_selected_modifiers;
+          const itemMax = info.max_selected_modifiers;
+          const inheritListLimits = itemMin === -1 && itemMax === -1;
+          const rawMin = inheritListLimits
+            ? list.modifier_list_data.min_selected_modifiers ?? 0
+            : itemMin ?? 0;
+          const rawMax = inheritListLimits
+            ? list.modifier_list_data.max_selected_modifiers ?? 0
+            : itemMax ?? 0;
+
           return {
             id: list.id,
             name: list.modifier_list_data.name || 'Customize',
             selectionType: list.modifier_list_data.selection_type || 'MULTIPLE',
-            minSelected: info.min_selected_modifiers ?? 0,
-            maxSelected: info.max_selected_modifiers ?? null,
+            minSelected: rawMin > 0 ? rawMin : 0,
+            maxSelected: rawMax > 0 ? rawMax : null,
             options,
           };
         })
