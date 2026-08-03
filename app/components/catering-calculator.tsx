@@ -1,6 +1,11 @@
 'use client';
 
 import { FormEvent, useMemo, useState } from 'react';
+import {
+  calculateCateringEstimateDollars,
+  CATERING_ADDITIONAL_DRINK_DOLLARS,
+  CATERING_ADDITIONAL_HOUR_DOLLARS,
+} from '../lib/catering-pricing';
 import GoogleMap from './google-map';
 
 function money(value: number) {
@@ -9,12 +14,6 @@ function money(value: number) {
     currency: 'USD',
     maximumFractionDigits: 0,
   }).format(value);
-}
-
-function calculateEstimate(drinks: number, hours: number) {
-  const drinkUpgrade = ((drinks - 100) / 50) * 150;
-  const timeUpgrade = hours === 2 ? 0 : hours === 4 ? 150 : 150 + ((hours - 4) / 2) * 300;
-  return 600 + drinkUpgrade + timeUpgrade;
 }
 
 export default function CateringCalculator() {
@@ -30,7 +29,10 @@ export default function CateringCalculator() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const estimate = useMemo(() => calculateEstimate(drinks, hours), [drinks, hours]);
+  const estimate = useMemo(
+    () => calculateCateringEstimateDollars(drinks, hours),
+    [drinks, hours],
+  );
   const mapHref = address
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
     : '';
@@ -162,6 +164,8 @@ export default function CateringCalculator() {
         <ul>
           <li>{drinks} drinks</li>
           <li>{hours} hours of service</li>
+          <li>Additional drinks are ${CATERING_ADDITIONAL_DRINK_DOLLARS} each</li>
+          <li>Additional service is ${CATERING_ADDITIONAL_HOUR_DOLLARS} per hour</li>
           <li>Standard travel included in the estimate</li>
           <li>Cold brew and matcha service</li>
         </ul>

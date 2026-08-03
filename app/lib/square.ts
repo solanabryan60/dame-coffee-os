@@ -1,3 +1,5 @@
+import { calculateCateringEstimateCents } from './catering-pricing';
+
 const SQUARE_API_VERSION = '2026-07-15';
 
 export type MenuCategoryId = 'basics' | 'specialty' | 'foam' | 'food';
@@ -619,17 +621,11 @@ export type CateringDepositRequest = {
   hours: number;
 };
 
-function cateringEstimateCents(drinks: number, hours: number) {
-  const drinkUpgrade = ((drinks - 100) / 50) * 15000;
-  const timeUpgrade = hours === 2 ? 0 : hours === 4 ? 15000 : 15000 + ((hours - 4) / 2) * 30000;
-  return 60000 + drinkUpgrade + timeUpgrade;
-}
-
 export async function createSquareCateringDepositLink(request: CateringDepositRequest) {
   const config = getSquareConfig();
   if (!config) throw new Error('Square payments have not been configured yet.');
 
-  const estimateCents = cateringEstimateCents(request.drinks, request.hours);
+  const estimateCents = calculateCateringEstimateCents(request.drinks, request.hours);
   const eventSummary = [
     `Event: ${request.date} at ${request.startTime}`,
     `Address: ${request.address}`,

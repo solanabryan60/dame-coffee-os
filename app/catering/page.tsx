@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import CateringCalculator from '../components/catering-calculator';
 import SiteFooter from '../components/site-footer';
 import SiteHeader from '../components/site-header';
+import { CATERING_BASE_PRICE_DOLLARS } from '../lib/catering-pricing';
 
 export const metadata: Metadata = {
   title: 'Catering',
@@ -24,7 +25,7 @@ export default function CateringPage() {
         </div>
         <div className="dame-catering-base">
           <span>Starting package</span>
-          <strong>$600</strong>
+          <strong>${CATERING_BASE_PRICE_DOLLARS}</strong>
           <p>100 drinks · 2 hours</p>
         </div>
       </section>
