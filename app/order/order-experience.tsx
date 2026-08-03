@@ -116,13 +116,13 @@ function ItemOrderCard({
   }
 
   return (
-    <article id={`order-item-${item.id}`} className={`dame-order-item ${customizing ? 'is-customizing' : ''}`}>
+    <article id={`order-item-${item.id}`} className={`dame-order-item ${customizing ? 'is-customizing' : ''} ${item.isSoldOut ? 'is-sold-out' : ''}`}>
       <div className="dame-order-item-heading">
         <div>
           <p>{item.categoryLabel}</p>
           <h3>{item.name}</h3>
         </div>
-        <strong>{money(unitAmount)}</strong>
+        <strong>{item.isSoldOut ? 'Sold out' : money(unitAmount)}</strong>
       </div>
       <p className="dame-order-description">{item.description || 'Made fresh and served cold.'}</p>
 
@@ -191,7 +191,7 @@ function ItemOrderCard({
           <button
             className="dame-button"
             type="button"
-            disabled={disabled || !variation || !requiredChoicesComplete}
+            disabled={disabled || item.isSoldOut || !variation || !requiredChoicesComplete}
             onClick={() => {
               if (!variation) return;
               const nextLine = {
@@ -211,7 +211,9 @@ function ItemOrderCard({
               setCustomizing(false);
             }}
           >
-            {disabled
+            {item.isSoldOut
+              ? 'Sold out today'
+              : disabled
               ? 'Ordering paused'
               : requiredChoicesComplete
                 ? `${editingLine ? 'Save changes' : 'Add to order'} · ${money(unitAmount)}`

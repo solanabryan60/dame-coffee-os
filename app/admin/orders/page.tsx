@@ -147,6 +147,7 @@ export default function AdminPickupOrdersPage() {
         </div>
         <div className="admin-top-actions">
           <Link className="pill ghost" href="/admin">Control center</Link>
+          <Link className="pill ghost" href="/admin/menu">Menu availability</Link>
           <Link className="pill ghost" href="/order" target="_blank">View ordering</Link>
           <button className="pill ghost" type="button" onClick={logout}>Sign out</button>
         </div>

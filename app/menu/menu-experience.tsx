@@ -105,14 +105,14 @@ export default function MenuExperience({
           {visibleItems.length ? (
             <div className="dame-menu-card-grid">
               {visibleItems.map((item) => (
-                <article key={item.id} className="dame-menu-card">
+                <article key={item.id} className={`dame-menu-card ${item.isSoldOut ? 'is-sold-out' : ''}`}>
                   <div className="dame-menu-card-mark" aria-hidden="true">
                     <span>DC</span>
                   </div>
                   <div>
                     <div className="dame-menu-card-title">
                       <h3>{item.name}</h3>
-                      <strong>{displayPrice(item)}</strong>
+                      <strong>{item.isSoldOut ? 'Sold out today' : displayPrice(item)}</strong>
                     </div>
                     <p>{item.description || 'Made fresh and served cold.'}</p>
                     {item.variations.length > 1 ? (

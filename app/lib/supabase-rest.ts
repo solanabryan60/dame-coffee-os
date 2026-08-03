@@ -52,6 +52,12 @@ export type UpcomingEvent = {
   updated_at: string;
 };
 
+export type MenuItemAvailability = {
+  square_item_id: string;
+  is_sold_out: boolean;
+  updated_at: string;
+};
+
 export type CateringRequestStatus =
   | 'awaiting_payment'
   | 'deposit_paid'
@@ -178,6 +184,49 @@ async function publicRequest<T>(path: string, accessToken?: string): Promise<T> 
   const payload = await response.json();
   if (!response.ok) throw new Error(authError(payload, 'Could not load Dame Coffee.'));
   return payload as T;
+}
+
+export async function readMenuAvailability() {
+  return publicRequest<MenuItemAvailability[]>(
+    '/menu_item_availability?select=*&order=updated_at.desc',
+  );
+}
+
+export async function listMenuAvailabilityForAdmin(accessToken: string) {
+  return publicRequest<MenuItemAvailability[]>(
+    '/menu_item_availability?select=*&order=updated_at.desc',
+    accessToken,
+  );
+}
+
+export async function setMenuItemSoldOut(
+  accessToken: string,
+  squareItemId: string,
+  isSoldOut: boolean,
+) {
+  const config = requireConfig();
+  const response = await fetch(
+    `${config.supabaseUrl}/rest/v1/menu_item_availability?on_conflict=square_item_id`,
+    {
+      method: 'POST',
+      headers: {
+        apikey: config.supabaseKey,
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=merge-duplicates,return=representation',
+      },
+      body: JSON.stringify({
+        square_item_id: squareItemId,
+        is_sold_out: isSoldOut,
+        updated_at: new Date().toISOString(),
+      }),
+    },
+  );
+  const payload = await response.json();
+  if (!response.ok) throw new Error(authError(payload, 'Could not update that menu item.'));
+  const availability = (payload as MenuItemAvailability[])[0];
+  if (!availability) throw new Error('Could not update that menu item.');
+  return availability;
 }
 
 export async function readUpcomingEvents(): Promise<UpcomingEvent[]> {

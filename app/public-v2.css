@@ -3956,6 +3956,19 @@
   transition: background 180ms ease, transform 180ms ease;
 }
 
+.dame-menu-card.is-sold-out,
+.dame-order-item.is-sold-out {
+  border-color: rgba(150, 16, 16, 0.3);
+  background: rgba(150, 16, 16, 0.045);
+}
+
+.dame-menu-card.is-sold-out .dame-menu-card-title > strong {
+  color: var(--dame-red);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .dame-menu-card:hover {
   position: relative;
   z-index: 2;

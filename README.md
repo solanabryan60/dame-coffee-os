@@ -1,8 +1,8 @@
-# Dame Coffee OS — Phase 7 Pickup Order Center
+# Dame Coffee OS — Phase 8 Menu Availability
 
 Dame Coffee OS is the public website, pickup-ordering experience, rewards program, and private control center for Dame Coffee.
 
-Phase 7 adds private live pickup tracking and a focused order queue without replacing Square. Every website pickup order is saved before checkout, matched to its verified Square payment, and placed in the Dame Coffee OS pickup dashboard.
+Phase 8 adds phone-friendly menu availability controls. Approved staff can mark a Square item sold out or available from Dame Coffee OS, and both the public menu and pickup checkout update immediately.
 
 ## Pickup order center
 
@@ -94,6 +94,8 @@ Staff can:
 - Review every website pickup order and its customer, items, customizations, location, and payment state
 - Move pickup orders from paid to preparing, ready, and picked up while the customer watches their private tracker
 - Flag an order for a Square refund and have the verified refund update Dame Coffee OS automatically
+- Mark menu items sold out or available from `/admin/menu`
+- Prevent sold-out items from being added through website checkout
 
 ## How points are awarded
 
@@ -121,6 +123,7 @@ Apply these SQL files in order:
 8. `supabase-phase5-events-notifications.sql`
 9. `supabase-phase6-catering-center.sql`
 10. `supabase-phase7-pickup-center.sql`
+11. `supabase-phase8-menu-availability.sql`
 
 Phase 4 and 4B create:
 
@@ -242,4 +245,6 @@ Also confirm:
 - Completed Square payments move the matching pickup order to Paid
 - Full Square refunds move the matching pickup order to Refunded
 - Customer tracking pages never expose private staff notes or Square identifiers
+- Sold-out controls are writable only by approved Dame admins
+- Sold-out items remain visible to customers but cannot be checked out
 - `/admin` and `/admin/login` still work

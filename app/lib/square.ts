@@ -1,4 +1,5 @@
 import { calculateCateringEstimateCents } from './catering-pricing';
+import { readMenuAvailability } from './supabase-rest';
 
 const SQUARE_API_VERSION = '2026-07-15';
 
@@ -36,6 +37,7 @@ export type SquareMenuItem = {
   imageUrl: string | null;
   variations: SquareMenuVariation[];
   modifierGroups: SquareMenuModifierGroup[];
+  isSoldOut?: boolean;
 };
 
 export type SquareCatalogResult = {
@@ -565,6 +567,10 @@ export async function createSquarePaymentLink(
   redirectPath = '/order/complete',
 ) {
   const catalog = await getSquareCatalog({ required: true });
+  const availability = await readMenuAvailability().catch(() => []);
+  const soldOutItemIds = new Set(
+    availability.filter((item) => item.is_sold_out).map((item) => item.square_item_id),
+  );
   const config = getSquareConfig();
   if (!config || !catalog.configured) throw new Error('Square ordering has not been configured yet.');
 
@@ -578,6 +584,9 @@ export async function createSquarePaymentLink(
     const match = variationItems.get(line.variationId);
     if (!match) throw new Error('One item is no longer available.');
     const { item, variation } = match;
+    if (soldOutItemIds.has(item.id)) {
+      throw new Error(`${item.name} is sold out for today.`);
+    }
     const modifierGroups = checkoutModifierGroups(item);
     if (!Number.isInteger(line.quantity) || line.quantity < 1 || line.quantity > 12) {
       throw new Error('Choose a quantity between 1 and 12.');

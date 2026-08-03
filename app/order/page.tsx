@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import SiteFooter from '../components/site-footer';
 import SiteHeader from '../components/site-header';
 import { getSquareCatalog } from '../lib/square';
-import { readSiteSettings } from '../lib/supabase-rest';
+import { readMenuAvailability, readSiteSettings } from '../lib/supabase-rest';
 import { liveLocation as fallbackLocation } from '../site-config';
 import OrderExperience from './order-experience';
 
@@ -14,10 +14,18 @@ export const metadata: Metadata = {
 };
 
 export default async function OrderPage() {
-  const [catalog, remoteSettings] = await Promise.all([
+  const [catalog, remoteSettings, availability] = await Promise.all([
     getSquareCatalog(),
     readSiteSettings().catch(() => null),
+    readMenuAvailability().catch(() => []),
   ]);
+  const soldOutItemIds = new Set(
+    availability.filter((item) => item.is_sold_out).map((item) => item.square_item_id),
+  );
+  const items = catalog.items.map((item) => ({
+    ...item,
+    isSoldOut: soldOutItemIds.has(item.id),
+  }));
 
   const location = remoteSettings
     ? {
@@ -43,7 +51,7 @@ export default async function OrderPage() {
     <main className="dame-site dame-inner-page">
       <SiteHeader />
       <OrderExperience
-        items={catalog.items}
+        items={items}
         squareConfigured={catalog.configured}
         location={location}
       />
