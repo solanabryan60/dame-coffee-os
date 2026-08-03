@@ -120,6 +120,18 @@ function isExclusiveModifierGroup(groupName: string) {
   return /\b(milk|coffee)\b/i.test(groupName);
 }
 
+function checkoutModifierGroups(item: SquareMenuItem) {
+  if (item.category !== 'foam') return item.modifierGroups;
+
+  return item.modifierGroups
+    .filter((group) => !/\bcold\s*foam\b/i.test(group.name))
+    .map((group) => ({
+      ...group,
+      options: group.options.filter((option) => !/\bcold\s*foam\b/i.test(option.name)),
+    }))
+    .filter((group) => group.options.length > 0);
+}
+
 export type PickupOrderLineItemSnapshot = {
   item_name: string;
   variation_name: string;
@@ -566,18 +578,19 @@ export async function createSquarePaymentLink(
     const match = variationItems.get(line.variationId);
     if (!match) throw new Error('One item is no longer available.');
     const { item, variation } = match;
+    const modifierGroups = checkoutModifierGroups(item);
     if (!Number.isInteger(line.quantity) || line.quantity < 1 || line.quantity > 12) {
       throw new Error('Choose a quantity between 1 and 12.');
     }
 
     const validModifiers = new Set(
-      item.modifierGroups.flatMap((group) => group.options.map((option) => option.id)),
+      modifierGroups.flatMap((group) => group.options.map((option) => option.id)),
     );
     if (line.modifierIds.some((id) => !validModifiers.has(id))) {
       throw new Error('One customization is no longer available.');
     }
 
-    for (const group of item.modifierGroups) {
+    for (const group of modifierGroups) {
       const groupOptionIds = new Set(group.options.map((option) => option.id));
       const selectedCount = line.modifierIds.filter((id) => groupOptionIds.has(id)).length;
       const minimum = isExclusiveModifierGroup(group.name)
@@ -591,7 +604,7 @@ export async function createSquarePaymentLink(
       }
     }
 
-    const selectedModifiers = item.modifierGroups.flatMap((group) =>
+    const selectedModifiers = modifierGroups.flatMap((group) =>
       group.options.filter((option) => line.modifierIds.includes(option.id)),
     );
     const unitAmountCents = variation.priceAmount + selectedModifiers.reduce(

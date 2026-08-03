@@ -39,6 +39,18 @@ function isExclusiveModifierGroup(group: SquareMenuModifierGroup) {
   return /\b(milk|coffee)\b/i.test(group.name);
 }
 
+function orderModifierGroups(item: SquareMenuItem) {
+  if (item.category !== 'foam') return item.modifierGroups;
+
+  return item.modifierGroups
+    .filter((group) => !/\bcold\s*foam\b/i.test(group.name))
+    .map((group) => ({
+      ...group,
+      options: group.options.filter((option) => !/\bcold\s*foam\b/i.test(option.name)),
+    }))
+    .filter((group) => group.options.length > 0);
+}
+
 function ItemOrderCard({
   item,
   disabled,
@@ -58,11 +70,12 @@ function ItemOrderCard({
   const [variationId, setVariationId] = useState(item.variations[0]?.id ?? '');
   const [selections, setSelections] = useState<Record<string, string[]>>({});
   const variation = item.variations.find((entry) => entry.id === variationId) ?? item.variations[0];
+  const modifierGroups = orderModifierGroups(item);
 
   useEffect(() => {
     if (!editingLine) return;
 
-    const restoredSelections = item.modifierGroups.reduce<Record<string, string[]>>(
+    const restoredSelections = orderModifierGroups(item).reduce<Record<string, string[]>>(
       (groups, group) => {
         const optionIds = new Set(group.options.map((option) => option.id));
         groups[group.id] = editingLine.modifierIds.filter((id) => optionIds.has(id));
@@ -76,11 +89,11 @@ function ItemOrderCard({
     setCustomizing(true);
   }, [editingLine, item]);
 
-  const selectedModifiers = item.modifierGroups.flatMap((group) => {
+  const selectedModifiers = modifierGroups.flatMap((group) => {
     const selectedIds = selections[group.id] ?? [];
     return group.options.filter((option) => selectedIds.includes(option.id));
   });
-  const requiredChoicesComplete = item.modifierGroups.every(
+  const requiredChoicesComplete = modifierGroups.every(
     (group) =>
       (selections[group.id]?.length ?? 0) >=
       (isExclusiveModifierGroup(group) ? Math.min(group.minSelected, 1) : group.minSelected),
@@ -142,7 +155,7 @@ function ItemOrderCard({
             </label>
           ) : null}
 
-          {item.modifierGroups.map((group) => (
+          {modifierGroups.map((group) => (
             <fieldset key={group.id} className="dame-order-modifiers">
               <legend>
                 {group.name}
@@ -243,19 +256,25 @@ export default function OrderExperience({
 
   const orderingEnabled = location.isOpen && location.mobileOrdering && squareConfigured;
   const total = cart.reduce((sum, line) => sum + line.unitAmount * line.quantity, 0);
-  const itemGroups = items.reduce<Array<{ label: string; items: SquareMenuItem[] }>>(
+  const groupOrder: Record<SquareMenuItem['category'], number> = {
+    foam: 0,
+    basics: 1,
+    specialty: 2,
+    food: 3,
+  };
+  const itemGroups = items.reduce<Array<{ id: SquareMenuItem['category']; label: string; items: SquareMenuItem[] }>>(
     (groups, item) => {
       const label = item.categoryLabel || 'More from Dame';
-      const existingGroup = groups.find((group) => group.label === label);
+      const existingGroup = groups.find((group) => group.id === item.category);
       if (existingGroup) {
         existingGroup.items.push(item);
       } else {
-        groups.push({ label, items: [item] });
+        groups.push({ id: item.category, label, items: [item] });
       }
       return groups;
     },
     [],
-  );
+  ).sort((a, b) => groupOrder[a.id] - groupOrder[b.id]);
 
   useEffect(() => {
     getCustomerSession().then(async (session) => {
