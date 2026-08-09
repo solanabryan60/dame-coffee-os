@@ -332,7 +332,11 @@ export default function AdminInsights() {
                     aria-pressed={selectedBucketStart === bucket.startAt}
                     onClick={() => setSelectedBucketStart(bucket.startAt)}
                   >
-                    <div className="admin-sales-bar-track">
+                    <div
+                      className={bucket.salesCents / maxSales >= 0.8
+                        ? 'admin-sales-bar-track has-tall-fill'
+                        : 'admin-sales-bar-track'}
+                    >
                       <em>{bucket.salesCents ? money(bucket.salesCents) : '$0'}</em>
                       <i style={{ height: `${Math.max(bucket.salesCents ? 8 : 2, (bucket.salesCents / maxSales) * 100)}%` }} />
                     </div>
