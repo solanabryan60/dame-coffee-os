@@ -58,6 +58,26 @@ export type MenuItemAvailability = {
   updated_at: string;
 };
 
+export type InventoryCategory =
+  | 'ingredients'
+  | 'milk'
+  | 'packaging'
+  | 'food'
+  | 'merchandise'
+  | 'other';
+
+export type InventoryItem = {
+  id: string;
+  name: string;
+  category: InventoryCategory;
+  quantity: number;
+  unit: string;
+  low_stock_at: number;
+  notes: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export type CateringRequestStatus =
   | 'awaiting_payment'
   | 'deposit_paid'
@@ -227,6 +247,80 @@ export async function setMenuItemSoldOut(
   const availability = (payload as MenuItemAvailability[])[0];
   if (!availability) throw new Error('Could not update that menu item.');
   return availability;
+}
+
+export async function listInventoryItemsForAdmin(accessToken: string) {
+  return publicRequest<InventoryItem[]>(
+    '/inventory_items?select=*&order=category.asc,name.asc',
+    accessToken,
+  );
+}
+
+export async function createInventoryItemForAdmin(
+  accessToken: string,
+  input: Pick<InventoryItem, 'name' | 'category' | 'quantity' | 'unit' | 'low_stock_at' | 'notes'>,
+) {
+  const config = requireConfig();
+  const response = await fetch(`${config.supabaseUrl}/rest/v1/inventory_items`, {
+    method: 'POST',
+    headers: {
+      apikey: config.supabaseKey,
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+    },
+    body: JSON.stringify(input),
+  });
+  const payload = await response.json();
+  if (!response.ok) throw new Error(authError(payload, 'Could not add that inventory item.'));
+  const item = (payload as InventoryItem[])[0];
+  if (!item) throw new Error('Could not add that inventory item.');
+  return item;
+}
+
+export async function updateInventoryItemForAdmin(
+  accessToken: string,
+  itemId: string,
+  input: Pick<InventoryItem, 'quantity' | 'low_stock_at' | 'notes'>,
+) {
+  const config = requireConfig();
+  const response = await fetch(
+    `${config.supabaseUrl}/rest/v1/inventory_items?id=eq.${encodeURIComponent(itemId)}`,
+    {
+      method: 'PATCH',
+      headers: {
+        apikey: config.supabaseKey,
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=representation',
+      },
+      body: JSON.stringify({ ...input, updated_at: new Date().toISOString() }),
+    },
+  );
+  const payload = await response.json();
+  if (!response.ok) throw new Error(authError(payload, 'Could not update that inventory item.'));
+  const item = (payload as InventoryItem[])[0];
+  if (!item) throw new Error('Could not update that inventory item.');
+  return item;
+}
+
+export async function deleteInventoryItemForAdmin(accessToken: string, itemId: string) {
+  const config = requireConfig();
+  const response = await fetch(
+    `${config.supabaseUrl}/rest/v1/inventory_items?id=eq.${encodeURIComponent(itemId)}`,
+    {
+      method: 'DELETE',
+      headers: {
+        apikey: config.supabaseKey,
+        Authorization: `Bearer ${accessToken}`,
+        Prefer: 'return=minimal',
+      },
+    },
+  );
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(authError(payload, 'Could not remove that inventory item.'));
+  }
 }
 
 export async function readUpcomingEvents(): Promise<UpcomingEvent[]> {

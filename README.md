@@ -1,8 +1,8 @@
-# Dame Coffee OS — Phase 9 Operations Center
+# Dame Coffee OS — Phase 10 Inventory Center
 
 Dame Coffee OS is the public website, pickup-ordering experience, rewards program, and private control center for Dame Coffee.
 
-Phase 9 turns the private admin area into a focused, phone-friendly operations center. The overview shows what needs attention, then routes staff into a dedicated workspace for location, pickup orders, menu availability, catering, rewards, events, or notifications.
+Phase 10 adds a private, phone-friendly stockroom for ingredients, milk, packaging, food, merchandise, and other operating supplies. It shows what is out, what is running low, and what is ready for service without changing Square item availability.
 
 ## Operations center
 
@@ -11,6 +11,7 @@ Visit `/admin` for the daily overview. Each workspace now has one purpose:
 - `/admin/location` — current location, hours, wait time, open status, and mobile ordering
 - `/admin/orders` — live Square-connected pickup queue
 - `/admin/menu` — website menu availability overrides
+- `/admin/inventory` — ingredient and supply counts with low-stock warnings
 - `/admin/catering` — deposits, event details, customer contact, notes, and status
 - `/admin/rewards` — customer reward-code redemption and 2× points campaigns
 - `/admin/events` — public upcoming-event publishing
@@ -110,6 +111,10 @@ Staff can:
 - Flag an order for a Square refund and have the verified refund update Dame Coffee OS automatically
 - Mark menu items sold out or available from `/admin/menu`
 - Prevent sold-out items from being added through website checkout
+- Add ingredients and supplies to the private stockroom
+- Update counts with quick plus/minus controls or exact quantities
+- Set a separate low-stock warning for every item
+- Filter the stockroom to see only low or out-of-stock supplies
 
 ## How points are awarded
 
@@ -138,6 +143,7 @@ Apply these SQL files in order:
 9. `supabase-phase6-catering-center.sql`
 10. `supabase-phase7-pickup-center.sql`
 11. `supabase-phase8-menu-availability.sql`
+12. `supabase-phase10-inventory-center.sql`
 
 Phase 4 and 4B create:
 
@@ -261,6 +267,8 @@ Also confirm:
 - Customer tracking pages never expose private staff notes or Square identifiers
 - Sold-out controls are writable only by approved Dame admins
 - Sold-out items remain visible to customers but cannot be checked out
+- Inventory data is readable and writable only by approved Dame admins
+- Low-stock status changes at the configured threshold and never allows negative quantities
 - `/admin` and `/admin/login` still work
 
 ## Dame Insights

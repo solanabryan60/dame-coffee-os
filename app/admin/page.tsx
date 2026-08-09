@@ -13,6 +13,7 @@ import {
 import { listRewardPromotions } from '../lib/dame-rewards';
 import {
   listCateringRequestsForAdmin,
+  listInventoryItemsForAdmin,
   listMenuAvailabilityForAdmin,
   listPickupOrdersForAdmin,
   listUpcomingEventsForAdmin,
@@ -25,6 +26,8 @@ type Overview = {
   ordering: boolean;
   activeOrders: number;
   soldOut: number;
+  inventoryOut: number;
+  inventoryLow: number;
   newCatering: number;
   upcomingCatering: number;
   activePromotions: number;
@@ -47,10 +50,11 @@ export default function AdminDashboard() {
       }
 
       try {
-        const [settings, orders, availability, catering, promotions, events, notifications] = await Promise.all([
+        const [settings, orders, availability, inventory, catering, promotions, events, notifications] = await Promise.all([
           readSiteSettings(),
           listPickupOrdersForAdmin(token),
           listMenuAvailabilityForAdmin(token),
+          listInventoryItemsForAdmin(token),
           listCateringRequestsForAdmin(token),
           listRewardPromotions(token),
           listUpcomingEventsForAdmin(token),
@@ -72,6 +76,8 @@ export default function AdminDashboard() {
           ordering: settings.is_open && settings.mobile_ordering,
           activeOrders: orders.filter((order) => ['paid', 'preparing', 'ready', 'refund_pending'].includes(order.status)).length,
           soldOut: availability.filter((item) => item.is_sold_out).length,
+          inventoryOut: inventory.filter((item) => Number(item.quantity) <= 0).length,
+          inventoryLow: inventory.filter((item) => Number(item.quantity) > 0 && Number(item.quantity) <= Number(item.low_stock_at)).length,
           newCatering: catering.filter((request) => request.status === 'deposit_paid').length,
           upcomingCatering: catering.filter((request) => request.event_date >= today && !['cancelled', 'refunded'].includes(request.status)).length,
           activePromotions: promotions.filter((promotion) => promotion.active && new Date(promotion.starts_at).getTime() <= now && new Date(promotion.ends_at).getTime() >= now).length,
@@ -113,6 +119,19 @@ export default function AdminDashboard() {
       title: `${overview.soldOut} sold out`,
       detail: overview.soldOut ? 'Customers cannot order those items online.' : 'Every synced menu item is available online.',
       action: 'Manage availability',
+    },
+    {
+      href: '/admin/inventory',
+      eyebrow: 'Stockroom',
+      title: overview.inventoryOut
+        ? `${overview.inventoryOut} out of stock`
+        : `${overview.inventoryLow} running low`,
+      detail: overview.inventoryOut
+        ? `${overview.inventoryLow} more ${overview.inventoryLow === 1 ? 'item is' : 'items are'} running low.`
+        : overview.inventoryLow
+          ? 'Restock these supplies before service.'
+          : 'Every tracked supply is above its low-stock level.',
+      action: 'Check inventory',
     },
     {
       href: '/admin/catering',
