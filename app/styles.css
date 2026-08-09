@@ -1110,27 +1110,19 @@ img {
   color: white;
 }
 
-.admin-overview-hero {
+.admin-insights {
   overflow: hidden;
-  position: relative;
-  background: var(--dame-red);
-  color: white;
 }
 
-.admin-overview-hero::after {
-  width: 310px;
-  height: 310px;
-  position: absolute;
-  right: -105px;
-  bottom: -180px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 50%;
-  content: '';
+.admin-insights-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 30px;
 }
 
-.admin-overview-hero h2 {
-  max-width: 720px;
-  margin: 12px 0 16px;
+.admin-insights-header h2 {
+  margin: 9px 0 8px;
   font-family: Georgia, "Times New Roman", serif;
   font-size: clamp(38px, 6vw, 66px);
   font-weight: 500;
@@ -1138,11 +1130,258 @@ img {
   line-height: 0.98;
 }
 
-.admin-overview-hero p:last-child {
-  max-width: 600px;
+.admin-insights-header p:last-child {
   margin: 0;
-  color: rgba(255, 255, 255, 0.78);
-  line-height: 1.6;
+  color: var(--muted);
+}
+
+.admin-range-tabs {
+  padding: 5px;
+  display: flex;
+  gap: 3px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--cream);
+}
+
+.admin-range-tabs button {
+  padding: 10px 13px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.admin-range-tabs button:hover,
+.admin-range-tabs button.is-active {
+  background: var(--dame-red);
+  color: white;
+}
+
+.admin-insights-state {
+  margin-top: 28px;
+  padding: 22px;
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 7px;
+  border: 1px solid rgba(150, 16, 16, 0.18);
+  border-radius: 18px;
+  background: rgba(150, 16, 16, 0.06);
+  color: var(--dame-red);
+}
+
+.admin-insights-state button {
+  margin-top: 7px;
+  padding: 9px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--dame-red);
+  color: white;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.admin-insights-content {
+  transition: opacity 160ms ease;
+}
+
+.admin-insights-content.is-refreshing {
+  opacity: 0.55;
+}
+
+.admin-metric-grid {
+  margin-top: 32px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-metric {
+  min-height: 176px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--cream);
+}
+
+.admin-metric-primary {
+  background: var(--dame-red);
+  color: white;
+}
+
+.admin-metric > span {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-metric strong {
+  margin: 14px 0;
+  display: block;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(30px, 4vw, 46px);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+}
+
+.admin-metric p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.admin-metric-primary p {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.admin-insights-grid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(260px, 0.8fr);
+  gap: 14px;
+}
+
+.admin-sales-chart-card,
+.admin-top-items-card {
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+}
+
+.admin-sales-chart-card > header,
+.admin-top-items-card > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.admin-sales-chart-card header span,
+.admin-top-items-card header span {
+  display: block;
+  color: var(--dame-red);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.admin-sales-chart-card header strong,
+.admin-top-items-card header strong {
+  margin-top: 4px;
+  display: block;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 27px;
+  font-weight: 500;
+}
+
+.admin-sales-chart-card header small {
+  color: var(--muted);
+}
+
+.admin-sales-chart {
+  height: 250px;
+  margin-top: 26px;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.admin-sales-bar {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  grid-template-rows: 1fr auto auto;
+  gap: 6px;
+  text-align: center;
+}
+
+.admin-sales-bar-track {
+  min-height: 150px;
+  display: flex;
+  align-items: flex-end;
+  border-radius: 10px;
+  background: var(--cream);
+  overflow: hidden;
+}
+
+.admin-sales-bar-track i {
+  width: 100%;
+  display: block;
+  border-radius: 10px 10px 4px 4px;
+  background: var(--dame-red);
+}
+
+.admin-sales-bar b {
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-sales-bar span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.admin-top-items-card ol {
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-top-items-card li {
+  padding: 14px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.admin-top-items-card li b,
+.admin-top-items-card li span {
+  display: block;
+}
+
+.admin-top-items-card li b {
+  font-size: 14px;
+}
+
+.admin-top-items-card li span,
+.admin-empty-copy {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.admin-top-items-card li > strong {
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.admin-insights-footer {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.admin-insights-footer small {
+  margin-left: auto;
 }
 
 .admin-overview-grid {
@@ -2095,6 +2334,53 @@ img {
   .admin-overview-grid {
     grid-template-columns: 1fr;
     gap: 14px;
+  }
+
+  .admin-insights-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-range-tabs {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .admin-range-tabs button {
+    min-width: 72px;
+    flex: 1;
+  }
+
+  .admin-metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-metric {
+    min-height: 155px;
+    padding: 18px;
+  }
+
+  .admin-insights-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-sales-chart {
+    height: 220px;
+    overflow-x: auto;
+  }
+
+  .admin-sales-bar {
+    min-width: 54px;
+  }
+
+  .admin-insights-footer {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .admin-insights-footer small {
+    width: 100%;
+    margin-left: 0;
   }
 
   .admin-overview-link {

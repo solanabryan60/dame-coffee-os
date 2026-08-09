@@ -1,0 +1,350 @@
+import 'server-only';
+
+const SQUARE_API_VERSION = '2026-07-15';
+const BUSINESS_TIME_ZONE = 'America/Los_Angeles';
+
+export type SalesRange = 'day' | 'week' | 'month' | 'quarter' | 'year';
+
+export type DameSalesAnalytics = {
+  range: SalesRange;
+  label: string;
+  updatedAt: string;
+  metrics: {
+    netSalesCents: number;
+    totalCollectedCents: number;
+    orderCount: number;
+    averageOrderCents: number;
+    taxCents: number;
+    tipCents: number;
+    discountCents: number;
+  };
+  comparison: {
+    previousNetSalesCents: number;
+    percentChange: number | null;
+  };
+  chart: Array<{
+    label: string;
+    salesCents: number;
+    orderCount: number;
+  }>;
+  topItems: Array<{
+    name: string;
+    quantity: number;
+    salesCents: number;
+  }>;
+};
+
+type SquareMoney = { amount?: number };
+
+type AnalyticsOrder = {
+  id?: string;
+  state?: string;
+  closed_at?: string;
+  total_money?: SquareMoney;
+  total_tax_money?: SquareMoney;
+  total_tip_money?: SquareMoney;
+  total_discount_money?: SquareMoney;
+  total_service_charge_money?: SquareMoney;
+  line_items?: Array<{
+    name?: string;
+    quantity?: string;
+    total_money?: SquareMoney;
+    total_tax_money?: SquareMoney;
+  }>;
+};
+
+type SearchOrdersResponse = {
+  orders?: AnalyticsOrder[];
+  cursor?: string;
+  errors?: Array<{ detail?: string }>;
+};
+
+type CalendarParts = {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  second: number;
+};
+
+const rangeLabels: Record<SalesRange, string> = {
+  day: 'Today',
+  week: 'This week',
+  month: 'This month',
+  quarter: 'This quarter',
+  year: 'This year',
+};
+
+function squareConfig() {
+  const accessToken = process.env.SQUARE_ACCESS_TOKEN;
+  const locationId = process.env.SQUARE_LOCATION_ID;
+  const environment = process.env.SQUARE_ENVIRONMENT === 'sandbox' ? 'sandbox' : 'production';
+  if (!accessToken || !locationId) {
+    throw new Error('Square sales reporting is not configured yet.');
+  }
+  return {
+    accessToken,
+    locationId,
+    baseUrl: environment === 'sandbox'
+      ? 'https://connect.squareupsandbox.com'
+      : 'https://connect.squareup.com',
+  };
+}
+
+function dateParts(date: Date, timeZone = BUSINESS_TIME_ZONE): CalendarParts {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(date);
+  const number = (type: Intl.DateTimeFormatPartTypes) =>
+    Number(parts.find((part) => part.type === type)?.value ?? 0);
+  return {
+    year: number('year'),
+    month: number('month'),
+    day: number('day'),
+    hour: number('hour'),
+    minute: number('minute'),
+    second: number('second'),
+  };
+}
+
+function zonedDateTimeToUtc(parts: CalendarParts) {
+  const desired = Date.UTC(
+    parts.year,
+    parts.month - 1,
+    parts.day,
+    parts.hour,
+    parts.minute,
+    parts.second,
+  );
+  let guess = desired;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const observed = dateParts(new Date(guess));
+    const observedAsUtc = Date.UTC(
+      observed.year,
+      observed.month - 1,
+      observed.day,
+      observed.hour,
+      observed.minute,
+      observed.second,
+    );
+    const adjustment = desired - observedAsUtc;
+    guess += adjustment;
+    if (!adjustment) break;
+  }
+
+  return new Date(guess);
+}
+
+function localMidnight(year: number, month: number, day: number) {
+  return zonedDateTimeToUtc({ year, month, day, hour: 0, minute: 0, second: 0 });
+}
+
+function startOfRange(range: SalesRange, now: Date) {
+  const local = dateParts(now);
+  if (range === 'day') return localMidnight(local.year, local.month, local.day);
+  if (range === 'month') return localMidnight(local.year, local.month, 1);
+  if (range === 'quarter') {
+    const quarterMonth = Math.floor((local.month - 1) / 3) * 3 + 1;
+    return localMidnight(local.year, quarterMonth, 1);
+  }
+  if (range === 'year') return localMidnight(local.year, 1, 1);
+
+  const localDate = new Date(Date.UTC(local.year, local.month - 1, local.day));
+  const dayFromMonday = (localDate.getUTCDay() + 6) % 7;
+  localDate.setUTCDate(localDate.getUTCDate() - dayFromMonday);
+  return localMidnight(
+    localDate.getUTCFullYear(),
+    localDate.getUTCMonth() + 1,
+    localDate.getUTCDate(),
+  );
+}
+
+async function searchCompletedOrders(start: Date, end: Date) {
+  const config = squareConfig();
+  const orders: AnalyticsOrder[] = [];
+  let cursor = '';
+
+  for (let page = 0; page < 30; page += 1) {
+    const response = await fetch(`${config.baseUrl}/v2/orders/search`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${config.accessToken}`,
+        'Content-Type': 'application/json',
+        'Square-Version': SQUARE_API_VERSION,
+      },
+      body: JSON.stringify({
+        location_ids: [config.locationId],
+        limit: 1000,
+        cursor: cursor || undefined,
+        return_entries: false,
+        query: {
+          filter: {
+            state_filter: { states: ['COMPLETED'] },
+            date_time_filter: {
+              closed_at: {
+                start_at: start.toISOString(),
+                end_at: end.toISOString(),
+              },
+            },
+          },
+          sort: { sort_field: 'CLOSED_AT', sort_order: 'ASC' },
+        },
+      }),
+      cache: 'no-store',
+    });
+    const payload = (await response.json()) as SearchOrdersResponse;
+    if (!response.ok) {
+      const detail = payload.errors?.[0]?.detail;
+      if (/permission|unauthorized/i.test(detail ?? '')) {
+        throw new Error('Square needs permission to read completed orders before sales can appear here.');
+      }
+      throw new Error(detail || 'Square sales are temporarily unavailable.');
+    }
+    orders.push(...(payload.orders ?? []));
+    cursor = payload.cursor ?? '';
+    if (!cursor) break;
+  }
+
+  return orders;
+}
+
+function cents(money?: SquareMoney) {
+  return Number(money?.amount ?? 0);
+}
+
+function summarize(orders: AnalyticsOrder[]) {
+  const summary = orders.reduce(
+    (total, order) => {
+      const collected = cents(order.total_money);
+      const tax = cents(order.total_tax_money);
+      const tip = cents(order.total_tip_money);
+      const service = cents(order.total_service_charge_money);
+      total.netSalesCents += collected - tax - tip - service;
+      total.totalCollectedCents += collected;
+      total.taxCents += tax;
+      total.tipCents += tip;
+      total.discountCents += cents(order.total_discount_money);
+      return total;
+    },
+    {
+      netSalesCents: 0,
+      totalCollectedCents: 0,
+      taxCents: 0,
+      tipCents: 0,
+      discountCents: 0,
+    },
+  );
+  return {
+    ...summary,
+    orderCount: orders.length,
+    averageOrderCents: orders.length ? Math.round(summary.netSalesCents / orders.length) : 0,
+  };
+}
+
+function chartBucketCount(range: SalesRange) {
+  if (range === 'day') return 8;
+  if (range === 'week') return 7;
+  if (range === 'month') return 6;
+  if (range === 'quarter') return 6;
+  return 12;
+}
+
+function bucketLabel(date: Date, range: SalesRange) {
+  if (range === 'day') {
+    return new Intl.DateTimeFormat('en-US', {
+      timeZone: BUSINESS_TIME_ZONE,
+      hour: 'numeric',
+    }).format(date);
+  }
+  if (range === 'year') {
+    return new Intl.DateTimeFormat('en-US', {
+      timeZone: BUSINESS_TIME_ZONE,
+      month: 'short',
+    }).format(date);
+  }
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: BUSINESS_TIME_ZONE,
+    month: 'short',
+    day: 'numeric',
+  }).format(date);
+}
+
+function buildChart(orders: AnalyticsOrder[], start: Date, end: Date, range: SalesRange) {
+  const count = chartBucketCount(range);
+  const duration = Math.max(1, end.getTime() - start.getTime());
+  const bucketDuration = duration / count;
+  const buckets = Array.from({ length: count }, (_, index) => ({
+    label: bucketLabel(new Date(start.getTime() + index * bucketDuration), range),
+    salesCents: 0,
+    orderCount: 0,
+  }));
+
+  for (const order of orders) {
+    const closedAt = new Date(order.closed_at ?? '').getTime();
+    if (!Number.isFinite(closedAt)) continue;
+    const index = Math.min(count - 1, Math.max(0, Math.floor((closedAt - start.getTime()) / bucketDuration)));
+    const collected = cents(order.total_money);
+    const net = collected
+      - cents(order.total_tax_money)
+      - cents(order.total_tip_money)
+      - cents(order.total_service_charge_money);
+    buckets[index].salesCents += net;
+    buckets[index].orderCount += 1;
+  }
+
+  return buckets;
+}
+
+function topItems(orders: AnalyticsOrder[]) {
+  const items = new Map<string, { quantity: number; salesCents: number }>();
+  for (const order of orders) {
+    for (const item of order.line_items ?? []) {
+      const name = item.name?.trim() || 'Unlabeled item';
+      const current = items.get(name) ?? { quantity: 0, salesCents: 0 };
+      current.quantity += Number(item.quantity ?? 0) || 0;
+      current.salesCents += cents(item.total_money) - cents(item.total_tax_money);
+      items.set(name, current);
+    }
+  }
+  return [...items.entries()]
+    .map(([name, item]) => ({ name, ...item, quantity: Math.round(item.quantity * 100) / 100 }))
+    .sort((a, b) => b.quantity - a.quantity || b.salesCents - a.salesCents)
+    .slice(0, 5);
+}
+
+export async function getDameSalesAnalytics(range: SalesRange): Promise<DameSalesAnalytics> {
+  const now = new Date();
+  const currentStart = startOfRange(range, now);
+  const elapsed = now.getTime() - currentStart.getTime();
+  const previousStart = new Date(currentStart.getTime() - elapsed);
+  const allOrders = await searchCompletedOrders(previousStart, now);
+  const currentOrders = allOrders.filter((order) => new Date(order.closed_at ?? 0) >= currentStart);
+  const previousOrders = allOrders.filter((order) => new Date(order.closed_at ?? 0) < currentStart);
+  const metrics = summarize(currentOrders);
+  const previous = summarize(previousOrders);
+  const percentChange = previous.netSalesCents
+    ? ((metrics.netSalesCents - previous.netSalesCents) / Math.abs(previous.netSalesCents)) * 100
+    : null;
+
+  return {
+    range,
+    label: rangeLabels[range],
+    updatedAt: now.toISOString(),
+    metrics,
+    comparison: {
+      previousNetSalesCents: previous.netSalesCents,
+      percentChange: percentChange === null ? null : Math.round(percentChange * 10) / 10,
+    },
+    chart: buildChart(currentOrders, currentStart, now, range),
+    topItems: topItems(currentOrders),
+  };
+}

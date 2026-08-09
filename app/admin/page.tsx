@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminHeader from './admin-header';
+import AdminInsights from './admin-insights';
 import {
   clearAdminSession,
   getAdminAccessToken,
@@ -147,11 +148,7 @@ export default function AdminDashboard() {
     <main className="admin-shell">
       <AdminHeader title="Operations" />
 
-      <section className="admin-card admin-overview-hero">
-        <p className="eyebrow">TODAY AT DAME</p>
-        <h2>Everything important, without everything in the way.</h2>
-        <p>Choose one job, handle it, and get back to serving. Each area now has its own focused workspace.</p>
-      </section>
+      <AdminInsights />
 
       {error ? <section className="admin-card admin-rewards-card"><p className="admin-error">{error}</p></section> : null}
       {!overview && !error ? <section className="admin-card admin-rewards-card"><p>Loading today’s operations…</p></section> : null}
