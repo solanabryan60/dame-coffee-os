@@ -17,9 +17,15 @@ function bearerToken(request: Request) {
 export async function GET(request: Request) {
   try {
     await requireDameAdmin(bearerToken(request));
-    const requested = new URL(request.url).searchParams.get('range') as SalesRange | null;
+    const params = new URL(request.url).searchParams;
+    const requested = params.get('range') as SalesRange | null;
     const range = requested && allowedRanges.has(requested) ? requested : 'day';
-    const analytics = await getDameSalesAnalytics(range);
+    const month = Number(params.get('month'));
+    const year = Number(params.get('year'));
+    const analytics = await getDameSalesAnalytics(range, {
+      month: Number.isInteger(month) ? month : undefined,
+      year: Number.isInteger(year) ? year : undefined,
+    });
     return Response.json(analytics, {
       headers: { 'Cache-Control': 'private, no-store' },
     });

@@ -5,6 +5,11 @@ const BUSINESS_TIME_ZONE = 'America/Los_Angeles';
 
 export type SalesRange = 'day' | 'week' | 'month' | 'quarter' | 'year';
 
+export type SalesSelection = {
+  month?: number;
+  year?: number;
+};
+
 export type DameSalesAnalytics = {
   range: SalesRange;
   label: string;
@@ -17,6 +22,7 @@ export type DameSalesAnalytics = {
     taxCents: number;
     tipCents: number;
     discountCents: number;
+    serviceChargeCents: number;
   };
   comparison: {
     previousNetSalesCents: number;
@@ -148,7 +154,7 @@ function localMidnight(year: number, month: number, day: number) {
   return zonedDateTimeToUtc({ year, month, day, hour: 0, minute: 0, second: 0 });
 }
 
-function startOfRange(range: SalesRange, now: Date) {
+function currentRangeStart(range: SalesRange, now: Date) {
   const local = dateParts(now);
   if (range === 'day') return localMidnight(local.year, local.month, local.day);
   if (range === 'month') return localMidnight(local.year, local.month, 1);
@@ -166,6 +172,65 @@ function startOfRange(range: SalesRange, now: Date) {
     localDate.getUTCMonth() + 1,
     localDate.getUTCDate(),
   );
+}
+
+function shiftLocalMonth(year: number, month: number, amount: number) {
+  const shifted = new Date(Date.UTC(year, month - 1 + amount, 1));
+  return {
+    year: shifted.getUTCFullYear(),
+    month: shifted.getUTCMonth() + 1,
+  };
+}
+
+function addLocalDays(start: Date, days: number) {
+  const local = dateParts(start);
+  const shifted = new Date(Date.UTC(local.year, local.month - 1, local.day + days));
+  return localMidnight(
+    shifted.getUTCFullYear(),
+    shifted.getUTCMonth() + 1,
+    shifted.getUTCDate(),
+  );
+}
+
+function periodFor(range: SalesRange, selection: SalesSelection, now: Date) {
+  const localNow = dateParts(now);
+  let start = currentRangeStart(range, now);
+  let naturalEnd: Date | null = null;
+  let previousCalendarStart: Date | null = null;
+  let label = rangeLabels[range];
+
+  if (range === 'month' && selection.year && selection.month) {
+    const year = Math.min(localNow.year, Math.max(localNow.year - 10, selection.year));
+    const latestMonth = year === localNow.year ? localNow.month : 12;
+    const month = Math.min(latestMonth, Math.max(1, selection.month));
+    const next = shiftLocalMonth(year, month, 1);
+    const previous = shiftLocalMonth(year, month, -1);
+    start = localMidnight(year, month, 1);
+    naturalEnd = localMidnight(next.year, next.month, 1);
+    previousCalendarStart = localMidnight(previous.year, previous.month, 1);
+    label = new Intl.DateTimeFormat('en-US', {
+      timeZone: BUSINESS_TIME_ZONE,
+      month: 'long',
+      year: 'numeric',
+    }).format(start);
+  }
+
+  if (range === 'year' && selection.year) {
+    const year = Math.min(localNow.year, Math.max(localNow.year - 10, selection.year));
+    start = localMidnight(year, 1, 1);
+    naturalEnd = localMidnight(year + 1, 1, 1);
+    previousCalendarStart = localMidnight(year - 1, 1, 1);
+    label = String(year);
+  }
+
+  const end = naturalEnd && naturalEnd < now ? naturalEnd : now;
+  const isCompleteCalendarPeriod = Boolean(naturalEnd && naturalEnd <= now);
+  const previousEnd = start;
+  const previousStart = isCompleteCalendarPeriod && previousCalendarStart
+    ? previousCalendarStart
+    : new Date(start.getTime() - (end.getTime() - start.getTime()));
+
+  return { start, end, previousStart, previousEnd, label };
 }
 
 async function searchCompletedOrders(start: Date, end: Date) {
@@ -233,6 +298,7 @@ function summarize(orders: AnalyticsOrder[]) {
       total.taxCents += tax;
       total.tipCents += tip;
       total.discountCents += cents(order.total_discount_money);
+      total.serviceChargeCents += service;
       return total;
     },
     {
@@ -241,6 +307,7 @@ function summarize(orders: AnalyticsOrder[]) {
       taxCents: 0,
       tipCents: 0,
       discountCents: 0,
+      serviceChargeCents: 0,
     },
   );
   return {
@@ -250,14 +317,6 @@ function summarize(orders: AnalyticsOrder[]) {
   };
 }
 
-function chartBucketCount(range: SalesRange) {
-  if (range === 'day') return 8;
-  if (range === 'week') return 7;
-  if (range === 'month') return 6;
-  if (range === 'quarter') return 6;
-  return 12;
-}
-
 function bucketLabel(date: Date, range: SalesRange) {
   if (range === 'day') {
     return new Intl.DateTimeFormat('en-US', {
@@ -265,7 +324,7 @@ function bucketLabel(date: Date, range: SalesRange) {
       hour: 'numeric',
     }).format(date);
   }
-  if (range === 'year') {
+  if (range === 'quarter' || range === 'year') {
     return new Intl.DateTimeFormat('en-US', {
       timeZone: BUSINESS_TIME_ZONE,
       month: 'short',
@@ -279,11 +338,36 @@ function bucketLabel(date: Date, range: SalesRange) {
 }
 
 function buildChart(orders: AnalyticsOrder[], start: Date, end: Date, range: SalesRange) {
-  const count = chartBucketCount(range);
-  const duration = Math.max(1, end.getTime() - start.getTime());
-  const bucketDuration = duration / count;
-  const buckets = Array.from({ length: count }, (_, index) => ({
-    label: bucketLabel(new Date(start.getTime() + index * bucketDuration), range),
+  const boundaries: Date[] = [start];
+  const local = dateParts(start);
+
+  if (range === 'day') {
+    for (let hours = 3; hours < 24; hours += 3) {
+      const boundary = new Date(start.getTime() + hours * 60 * 60 * 1000);
+      if (boundary < end) boundaries.push(boundary);
+    }
+  } else if (range === 'week') {
+    for (let day = 1; day < 7; day += 1) {
+      const boundary = addLocalDays(start, day);
+      if (boundary < end) boundaries.push(boundary);
+    }
+  } else if (range === 'month') {
+    for (let day = 7; day < 35; day += 7) {
+      const boundary = addLocalDays(start, day);
+      if (boundary < end) boundaries.push(boundary);
+    }
+  } else {
+    const maxMonths = range === 'quarter' ? 3 : 12;
+    for (let monthOffset = 1; monthOffset < maxMonths; monthOffset += 1) {
+      const next = shiftLocalMonth(local.year, local.month, monthOffset);
+      const boundary = localMidnight(next.year, next.month, 1);
+      if (boundary < end) boundaries.push(boundary);
+    }
+  }
+
+  const buckets = boundaries.map((boundary) => ({
+    start: boundary.getTime(),
+    label: bucketLabel(boundary, range),
     salesCents: 0,
     orderCount: 0,
   }));
@@ -291,7 +375,8 @@ function buildChart(orders: AnalyticsOrder[], start: Date, end: Date, range: Sal
   for (const order of orders) {
     const closedAt = new Date(order.closed_at ?? '').getTime();
     if (!Number.isFinite(closedAt)) continue;
-    const index = Math.min(count - 1, Math.max(0, Math.floor((closedAt - start.getTime()) / bucketDuration)));
+    let index = buckets.length - 1;
+    while (index > 0 && closedAt < buckets[index].start) index -= 1;
     const collected = cents(order.total_money);
     const net = collected
       - cents(order.total_tax_money)
@@ -301,7 +386,7 @@ function buildChart(orders: AnalyticsOrder[], start: Date, end: Date, range: Sal
     buckets[index].orderCount += 1;
   }
 
-  return buckets;
+  return buckets.map(({ start: _start, ...bucket }) => bucket);
 }
 
 function topItems(orders: AnalyticsOrder[]) {
@@ -321,14 +406,21 @@ function topItems(orders: AnalyticsOrder[]) {
     .slice(0, 5);
 }
 
-export async function getDameSalesAnalytics(range: SalesRange): Promise<DameSalesAnalytics> {
+export async function getDameSalesAnalytics(
+  range: SalesRange,
+  selection: SalesSelection = {},
+): Promise<DameSalesAnalytics> {
   const now = new Date();
-  const currentStart = startOfRange(range, now);
-  const elapsed = now.getTime() - currentStart.getTime();
-  const previousStart = new Date(currentStart.getTime() - elapsed);
-  const allOrders = await searchCompletedOrders(previousStart, now);
-  const currentOrders = allOrders.filter((order) => new Date(order.closed_at ?? 0) >= currentStart);
-  const previousOrders = allOrders.filter((order) => new Date(order.closed_at ?? 0) < currentStart);
+  const period = periodFor(range, selection, now);
+  const allOrders = await searchCompletedOrders(period.previousStart, period.end);
+  const currentOrders = allOrders.filter((order) => {
+    const closed = new Date(order.closed_at ?? 0);
+    return closed >= period.start && closed < period.end;
+  });
+  const previousOrders = allOrders.filter((order) => {
+    const closed = new Date(order.closed_at ?? 0);
+    return closed >= period.previousStart && closed < period.previousEnd;
+  });
   const metrics = summarize(currentOrders);
   const previous = summarize(previousOrders);
   const percentChange = previous.netSalesCents
@@ -337,14 +429,14 @@ export async function getDameSalesAnalytics(range: SalesRange): Promise<DameSale
 
   return {
     range,
-    label: rangeLabels[range],
+    label: period.label,
     updatedAt: now.toISOString(),
     metrics,
     comparison: {
       previousNetSalesCents: previous.netSalesCents,
       percentChange: percentChange === null ? null : Math.round(percentChange * 10) / 10,
     },
-    chart: buildChart(currentOrders, currentStart, now, range),
+    chart: buildChart(currentOrders, period.start, period.end, range),
     topItems: topItems(currentOrders),
   };
 }
