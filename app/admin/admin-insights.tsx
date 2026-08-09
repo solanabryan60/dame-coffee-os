@@ -22,6 +22,7 @@ type Analytics = {
     taxCents: number;
     tipCents: number;
     discountCents: number;
+    serviceChargeCents: number;
   };
   comparison: {
     previousNetSalesCents: number;
@@ -38,6 +39,11 @@ const ranges: Array<{ value: SalesRange; label: string }> = [
   { value: 'quarter', label: 'Quarter' },
   { value: 'year', label: 'Year' },
 ];
+
+const months = Array.from({ length: 12 }, (_, index) => ({
+  value: index + 1,
+  label: new Intl.DateTimeFormat('en-US', { month: 'long' }).format(new Date(2026, index, 1)),
+}));
 
 function money(cents: number) {
   return new Intl.NumberFormat('en-US', {
@@ -60,12 +66,20 @@ function comparisonCopy(analytics: Analytics) {
 
 export default function AdminInsights() {
   const router = useRouter();
+  const today = new Date();
   const [range, setRange] = useState<SalesRange>('day');
+  const [selectedMonth, setSelectedMonth] = useState(today.getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(today.getFullYear());
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const load = useCallback(async (nextRange: SalesRange, signal?: AbortSignal) => {
+  const load = useCallback(async (
+    nextRange: SalesRange,
+    month: number,
+    year: number,
+    signal?: AbortSignal,
+  ) => {
     setLoading(true);
     setError('');
     const token = await getAdminAccessToken();
@@ -75,7 +89,10 @@ export default function AdminInsights() {
     }
 
     try {
-      const response = await fetch(`/api/admin/analytics?range=${nextRange}`, {
+      const query = new URLSearchParams({ range: nextRange });
+      if (nextRange === 'month') query.set('month', String(month));
+      if (nextRange === 'month' || nextRange === 'year') query.set('year', String(year));
+      const response = await fetch(`/api/admin/analytics?${query}`, {
         headers: { Authorization: `Bearer ${token}` },
         cache: 'no-store',
         signal,
@@ -98,11 +115,19 @@ export default function AdminInsights() {
 
   useEffect(() => {
     const controller = new AbortController();
-    void load(range, controller.signal);
+    void load(range, selectedMonth, selectedYear, controller.signal);
     return () => controller.abort();
-  }, [load, range]);
+  }, [load, range, selectedMonth, selectedYear]);
 
   const maxSales = Math.max(1, ...(analytics?.chart.map((bucket) => bucket.salesCents) ?? [1]));
+  const availableYears = Array.from({ length: 6 }, (_, index) => today.getFullYear() - index);
+
+  function chooseYear(year: number) {
+    setSelectedYear(year);
+    if (year === today.getFullYear() && selectedMonth > today.getMonth() + 1) {
+      setSelectedMonth(today.getMonth() + 1);
+    }
+  }
 
   return (
     <section className="admin-card admin-insights" aria-labelledby="dame-insights-title">
@@ -127,11 +152,42 @@ export default function AdminInsights() {
         </div>
       </header>
 
+      {range === 'month' || range === 'year' ? (
+        <div className="admin-date-controls" aria-label="Choose sales date">
+          {range === 'month' ? (
+            <label>
+              <span>Month</span>
+              <select value={selectedMonth} onChange={(event) => setSelectedMonth(Number(event.target.value))}>
+                {months.map((month) => (
+                  <option
+                    key={month.value}
+                    value={month.value}
+                    disabled={selectedYear === today.getFullYear() && month.value > today.getMonth() + 1}
+                  >
+                    {month.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+          <label>
+            <span>Year</span>
+            <select value={selectedYear} onChange={(event) => chooseYear(Number(event.target.value))}>
+              {availableYears.map((year) => <option key={year} value={year}>{year}</option>)}
+            </select>
+          </label>
+          <p>
+            Showing completed Square sales for{' '}
+            <strong>{range === 'month' ? `${months[selectedMonth - 1].label} ${selectedYear}` : selectedYear}</strong>.
+          </p>
+        </div>
+      ) : null}
+
       {error ? (
         <div className="admin-insights-state" role="alert">
           <strong>Sales could not load.</strong>
           <span>{error}</span>
-          <button type="button" onClick={() => void load(range)}>Try again</button>
+          <button type="button" onClick={() => void load(range, selectedMonth, selectedYear)}>Try again</button>
         </div>
       ) : null}
 
@@ -164,8 +220,7 @@ export default function AdminInsights() {
             </article>
           </div>
 
-          <div className="admin-insights-grid">
-            <article className="admin-sales-chart-card">
+          <article className="admin-sales-chart-card">
               <header>
                 <div>
                   <span>Sales rhythm</span>
@@ -177,15 +232,17 @@ export default function AdminInsights() {
                 {analytics.chart.map((bucket, index) => (
                   <div className="admin-sales-bar" key={`${bucket.label}-${index}`}>
                     <div className="admin-sales-bar-track">
+                      <em>{bucket.salesCents ? money(bucket.salesCents) : '$0'}</em>
                       <i style={{ height: `${Math.max(bucket.salesCents ? 8 : 2, (bucket.salesCents / maxSales) * 100)}%` }} />
                     </div>
                     <b>{bucket.label}</b>
-                    <span>{bucket.salesCents ? money(bucket.salesCents) : '—'}</span>
+                    <span>{bucket.orderCount} {bucket.orderCount === 1 ? 'order' : 'orders'}</span>
                   </div>
                 ))}
               </div>
-            </article>
+          </article>
 
+          <div className="admin-insights-grid">
             <article className="admin-top-items-card">
               <header>
                 <span>Top sellers</span>
@@ -204,12 +261,21 @@ export default function AdminInsights() {
                 <p className="admin-empty-copy">Top items will appear after the first completed sale in this period.</p>
               )}
             </article>
+            <article className="admin-money-breakdown">
+              <header>
+                <span>Money breakdown</span>
+                <strong>Beyond net sales</strong>
+              </header>
+              <div>
+                <section><span>Tax</span><strong>{money(analytics.metrics.taxCents)}</strong><p>Collected for sales tax.</p></section>
+                <section><span>Tips</span><strong>{money(analytics.metrics.tipCents)}</strong><p>Tips customers left the team.</p></section>
+                <section><span>Discounts</span><strong>{money(analytics.metrics.discountCents)}</strong><p>Savings applied to orders.</p></section>
+                <section><span>Service charges</span><strong>{money(analytics.metrics.serviceChargeCents)}</strong><p>Square order service charges.</p></section>
+              </div>
+            </article>
           </div>
 
           <footer className="admin-insights-footer">
-            <span>Tax {money(analytics.metrics.taxCents)}</span>
-            <span>Tips {money(analytics.metrics.tipCents)}</span>
-            <span>Discounts {money(analytics.metrics.discountCents)}</span>
             <small>Last checked {new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' }).format(new Date(analytics.updatedAt))}</small>
           </footer>
         </div>

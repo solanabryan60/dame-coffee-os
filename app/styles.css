@@ -1162,6 +1162,48 @@ img {
   color: white;
 }
 
+.admin-date-controls {
+  margin-top: 20px;
+  padding: 14px;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  background: var(--cream);
+}
+
+.admin-date-controls label {
+  min-width: 150px;
+}
+
+.admin-date-controls label > span {
+  margin: 0 0 6px 4px;
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.admin-date-controls select {
+  width: 100%;
+  padding: 12px 36px 12px 13px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: white;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 800;
+}
+
+.admin-date-controls p {
+  margin: 0 0 11px 4px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .admin-insights-state {
   margin-top: 28px;
   padding: 22px;
@@ -1248,19 +1290,25 @@ img {
 .admin-insights-grid {
   margin-top: 14px;
   display: grid;
-  grid-template-columns: minmax(0, 1.7fr) minmax(260px, 0.8fr);
+  grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.28fr);
   gap: 14px;
 }
 
 .admin-sales-chart-card,
-.admin-top-items-card {
+.admin-top-items-card,
+.admin-money-breakdown {
   padding: 24px;
   border: 1px solid var(--line);
   border-radius: 22px;
 }
 
+.admin-sales-chart-card {
+  margin-top: 14px;
+}
+
 .admin-sales-chart-card > header,
-.admin-top-items-card > header {
+.admin-top-items-card > header,
+.admin-money-breakdown > header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -1268,7 +1316,8 @@ img {
 }
 
 .admin-sales-chart-card header span,
-.admin-top-items-card header span {
+.admin-top-items-card header span,
+.admin-money-breakdown header span {
   display: block;
   color: var(--dame-red);
   font-size: 11px;
@@ -1278,7 +1327,8 @@ img {
 }
 
 .admin-sales-chart-card header strong,
-.admin-top-items-card header strong {
+.admin-top-items-card header strong,
+.admin-money-breakdown header strong {
   margin-top: 4px;
   display: block;
   font-family: Georgia, "Times New Roman", serif;
@@ -1291,15 +1341,16 @@ img {
 }
 
 .admin-sales-chart {
-  height: 250px;
+  min-height: 310px;
   margin-top: 26px;
   display: flex;
   align-items: stretch;
   gap: 8px;
+  overflow-x: auto;
 }
 
 .admin-sales-bar {
-  min-width: 0;
+  min-width: 72px;
   flex: 1;
   display: grid;
   grid-template-rows: 1fr auto auto;
@@ -1308,7 +1359,8 @@ img {
 }
 
 .admin-sales-bar-track {
-  min-height: 150px;
+  min-height: 220px;
+  position: relative;
   display: flex;
   align-items: flex-end;
   border-radius: 10px;
@@ -1323,16 +1375,32 @@ img {
   background: var(--dame-red);
 }
 
+.admin-sales-bar-track em {
+  z-index: 1;
+  width: 100%;
+  padding: 9px 4px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: var(--ink);
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  text-align: center;
+}
+
 .admin-sales-bar b {
   overflow: hidden;
-  font-size: 11px;
+  font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .admin-sales-bar span {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .admin-top-items-card ol {
@@ -1371,17 +1439,58 @@ img {
   white-space: nowrap;
 }
 
+.admin-money-breakdown > div {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.admin-money-breakdown section {
+  min-height: 145px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--cream);
+}
+
+.admin-money-breakdown section > span {
+  color: var(--dame-red);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.admin-money-breakdown section > strong {
+  margin: 10px 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(27px, 3.5vw, 40px);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+}
+
+.admin-money-breakdown section p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
 .admin-insights-footer {
   margin-top: 18px;
   display: flex;
   align-items: center;
-  gap: 18px;
+  justify-content: flex-end;
   color: var(--muted);
   font-size: 12px;
 }
 
 .admin-insights-footer small {
-  margin-left: auto;
+  margin-left: 0;
 }
 
 .admin-overview-grid {
@@ -2351,6 +2460,21 @@ img {
     flex: 1;
   }
 
+  .admin-date-controls {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .admin-date-controls label {
+    min-width: 130px;
+    flex: 1;
+  }
+
+  .admin-date-controls p {
+    width: 100%;
+    margin: 2px 4px 0;
+  }
+
   .admin-metric-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2365,12 +2489,13 @@ img {
   }
 
   .admin-sales-chart {
-    height: 220px;
+    min-height: 270px;
+    height: auto;
     overflow-x: auto;
   }
 
   .admin-sales-bar {
-    min-width: 54px;
+    min-width: 74px;
   }
 
   .admin-insights-footer {
