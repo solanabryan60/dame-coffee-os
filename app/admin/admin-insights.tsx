@@ -10,26 +10,42 @@ import { useRouter } from 'next/navigation';
 
 type SalesRange = 'day' | 'week' | 'month' | 'quarter' | 'year';
 
+type SalesMetrics = {
+  netSalesCents: number;
+  totalCollectedCents: number;
+  orderCount: number;
+  averageOrderCents: number;
+  taxCents: number;
+  tipCents: number;
+  discountCents: number;
+  serviceChargeCents: number;
+};
+
+type ItemSummary = { name: string; quantity: number; salesCents: number };
+
+type ChartBucket = {
+  label: string;
+  detailLabel: string;
+  startAt: string;
+  endAt: string;
+  salesCents: number;
+  orderCount: number;
+  metrics: SalesMetrics;
+  items: ItemSummary[];
+};
+
 type Analytics = {
   range: SalesRange;
   label: string;
   updatedAt: string;
-  metrics: {
-    netSalesCents: number;
-    totalCollectedCents: number;
-    orderCount: number;
-    averageOrderCents: number;
-    taxCents: number;
-    tipCents: number;
-    discountCents: number;
-    serviceChargeCents: number;
-  };
+  period: { startAt: string; endAt: string };
+  metrics: SalesMetrics;
   comparison: {
     previousNetSalesCents: number;
     percentChange: number | null;
   };
-  chart: Array<{ label: string; salesCents: number; orderCount: number }>;
-  topItems: Array<{ name: string; quantity: number; salesCents: number }>;
+  chart: ChartBucket[];
+  topItems: ItemSummary[];
 };
 
 const ranges: Array<{ value: SalesRange; label: string }> = [
@@ -44,6 +60,19 @@ const months = Array.from({ length: 12 }, (_, index) => ({
   value: index + 1,
   label: new Intl.DateTimeFormat('en-US', { month: 'long' }).format(new Date(2026, index, 1)),
 }));
+
+const quarters = [1, 2, 3, 4];
+
+function dateInputValue(date: Date) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((item) => item.type === type)?.value ?? '';
+  return `${part('year')}-${part('month')}-${part('day')}`;
+}
 
 function money(cents: number) {
   return new Intl.NumberFormat('en-US', {
@@ -66,17 +95,23 @@ function comparisonCopy(analytics: Analytics) {
 
 export default function AdminInsights() {
   const router = useRouter();
-  const today = new Date();
+  const [today] = useState(() => new Date());
+  const todayValue = dateInputValue(today);
   const [range, setRange] = useState<SalesRange>('day');
+  const [selectedDate, setSelectedDate] = useState(todayValue);
   const [selectedMonth, setSelectedMonth] = useState(today.getMonth() + 1);
+  const [selectedQuarter, setSelectedQuarter] = useState(Math.ceil((today.getMonth() + 1) / 3));
   const [selectedYear, setSelectedYear] = useState(today.getFullYear());
+  const [selectedBucketStart, setSelectedBucketStart] = useState<string | null>(null);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async (
     nextRange: SalesRange,
+    date: string,
     month: number,
+    quarter: number,
     year: number,
     signal?: AbortSignal,
   ) => {
@@ -90,8 +125,12 @@ export default function AdminInsights() {
 
     try {
       const query = new URLSearchParams({ range: nextRange });
+      if (nextRange === 'day' || nextRange === 'week') query.set('date', date);
       if (nextRange === 'month') query.set('month', String(month));
-      if (nextRange === 'month' || nextRange === 'year') query.set('year', String(year));
+      if (nextRange === 'quarter') query.set('quarter', String(quarter));
+      if (nextRange === 'month' || nextRange === 'quarter' || nextRange === 'year') {
+        query.set('year', String(year));
+      }
       const response = await fetch(`/api/admin/analytics?${query}`, {
         headers: { Authorization: `Bearer ${token}` },
         cache: 'no-store',
@@ -115,17 +154,41 @@ export default function AdminInsights() {
 
   useEffect(() => {
     const controller = new AbortController();
-    void load(range, selectedMonth, selectedYear, controller.signal);
+    setSelectedBucketStart(null);
+    void load(range, selectedDate, selectedMonth, selectedQuarter, selectedYear, controller.signal);
     return () => controller.abort();
-  }, [load, range, selectedMonth, selectedYear]);
+  }, [load, range, selectedDate, selectedMonth, selectedQuarter, selectedYear]);
 
   const maxSales = Math.max(1, ...(analytics?.chart.map((bucket) => bucket.salesCents) ?? [1]));
-  const availableYears = Array.from({ length: 6 }, (_, index) => today.getFullYear() - index);
+  const availableYears = Array.from({ length: 10 }, (_, index) => today.getFullYear() - index);
+  const selectedBucket = analytics?.chart.find((bucket) => bucket.startAt === selectedBucketStart) ?? null;
 
   function chooseYear(year: number) {
     setSelectedYear(year);
     if (year === today.getFullYear() && selectedMonth > today.getMonth() + 1) {
       setSelectedMonth(today.getMonth() + 1);
+    }
+    if (year === today.getFullYear() && selectedQuarter > Math.ceil((today.getMonth() + 1) / 3)) {
+      setSelectedQuarter(Math.ceil((today.getMonth() + 1) / 3));
+    }
+  }
+
+  function openBucket(bucket: ChartBucket) {
+    const bucketDate = new Date(bucket.startAt);
+    if (range === 'year' || range === 'quarter') {
+      setSelectedMonth(Number(dateInputValue(bucketDate).slice(5, 7)));
+      setSelectedYear(Number(dateInputValue(bucketDate).slice(0, 4)));
+      setRange('month');
+      return;
+    }
+    if (range === 'month') {
+      setSelectedDate(dateInputValue(bucketDate));
+      setRange('week');
+      return;
+    }
+    if (range === 'week') {
+      setSelectedDate(dateInputValue(bucketDate));
+      setRange('day');
     }
   }
 
@@ -152,8 +215,18 @@ export default function AdminInsights() {
         </div>
       </header>
 
-      {range === 'month' || range === 'year' ? (
-        <div className="admin-date-controls" aria-label="Choose sales date">
+      <div className="admin-date-controls" aria-label="Choose sales date">
+          {range === 'day' || range === 'week' ? (
+            <label className="admin-date-field">
+              <span>{range === 'day' ? 'Date' : 'Week containing'}</span>
+              <input
+                type="date"
+                value={selectedDate}
+                max={todayValue}
+                onChange={(event) => setSelectedDate(event.target.value || todayValue)}
+              />
+            </label>
+          ) : null}
           {range === 'month' ? (
             <label>
               <span>Month</span>
@@ -170,24 +243,45 @@ export default function AdminInsights() {
               </select>
             </label>
           ) : null}
-          <label>
-            <span>Year</span>
-            <select value={selectedYear} onChange={(event) => chooseYear(Number(event.target.value))}>
-              {availableYears.map((year) => <option key={year} value={year}>{year}</option>)}
-            </select>
-          </label>
+          {range === 'quarter' ? (
+            <label>
+              <span>Quarter</span>
+              <select value={selectedQuarter} onChange={(event) => setSelectedQuarter(Number(event.target.value))}>
+                {quarters.map((quarter) => (
+                  <option
+                    key={quarter}
+                    value={quarter}
+                    disabled={selectedYear === today.getFullYear() && quarter > Math.ceil((today.getMonth() + 1) / 3)}
+                  >
+                    Q{quarter}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+          {range === 'month' || range === 'quarter' || range === 'year' ? (
+            <label>
+              <span>Year</span>
+              <select value={selectedYear} onChange={(event) => chooseYear(Number(event.target.value))}>
+                {availableYears.map((year) => <option key={year} value={year}>{year}</option>)}
+              </select>
+            </label>
+          ) : null}
           <p>
-            Showing completed Square sales for{' '}
-            <strong>{range === 'month' ? `${months[selectedMonth - 1].label} ${selectedYear}` : selectedYear}</strong>.
+            Showing <strong>{analytics?.label ?? 'your selected period'}</strong>. Tap any graph bar for its full breakdown.
           </p>
         </div>
-      ) : null}
 
       {error ? (
         <div className="admin-insights-state" role="alert">
           <strong>Sales could not load.</strong>
           <span>{error}</span>
-          <button type="button" onClick={() => void load(range, selectedMonth, selectedYear)}>Try again</button>
+          <button
+            type="button"
+            onClick={() => void load(range, selectedDate, selectedMonth, selectedQuarter, selectedYear)}
+          >
+            Try again
+          </button>
         </div>
       ) : null}
 
@@ -230,17 +324,88 @@ export default function AdminInsights() {
               </header>
               <div className="admin-sales-chart" aria-label={`${analytics.label} net sales chart`}>
                 {analytics.chart.map((bucket, index) => (
-                  <div className="admin-sales-bar" key={`${bucket.label}-${index}`}>
+                  <button
+                    type="button"
+                    className={selectedBucketStart === bucket.startAt ? 'admin-sales-bar is-selected' : 'admin-sales-bar'}
+                    key={`${bucket.label}-${index}`}
+                    aria-label={`${bucket.detailLabel}: ${money(bucket.salesCents)} from ${bucket.orderCount} ${bucket.orderCount === 1 ? 'order' : 'orders'}. Show full breakdown.`}
+                    aria-pressed={selectedBucketStart === bucket.startAt}
+                    onClick={() => setSelectedBucketStart(bucket.startAt)}
+                  >
                     <div className="admin-sales-bar-track">
                       <em>{bucket.salesCents ? money(bucket.salesCents) : '$0'}</em>
                       <i style={{ height: `${Math.max(bucket.salesCents ? 8 : 2, (bucket.salesCents / maxSales) * 100)}%` }} />
                     </div>
                     <b>{bucket.label}</b>
                     <span>{bucket.orderCount} {bucket.orderCount === 1 ? 'order' : 'orders'}</span>
-                  </div>
+                  </button>
                 ))}
               </div>
           </article>
+
+          {selectedBucket ? (
+            <article className="admin-period-breakdown" aria-live="polite">
+              <header>
+                <div>
+                  <span>Selected breakdown</span>
+                  <strong>{selectedBucket.detailLabel}</strong>
+                  <p>Every completed Square sale inside this graph bar.</p>
+                </div>
+                <button type="button" onClick={() => setSelectedBucketStart(null)}>Close</button>
+              </header>
+
+              <div className="admin-period-metrics">
+                <section><span>Net sales</span><strong>{money(selectedBucket.metrics.netSalesCents)}</strong></section>
+                <section><span>Orders</span><strong>{selectedBucket.metrics.orderCount}</strong></section>
+                <section><span>Average order</span><strong>{money(selectedBucket.metrics.averageOrderCents)}</strong></section>
+                <section><span>Total collected</span><strong>{money(selectedBucket.metrics.totalCollectedCents)}</strong></section>
+              </div>
+
+              <div className="admin-period-details">
+                <section>
+                  <span>Tax</span>
+                  <strong>{money(selectedBucket.metrics.taxCents)}</strong>
+                </section>
+                <section>
+                  <span>Tips</span>
+                  <strong>{money(selectedBucket.metrics.tipCents)}</strong>
+                </section>
+                <section>
+                  <span>Discounts</span>
+                  <strong>{money(selectedBucket.metrics.discountCents)}</strong>
+                </section>
+                <section>
+                  <span>Service charges</span>
+                  <strong>{money(selectedBucket.metrics.serviceChargeCents)}</strong>
+                </section>
+              </div>
+
+              <div className="admin-period-items">
+                <div>
+                  <span>Item breakdown</span>
+                  <strong>What sold</strong>
+                </div>
+                {selectedBucket.items.length ? (
+                  <ol>
+                    {selectedBucket.items.map((item) => (
+                      <li key={item.name}>
+                        <div><b>{item.name}</b><span>{item.quantity} sold</span></div>
+                        <strong>{money(item.salesCents)}</strong>
+                      </li>
+                    ))}
+                  </ol>
+                ) : (
+                  <p>No completed items were recorded in this period.</p>
+                )}
+              </div>
+
+              {range !== 'day' ? (
+                <button className="admin-period-open" type="button" onClick={() => openBucket(selectedBucket)}>
+                  Open this {range === 'week' ? 'day' : range === 'month' ? 'week' : 'month'}
+                </button>
+              ) : null}
+            </article>
+          ) : null}
 
           <div className="admin-insights-grid">
             <article className="admin-top-items-card">
@@ -276,7 +441,16 @@ export default function AdminInsights() {
           </div>
 
           <footer className="admin-insights-footer">
-            <small>Last checked {new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' }).format(new Date(analytics.updatedAt))}</small>
+            <small>
+              Last updated{' '}
+              {new Intl.DateTimeFormat('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+              }).format(new Date(analytics.updatedAt))}
+            </small>
           </footer>
         </div>
       ) : null}

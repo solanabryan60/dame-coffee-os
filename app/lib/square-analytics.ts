@@ -6,38 +6,53 @@ const BUSINESS_TIME_ZONE = 'America/Los_Angeles';
 export type SalesRange = 'day' | 'week' | 'month' | 'quarter' | 'year';
 
 export type SalesSelection = {
+  date?: string;
   month?: number;
+  quarter?: number;
   year?: number;
+};
+
+type SalesMetrics = {
+  netSalesCents: number;
+  totalCollectedCents: number;
+  orderCount: number;
+  averageOrderCents: number;
+  taxCents: number;
+  tipCents: number;
+  discountCents: number;
+  serviceChargeCents: number;
+};
+
+type ItemSummary = {
+  name: string;
+  quantity: number;
+  salesCents: number;
 };
 
 export type DameSalesAnalytics = {
   range: SalesRange;
   label: string;
   updatedAt: string;
-  metrics: {
-    netSalesCents: number;
-    totalCollectedCents: number;
-    orderCount: number;
-    averageOrderCents: number;
-    taxCents: number;
-    tipCents: number;
-    discountCents: number;
-    serviceChargeCents: number;
+  period: {
+    startAt: string;
+    endAt: string;
   };
+  metrics: SalesMetrics;
   comparison: {
     previousNetSalesCents: number;
     percentChange: number | null;
   };
   chart: Array<{
     label: string;
+    detailLabel: string;
+    startAt: string;
+    endAt: string;
     salesCents: number;
     orderCount: number;
+    metrics: SalesMetrics;
+    items: ItemSummary[];
   }>;
-  topItems: Array<{
-    name: string;
-    quantity: number;
-    salesCents: number;
-  }>;
+  topItems: ItemSummary[];
 };
 
 type SquareMoney = { amount?: number };
@@ -192,12 +207,79 @@ function addLocalDays(start: Date, days: number) {
   );
 }
 
+function selectedLocalDay(value: string | undefined, now: Date) {
+  const fallback = dateParts(now);
+  const match = value?.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return fallback;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const check = new Date(Date.UTC(year, month - 1, day));
+  const valid = check.getUTCFullYear() === year
+    && check.getUTCMonth() + 1 === month
+    && check.getUTCDate() === day;
+  if (!valid) return fallback;
+
+  const earliestYear = fallback.year - 10;
+  const chosen = localMidnight(Math.max(earliestYear, year), month, day);
+  const today = localMidnight(fallback.year, fallback.month, fallback.day);
+  return dateParts(chosen > today ? today : chosen);
+}
+
+function dayLabel(date: Date) {
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: BUSINESS_TIME_ZONE,
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date);
+}
+
+function weekLabel(start: Date, end: Date) {
+  const lastDay = addLocalDays(end, -1);
+  const startParts = dateParts(start);
+  const endParts = dateParts(lastDay);
+  const startLabel = new Intl.DateTimeFormat('en-US', {
+    timeZone: BUSINESS_TIME_ZONE,
+    month: 'short',
+    day: 'numeric',
+    ...(startParts.year !== endParts.year ? { year: 'numeric' as const } : {}),
+  }).format(start);
+  const endLabel = new Intl.DateTimeFormat('en-US', {
+    timeZone: BUSINESS_TIME_ZONE,
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(lastDay);
+  return `${startLabel}–${endLabel}`;
+}
+
 function periodFor(range: SalesRange, selection: SalesSelection, now: Date) {
   const localNow = dateParts(now);
   let start = currentRangeStart(range, now);
   let naturalEnd: Date | null = null;
   let previousCalendarStart: Date | null = null;
   let label = rangeLabels[range];
+
+  if (range === 'day' || range === 'week') {
+    const chosen = selectedLocalDay(selection.date, now);
+    start = localMidnight(chosen.year, chosen.month, chosen.day);
+
+    if (range === 'week') {
+      const chosenDate = new Date(Date.UTC(chosen.year, chosen.month - 1, chosen.day));
+      const dayFromMonday = (chosenDate.getUTCDay() + 6) % 7;
+      start = addLocalDays(start, -dayFromMonday);
+      naturalEnd = addLocalDays(start, 7);
+      previousCalendarStart = addLocalDays(start, -7);
+      label = weekLabel(start, naturalEnd);
+    } else {
+      naturalEnd = addLocalDays(start, 1);
+      previousCalendarStart = addLocalDays(start, -1);
+      label = dayLabel(start);
+    }
+  }
 
   if (range === 'month' && selection.year && selection.month) {
     const year = Math.min(localNow.year, Math.max(localNow.year - 10, selection.year));
@@ -221,6 +303,19 @@ function periodFor(range: SalesRange, selection: SalesSelection, now: Date) {
     naturalEnd = localMidnight(year + 1, 1, 1);
     previousCalendarStart = localMidnight(year - 1, 1, 1);
     label = String(year);
+  }
+
+  if (range === 'quarter' && selection.year && selection.quarter) {
+    const year = Math.min(localNow.year, Math.max(localNow.year - 10, selection.year));
+    const latestQuarter = year === localNow.year ? Math.ceil(localNow.month / 3) : 4;
+    const quarter = Math.min(latestQuarter, Math.max(1, selection.quarter));
+    const month = (quarter - 1) * 3 + 1;
+    const next = shiftLocalMonth(year, month, 3);
+    const previous = shiftLocalMonth(year, month, -3);
+    start = localMidnight(year, month, 1);
+    naturalEnd = localMidnight(next.year, next.month, 1);
+    previousCalendarStart = localMidnight(previous.year, previous.month, 1);
+    label = `Q${quarter} ${year}`;
   }
 
   const end = naturalEnd && naturalEnd < now ? naturalEnd : now;
@@ -337,6 +432,24 @@ function bucketLabel(date: Date, range: SalesRange) {
   }).format(date);
 }
 
+function bucketDetailLabel(start: Date, end: Date, range: SalesRange) {
+  if (range === 'day') {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: BUSINESS_TIME_ZONE,
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+    return `${formatter.format(start)}–${formatter.format(end)}`;
+  }
+  if (range === 'week') return dayLabel(start);
+  if (range === 'month') return weekLabel(start, end);
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: BUSINESS_TIME_ZONE,
+    month: 'long',
+    year: 'numeric',
+  }).format(start);
+}
+
 function buildChart(orders: AnalyticsOrder[], start: Date, end: Date, range: SalesRange) {
   const boundaries: Date[] = [start];
   const local = dateParts(start);
@@ -365,28 +478,26 @@ function buildChart(orders: AnalyticsOrder[], start: Date, end: Date, range: Sal
     }
   }
 
-  const buckets = boundaries.map((boundary) => ({
-    start: boundary.getTime(),
-    label: bucketLabel(boundary, range),
-    salesCents: 0,
-    orderCount: 0,
-  }));
-
-  for (const order of orders) {
-    const closedAt = new Date(order.closed_at ?? '').getTime();
-    if (!Number.isFinite(closedAt)) continue;
-    let index = buckets.length - 1;
-    while (index > 0 && closedAt < buckets[index].start) index -= 1;
-    const collected = cents(order.total_money);
-    const net = collected
-      - cents(order.total_tax_money)
-      - cents(order.total_tip_money)
-      - cents(order.total_service_charge_money);
-    buckets[index].salesCents += net;
-    buckets[index].orderCount += 1;
-  }
-
-  return buckets.map(({ start: _start, ...bucket }) => bucket);
+  return boundaries.map((boundary, index) => {
+    const bucketEnd = boundaries[index + 1] ?? end;
+    const bucketOrders = orders.filter((order) => {
+      const closedAt = new Date(order.closed_at ?? '').getTime();
+      return Number.isFinite(closedAt)
+        && closedAt >= boundary.getTime()
+        && closedAt < bucketEnd.getTime();
+    });
+    const metrics = summarize(bucketOrders);
+    return {
+      label: bucketLabel(boundary, range),
+      detailLabel: bucketDetailLabel(boundary, bucketEnd, range),
+      startAt: boundary.toISOString(),
+      endAt: bucketEnd.toISOString(),
+      salesCents: metrics.netSalesCents,
+      orderCount: metrics.orderCount,
+      metrics,
+      items: topItems(bucketOrders),
+    };
+  });
 }
 
 function topItems(orders: AnalyticsOrder[]) {
@@ -402,8 +513,7 @@ function topItems(orders: AnalyticsOrder[]) {
   }
   return [...items.entries()]
     .map(([name, item]) => ({ name, ...item, quantity: Math.round(item.quantity * 100) / 100 }))
-    .sort((a, b) => b.quantity - a.quantity || b.salesCents - a.salesCents)
-    .slice(0, 5);
+    .sort((a, b) => b.quantity - a.quantity || b.salesCents - a.salesCents);
 }
 
 export async function getDameSalesAnalytics(
@@ -431,6 +541,10 @@ export async function getDameSalesAnalytics(
     range,
     label: period.label,
     updatedAt: now.toISOString(),
+    period: {
+      startAt: period.start.toISOString(),
+      endAt: period.end.toISOString(),
+    },
     metrics,
     comparison: {
       previousNetSalesCents: previous.netSalesCents,
