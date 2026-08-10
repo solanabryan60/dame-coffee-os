@@ -2458,6 +2458,12 @@ img {
   gap: 28px;
 }
 
+.admin-menu-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .admin-menu-group > header {
   margin-bottom: 24px;
 }
@@ -2492,7 +2498,23 @@ img {
   background: rgba(150, 16, 16, 0.06);
 }
 
-.admin-menu-grid article span {
+.admin-menu-grid article.is-hidden {
+  border-style: dashed;
+  opacity: 0.78;
+}
+
+.admin-menu-item-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-menu-item-heading > div:first-child {
+  min-width: 0;
+}
+
+.admin-menu-item-heading > div:first-child > span {
   color: var(--dame-red);
   font-size: 9px;
   font-weight: 900;
@@ -2516,8 +2538,93 @@ img {
   width: 100%;
 }
 
+.admin-menu-photo {
+  width: 78px;
+  height: 78px;
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background-color: var(--cream);
+  background-position: center;
+  background-size: cover;
+}
+
+.admin-menu-presentation-form {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-menu-presentation-form > label {
+  display: grid;
+  gap: 8px;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.admin-menu-presentation-form input,
+.admin-menu-presentation-form textarea {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: white;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.admin-menu-presentation-form textarea {
+  resize: vertical;
+}
+
+.admin-menu-badges {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.admin-menu-badges label {
+  min-height: 44px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.admin-menu-badges input {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  accent-color: var(--dame-red);
+}
+
+.admin-menu-badges span {
+  font-size: 10px;
+  font-weight: 900;
+}
+
 @media (max-width: 720px) {
   .admin-menu-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-menu-actions,
+  .admin-menu-actions .pill {
+    width: 100%;
+  }
+
+  .admin-menu-badges {
     grid-template-columns: 1fr;
   }
 }

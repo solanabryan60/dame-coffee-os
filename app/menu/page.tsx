@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import SiteFooter from '../components/site-footer';
 import SiteHeader from '../components/site-header';
 import { getSquareCatalog } from '../lib/square';
-import { readMenuAvailability } from '../lib/supabase-rest';
+import { applyMenuPresentation } from '../lib/menu-presentation';
+import { readMenuAvailability, readMenuPresentation } from '../lib/supabase-rest';
 import MenuExperience from './menu-experience';
 
 export const dynamic = 'force-dynamic';
@@ -13,14 +14,15 @@ export const metadata: Metadata = {
 };
 
 export default async function MenuPage() {
-  const [catalog, availability] = await Promise.all([
+  const [catalog, availability, presentation] = await Promise.all([
     getSquareCatalog(),
     readMenuAvailability().catch(() => []),
+    readMenuPresentation().catch(() => []),
   ]);
   const soldOutItemIds = new Set(
     availability.filter((item) => item.is_sold_out).map((item) => item.square_item_id),
   );
-  const items = catalog.items.map((item) => ({
+  const items = applyMenuPresentation(catalog.items, presentation).map((item) => ({
     ...item,
     isSoldOut: soldOutItemIds.has(item.id),
   }));

@@ -58,6 +58,16 @@ export type MenuItemAvailability = {
   updated_at: string;
 };
 
+export type MenuItemPresentation = {
+  square_item_id: string;
+  description: string | null;
+  image_url: string | null;
+  is_featured: boolean;
+  is_seasonal: boolean;
+  is_hidden: boolean;
+  updated_at: string;
+};
+
 export type InventoryCategory =
   | 'ingredients'
   | 'milk'
@@ -225,11 +235,62 @@ export async function readMenuAvailability() {
   );
 }
 
+export async function readMenuPresentation() {
+  return publicRequest<MenuItemPresentation[]>(
+    '/menu_item_presentation?select=*&order=updated_at.desc',
+  );
+}
+
 export async function listMenuAvailabilityForAdmin(accessToken: string) {
   return publicRequest<MenuItemAvailability[]>(
     '/menu_item_availability?select=*&order=updated_at.desc',
     accessToken,
   );
+}
+
+export async function listMenuPresentationForAdmin(accessToken: string) {
+  return publicRequest<MenuItemPresentation[]>(
+    '/menu_item_presentation?select=*&order=updated_at.desc',
+    accessToken,
+  );
+}
+
+export async function setMenuItemPresentation(
+  accessToken: string,
+  input: Pick<
+    MenuItemPresentation,
+    | 'square_item_id'
+    | 'description'
+    | 'image_url'
+    | 'is_featured'
+    | 'is_seasonal'
+    | 'is_hidden'
+  >,
+) {
+  const config = requireConfig();
+  const response = await fetch(
+    `${config.supabaseUrl}/rest/v1/menu_item_presentation?on_conflict=square_item_id`,
+    {
+      method: 'POST',
+      headers: {
+        apikey: config.supabaseKey,
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=merge-duplicates,return=representation',
+      },
+      body: JSON.stringify({
+        ...input,
+        description: input.description?.trim() || null,
+        image_url: input.image_url?.trim() || null,
+        updated_at: new Date().toISOString(),
+      }),
+    },
+  );
+  const payload = await response.json();
+  if (!response.ok) throw new Error(authError(payload, 'Could not update that menu item.'));
+  const presentation = (payload as MenuItemPresentation[])[0];
+  if (!presentation) throw new Error('Could not update that menu item.');
+  return presentation;
 }
 
 export async function setMenuItemSoldOut(

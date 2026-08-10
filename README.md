@@ -1,8 +1,10 @@
-# Dame Coffee OS — Phase 11 Daily Prep Center
+# Dame Coffee OS — Phase 12 Menu Studio
 
 Dame Coffee OS is the public website, pickup-ordering experience, rewards program, and private control center for Dame Coffee.
 
-Phase 11 adds a private, phone-friendly daily checklist for opening, service, and closing. Recurring tasks start fresh each day and can be completed, renamed, added, or removed without changing Square or public website data.
+Phase 12 adds a private Menu Studio on top of the live Square catalog. Square remains the source of truth for products, prices, modifiers, and checkout, while Dame can control website photos, descriptions, featured and seasonal badges, visibility, and same-day sold-out status.
+
+See [`ROADMAP_AUDIT.md`](./ROADMAP_AUDIT.md) for the verified Phase 2–10 completion audit and remaining build order.
 
 ## Operations center
 
@@ -10,7 +12,7 @@ Visit `/admin` for the daily overview. Each workspace now has one purpose:
 
 - `/admin/location` — current location, hours, wait time, open status, and mobile ordering
 - `/mobileorder` — dedicated live Square-connected mobile order queue
-- `/admin/menu` — website menu availability overrides
+- `/admin/menu` — Menu Studio for website presentation and same-day availability
 - `/admin/inventory` — ingredient and supply counts with low-stock warnings
 - `/admin/prep` — recurring opening, service, and closing checklist
 - `/admin/catering` — deposits, event details, customer contact, notes, and status
@@ -29,6 +31,17 @@ The `/admin/prep` workspace keeps the day focused:
 - tapping a task marks it finished for the current day
 - each new calendar day starts with a fresh checklist automatically
 - approved admins can add, rename, or remove recurring tasks from a phone
+
+## Menu Studio
+
+The `/admin/menu` workspace combines the live Square catalog with Dame-only presentation controls:
+
+- add menu items, edit prices, and manage modifiers in Square so checkout always matches the POS
+- add or replace each item’s website photo
+- rewrite the public website description without changing checkout data
+- mark items featured or seasonal
+- hide an item from the public menu and pickup ordering without deleting it from Square
+- mark an item sold out for today across both the public menu and pickup ordering
 
 ## Mobile order center
 
@@ -120,6 +133,7 @@ Staff can:
 - Review every website pickup order and its customer, items, customizations, location, and payment state
 - Move pickup orders from paid to preparing, ready, and picked up while the customer watches their private tracker
 - Flag an order for a Square refund and have the verified refund update Dame Coffee OS automatically
+- Add website photos, descriptions, featured and seasonal badges, and visibility from `/admin/menu`
 - Mark menu items sold out or available from `/admin/menu`
 - Prevent sold-out items from being added through website checkout
 - Add ingredients and supplies to the private stockroom
@@ -155,6 +169,8 @@ Apply these SQL files in order:
 10. `supabase-phase7-pickup-center.sql`
 11. `supabase-phase8-menu-availability.sql`
 12. `supabase-phase10-inventory-center.sql`
+13. `supabase-phase11-daily-prep.sql`
+14. `supabase-phase12-menu-studio.sql`
 
 Phase 4 and 4B create:
 
@@ -278,6 +294,9 @@ Also confirm:
 - Customer tracking pages never expose private staff notes or Square identifiers
 - Sold-out controls are writable only by approved Dame admins
 - Sold-out items remain visible to customers but cannot be checked out
+- Menu presentation is publicly readable but writable only by approved Dame admins
+- Hidden menu items do not appear on either the public menu or pickup ordering
+- Square remains the source of truth for product prices and modifiers
 - Inventory data is readable and writable only by approved Dame admins
 - Low-stock status changes at the configured threshold and never allows negative quantities
 - `/admin` and `/admin/login` still work

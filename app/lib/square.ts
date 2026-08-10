@@ -38,6 +38,8 @@ export type SquareMenuItem = {
   variations: SquareMenuVariation[];
   modifierGroups: SquareMenuModifierGroup[];
   isSoldOut?: boolean;
+  isFeatured?: boolean;
+  isSeasonal?: boolean;
 };
 
 export type SquareCatalogResult = {

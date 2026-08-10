@@ -105,11 +105,23 @@ export default function MenuExperience({
           {visibleItems.length ? (
             <div className="dame-menu-card-grid">
               {visibleItems.map((item) => (
-                <article key={item.id} className={`dame-menu-card ${item.isSoldOut ? 'is-sold-out' : ''}`}>
-                  <div className="dame-menu-card-mark" aria-hidden="true">
-                    <span>DC</span>
+                <article key={item.id} className={`dame-menu-card ${item.isSoldOut ? 'is-sold-out' : ''} ${item.isFeatured ? 'is-featured' : ''} ${item.imageUrl ? 'has-photo' : ''}`.trim()}>
+                  <div
+                    className={`dame-menu-card-mark ${item.imageUrl ? 'has-photo' : ''}`.trim()}
+                    role={item.imageUrl ? 'img' : undefined}
+                    aria-label={item.imageUrl ? `${item.name} photo` : undefined}
+                    aria-hidden={item.imageUrl ? undefined : true}
+                    style={item.imageUrl ? { backgroundImage: `url(${JSON.stringify(item.imageUrl)})` } : undefined}
+                  >
+                    {item.imageUrl ? null : <span>DC</span>}
                   </div>
                   <div>
+                    {item.isFeatured || item.isSeasonal ? (
+                      <div className="dame-menu-card-badges">
+                        {item.isFeatured ? <span>Featured</span> : null}
+                        {item.isSeasonal ? <span>Seasonal</span> : null}
+                      </div>
+                    ) : null}
                     <div className="dame-menu-card-title">
                       <h3>{item.name}</h3>
                       <strong>{item.isSoldOut ? 'Sold out today' : displayPrice(item)}</strong>
