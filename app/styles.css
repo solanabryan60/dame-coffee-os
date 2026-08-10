@@ -16,6 +16,8 @@
 
 /* Phase 13 · menu uploads, customer history, team workspace, and growth metrics */
 .admin-menu-photo-drop {
+  position: relative;
+  overflow: hidden;
   min-height: 132px;
   border: 2px dashed rgba(150, 16, 16, .34);
   border-radius: 22px;
@@ -34,7 +36,15 @@
   background: rgba(150, 16, 16, .1);
   transform: translateY(-2px);
 }
-.admin-menu-photo-drop input { position: absolute; inline-size: 1px; block-size: 1px; opacity: 0; pointer-events: none; }
+.admin-menu-presentation-form .admin-menu-photo-drop input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
 .admin-menu-photo-drop strong { color: #961010; font-size: 1rem; }
 .admin-menu-photo-drop span { color: #6e625d; font-size: .84rem; }
 .admin-menu-photo-link { opacity: .8; }
