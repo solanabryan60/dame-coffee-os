@@ -12,10 +12,12 @@ export default function SiteFooter() {
       <nav aria-label="Footer navigation">
         <p>Explore</p>
         <Link href="/menu">Menu</Link>
+        <Link href="/#today">Find us today</Link>
         <Link href="/catering">Catering</Link>
         <Link href="/rewards">Rewards</Link>
+        <Link href="/events">Events</Link>
+        <Link href="/about">Our story</Link>
         <Link href="/app">Dame App</Link>
-        <Link href="/#info">Information</Link>
       </nav>
 
       <div className="dame-footer-contact">

@@ -3,29 +3,36 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import SiteFooter from './components/site-footer';
 import GoogleMap from './components/google-map';
-import NotificationOptIn from './components/notification-opt-in';
+import SiteFooter from './components/site-footer';
 import SiteHeader from './components/site-header';
-import UpcomingEvents from './components/upcoming-events';
-import {
-  readSiteSettings,
-  readUpcomingEvents,
-  SiteSettings,
-  UpcomingEvent,
-} from './lib/supabase-rest';
-import { liveLocation as fallbackLocation, missionStatement } from './site-config';
+import { readSiteSettings, SiteSettings } from './lib/supabase-rest';
+import { liveLocation as fallbackLocation } from './site-config';
+
+const menuCollections = [
+  {
+    number: '01',
+    name: 'Cold Foam Lovers',
+    detail: 'Layered drinks finished with cold foam—already included.',
+  },
+  {
+    number: '02',
+    name: 'Specialty Drinks',
+    detail: 'Dame flavors served with cold brew or matcha, made without cold foam.',
+  },
+  {
+    number: '03',
+    name: 'The Basics',
+    detail: 'Cold brew and matcha, simple and made your way.',
+  },
+];
 
 export default function Home() {
   const [remoteLocation, setRemoteLocation] = useState<SiteSettings | null>(null);
-  const [events, setEvents] = useState<UpcomingEvent[]>([]);
 
   useEffect(() => {
     readSiteSettings().then(setRemoteLocation).catch(() => {
-      // The public fallback keeps today’s information visible if Supabase is unavailable.
-    });
-    readUpcomingEvents().then(setEvents).catch(() => {
-      // Events stay hidden if they are temporarily unavailable.
+      // Today’s location remains visible through the public fallback.
     });
   }, []);
 
@@ -45,125 +52,110 @@ export default function Home() {
   const orderingAvailable = location.isOpen && location.mobileOrdering;
 
   return (
-    <main className="dame-site">
+    <main className="dame-site dame-home-v3">
       <SiteHeader overlay />
 
-      <section className="dame-landing" aria-labelledby="landing-title">
+      <section className="dame-home-v3-hero" aria-labelledby="home-hero-title">
         <Image
           src="/assets/cart-venice.jpg"
-          alt="A Dame Coffee drink held in front of the cart at Venice Beach"
+          alt="A Dame Coffee drink held in front of the mobile cart in Venice"
           fill
           priority
           sizes="100vw"
-          className="dame-landing-image"
+          className="dame-home-v3-hero-image"
         />
-        <div className="dame-landing-shade" />
-
-        <div className="dame-landing-copy">
-          <p className="dame-kicker dame-kicker-light">Dame Coffee · Dame Vida</p>
-          <h1 id="landing-title">
-            Coffee that makes
-            <span>you want to find us.</span>
-          </h1>
-          <p>Cold brew and matcha made with intention, culture, unity, and love.</p>
+        <div className="dame-home-v3-hero-shade" />
+        <div className="dame-home-v3-hero-copy">
+          <p className="dame-kicker dame-kicker-light">Mobile coffee · Southern California</p>
+          <h1 id="home-hero-title">Made to move.<br /><em>Rooted in home.</em></h1>
+          <p>
+            Cold brew and matcha served with care, culture, and a little more vida.
+          </p>
           <div className="dame-actions">
-            <a className="dame-button dame-button-light" href="#today">Find us today</a>
+            <a className="dame-button dame-button-light" href="#today">Find Dame today</a>
             <Link className="dame-inline-link dame-inline-link-light" href="/menu">
-              Explore the menu <span aria-hidden="true">↗</span>
+              View the menu <span aria-hidden="true">↗</span>
             </Link>
           </div>
         </div>
-
-        <a className="dame-scroll-cue" href="#today">
-          Today&apos;s details <span aria-hidden="true">↓</span>
-        </a>
+        <p className="dame-home-v3-signature" aria-hidden="true">Dame Coffee · Dame Vida</p>
       </section>
 
-      <section id="today" className="dame-today" aria-labelledby="today-title">
-        <div className="dame-today-heading">
+      <section id="today" className="dame-home-v3-today" aria-labelledby="today-title">
+        <header>
           <p className="dame-kicker">
             <span className={`dame-live-dot ${location.isOpen ? '' : 'is-closed'}`} />
-            {location.isOpen ? 'We’re brewing' : 'We’re closed right now'}
+            {location.isOpen ? 'Live location' : 'Next location'}
           </p>
-          <h2 id="today-title">Us, today.</h2>
-          <p>
-            No guessing. This is our current location, today&apos;s hours, and whether pickup
-            ordering is available.
-          </p>
-        </div>
+          <h2 id="today-title">Find us today.</h2>
+          <p>Our cart moves. This page always tells you where to meet us.</p>
+        </header>
 
-        <article className="dame-location-card">
-          <div className="dame-location-top">
-            <div>
-              <p>{location.isOpen ? 'Serving today' : 'Our next listed stop'}</p>
-              <h3>{location.title}</h3>
+        <div className="dame-home-v3-location-layout">
+          <article className="dame-home-v3-location-card">
+            <div className="dame-home-v3-location-status">
+              <span className={`dame-status ${location.isOpen ? '' : 'is-closed'}`}>
+                {location.isOpen ? 'Open now' : 'Closed'}
+              </span>
+              <span>{location.hours}</span>
             </div>
-            <span className={`dame-status ${location.isOpen ? '' : 'is-closed'}`}>
-              {location.isOpen ? 'Open' : 'Closed'}
-            </span>
-          </div>
+            <h3>{location.title}</h3>
+            <p className="dame-home-v3-address">{location.address}</p>
+            <p className="dame-home-v3-directions">{location.directions}</p>
 
-          <div className="dame-location-address">
-            <strong>{location.address}</strong>
-            <span>{location.directions}</span>
-          </div>
+            <dl>
+              <div><dt>Wait</dt><dd>{location.isOpen ? `About ${location.waitMinutes} min` : '—'}</dd></div>
+              <div><dt>Pickup</dt><dd>{orderingAvailable ? 'Open' : 'Paused'}</dd></div>
+            </dl>
 
-          <dl className="dame-location-facts">
-            <div>
-              <dt>Hours</dt>
-              <dd>{location.hours}</dd>
+            <div className="dame-actions">
+              <a className="dame-button" href={location.mapsUrl} target="_blank" rel="noreferrer">
+                Get directions
+              </a>
+              <Link className="dame-button dame-button-outline" href={orderingAvailable ? '/order' : '/menu'}>
+                {orderingAvailable ? 'Order pickup' : 'View menu'}
+              </Link>
             </div>
-            <div>
-              <dt>Wait</dt>
-              <dd>{location.isOpen ? `About ${location.waitMinutes} min` : 'Not available'}</dd>
-            </div>
-            <div>
-              <dt>Pickup</dt>
-              <dd>{orderingAvailable ? 'Ordering open' : 'Ordering paused'}</dd>
-            </div>
-          </dl>
+          </article>
 
-          <div className="dame-actions">
-            <a className="dame-button" href={location.mapsUrl} target="_blank" rel="noreferrer">
-              Get directions
-            </a>
-            <Link className="dame-button dame-button-outline" href={orderingAvailable ? '/order' : '/menu'}>
-              {orderingAvailable ? 'Order pickup' : 'View menu'}
-            </Link>
-          </div>
-        </article>
-
-        <GoogleMap
-          address={location.address}
-          title={`Google Map showing ${location.title}`}
-          className="dame-home-map"
-        />
-      </section>
-
-      <UpcomingEvents events={events} />
-
-      <NotificationOptIn />
-
-      <section id="info" className="dame-info" aria-labelledby="info-title">
-        <div className="dame-info-photo">
-          <Image
-            src="/assets/cart-market.jpg"
-            alt="The Dame Coffee cart at a community market"
-            fill
-            sizes="(max-width: 760px) 100vw, 50vw"
+          <GoogleMap
+            address={location.address}
+            title={`Google Map showing ${location.title}`}
+            className="dame-home-v3-map"
           />
         </div>
-        <div className="dame-info-copy">
-          <p className="dame-kicker">More than coffee</p>
-          <h2 id="info-title">A place to feel at home—wherever we park.</h2>
-          <p className="dame-mission">{missionStatement}</p>
-          <p className="dame-quote">Good coffee finds good people.</p>
-          <div className="dame-info-links">
-            <Link href="/menu">See what we make <span>→</span></Link>
-            <Link href="/catering">Bring Dame to your event <span>→</span></Link>
-            <Link href="/rewards">Join Dame Rewards <span>→</span></Link>
-          </div>
+      </section>
+
+      <section className="dame-home-v3-menu" aria-labelledby="home-menu-title">
+        <div className="dame-home-v3-menu-photo">
+          <Image
+            src="/assets/cart-market.jpg"
+            alt="Dame Coffee serving at a community market"
+            fill
+            sizes="(max-width: 820px) 100vw, 48vw"
+          />
         </div>
+        <div className="dame-home-v3-menu-copy">
+          <p className="dame-kicker">What we make</p>
+          <h2 id="home-menu-title">Cold drinks.<br /><em>Full character.</em></h2>
+          <div className="dame-home-v3-collections">
+            {menuCollections.map((collection) => (
+              <article key={collection.name}>
+                <span>{collection.number}</span>
+                <div>
+                  <h3>{collection.name}</h3>
+                  <p>{collection.detail}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+          <Link className="dame-button" href="/menu">Explore the full menu</Link>
+        </div>
+      </section>
+
+      <section className="dame-home-v3-story-link" aria-label="Dame Coffee story">
+        <p>Culture is not decoration. It is how we welcome people.</p>
+        <Link href="/about">Our story <span aria-hidden="true">↗</span></Link>
       </section>
 
       <SiteFooter />

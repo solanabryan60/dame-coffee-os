@@ -5,12 +5,12 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 const navigation = [
-  { label: 'Home', href: '/' },
   { label: 'Menu', href: '/menu' },
+  { label: 'Today', href: '/#today' },
   { label: 'Catering', href: '/catering' },
   { label: 'Rewards', href: '/rewards' },
-  { label: 'App', href: '/app' },
-  { label: 'Info', href: '/#info' },
+  { label: 'Events', href: '/events' },
+  { label: 'Our Story', href: '/about' },
 ];
 
 export default function SiteHeader({ overlay = false }: { overlay?: boolean }) {
