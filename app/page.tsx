@@ -92,7 +92,7 @@ export default function Home() {
         </header>
 
         <div className="dame-home-v3-location-layout">
-          <article className="dame-home-v3-location-card">
+          <article className={`dame-home-v3-location-card ${location.title.length > 28 ? 'has-long-title' : ''}`}>
             <div className="dame-home-v3-location-status">
               <span className={`dame-status ${location.isOpen ? '' : 'is-closed'}`}>
                 {location.isOpen ? 'Open now' : 'Closed'}

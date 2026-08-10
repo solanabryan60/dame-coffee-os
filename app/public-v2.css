@@ -5149,6 +5149,14 @@
   letter-spacing: -0.055em;
   line-height: 0.9;
   text-transform: uppercase;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.dame-home-v3-location-card.has-long-title h3 {
+  max-width: 640px;
+  font-size: clamp(36px, 4.2vw, 58px);
+  line-height: 0.94;
 }
 
 .dame-home-v3-address {
@@ -5619,6 +5627,11 @@
   .dame-home-v3-location-card h3 {
     margin-top: 42px;
     font-size: 48px;
+  }
+
+  .dame-home-v3-location-card.has-long-title h3 {
+    font-size: 38px;
+    line-height: 0.98;
   }
 
   .dame-home-v3-location-card .dame-actions,
