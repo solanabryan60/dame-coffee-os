@@ -145,8 +145,8 @@ export default function AdminRewardsPage() {
     <main className="admin-shell">
       <AdminHeader title="Dame Rewards" />
       <section className="admin-card admin-rewards-card">
-        <div className="admin-section-heading"><div><p className="eyebrow">AT THE CART</p><h2>Redeem a customer code.</h2></div><p>Ask for the eight-character code shown in their rewards account.</p></div>
-        <form className="admin-reward-lookup" onSubmit={checkReward}><label>Reward code<input value={rewardCode} onChange={(event) => setRewardCode(event.target.value.toUpperCase())} placeholder="AB12CD34" maxLength={8} autoCapitalize="characters" required /></label><button className="pill solid" type="submit" disabled={checkingReward}>{checkingReward ? 'Checking…' : 'Check code'}</button></form>
+        <div className="admin-section-heading"><div><p className="eyebrow">AT THE CART</p><h2>Look up a reward code.</h2></div><p>When a customer spends points, their account creates a one-time eight-character code. Enter it here before handing them the free item.</p></div>
+        <form className="admin-reward-lookup" onSubmit={checkReward}><label>Customer&apos;s reward code<input value={rewardCode} onChange={(event) => setRewardCode(event.target.value.toUpperCase())} placeholder="AB12CD34" maxLength={8} autoCapitalize="characters" required /></label><button className="pill solid" type="submit" disabled={checkingReward}>{checkingReward ? 'Checking…' : 'Find reward'}</button></form>
         {reward ? <article className={`admin-reward-result is-${reward.status}`}><div><span>{reward.status}</span><h3>{reward.reward_name}</h3><p>{reward.first_name} · {reward.email}</p><small>Code {reward.code} · {reward.points_spent} points</small></div><button className="pill solid" type="button" onClick={markRewardUsed} disabled={checkingReward || reward.status !== 'pending'}>{reward.status === 'pending' ? 'Mark reward used' : 'Already handled'}</button></article> : null}
         {rewardMessage ? <p className="admin-success">{rewardMessage}</p> : null}
         {rewardError ? <p className="admin-error">{rewardError}</p> : null}

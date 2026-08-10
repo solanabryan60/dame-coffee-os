@@ -177,7 +177,7 @@ export default function AdminDashboard() {
       href: '/admin/rewards',
       eyebrow: 'Dame Rewards',
       title: `${overview.activePromotions} live ${overview.activePromotions === 1 ? 'campaign' : 'campaigns'}`,
-      detail: 'Redeem customer codes and schedule 2× points moments.',
+      detail: 'Look up one-time reward codes and schedule 2× points moments.',
       action: 'Open rewards',
     },
     {

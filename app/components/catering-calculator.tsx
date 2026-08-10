@@ -46,6 +46,7 @@ export default function CateringCalculator() {
   const [addressFocused, setAddressFocused] = useState(false);
   const [addressSuggestions, setAddressSuggestions] = useState<AddressSuggestion[]>([]);
   const [addressSearchLoading, setAddressSearchLoading] = useState(false);
+  const [addressSearchError, setAddressSearchError] = useState('');
   const [highlightedAddress, setHighlightedAddress] = useState(-1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -63,6 +64,7 @@ export default function CateringCalculator() {
     if (!addressFocused || input.length < 4) {
       setAddressSuggestions([]);
       setAddressSearchLoading(false);
+      setAddressSearchError('');
       setHighlightedAddress(-1);
       return;
     }
@@ -70,17 +72,20 @@ export default function CateringCalculator() {
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
       setAddressSearchLoading(true);
+      setAddressSearchError('');
       try {
         const response = await fetch(
           `/api/places/autocomplete?input=${encodeURIComponent(input)}`,
           { signal: controller.signal },
         );
-        const payload = (await response.json()) as { suggestions?: AddressSuggestion[] };
+        const payload = (await response.json()) as { suggestions?: AddressSuggestion[]; error?: string };
         setAddressSuggestions(response.ok ? (payload.suggestions ?? []) : []);
+        if (!response.ok) setAddressSearchError(payload.error || 'Address suggestions are temporarily unavailable.');
         setHighlightedAddress(-1);
       } catch (searchError) {
         if ((searchError as { name?: string }).name !== 'AbortError') {
           setAddressSuggestions([]);
+          setAddressSearchError('Address suggestions are temporarily unavailable. You can still type the complete address.');
         }
       } finally {
         if (!controller.signal.aborted) setAddressSearchLoading(false);
@@ -165,7 +170,63 @@ export default function CateringCalculator() {
 
   return (
     <form className="dame-estimator" onSubmit={requestDate}>
+      <div className="dame-slider-block">
+        <div>
+          <span>How many drinks?</span>
+          <strong>{drinks}</strong>
+        </div>
+        <input
+          type="range"
+          min="100"
+          max="600"
+          step="50"
+          value={drinks}
+          onChange={(event) => setDrinks(Number(event.target.value))}
+          aria-label="Number of drinks"
+        />
+        <div className="dame-range-labels"><span>100 minimum</span><span>600</span></div>
+      </div>
+
+      <div className="dame-slider-block">
+        <div>
+          <span>How long do you need us?</span>
+          <strong>{hours} hours</strong>
+        </div>
+        <input
+          type="range"
+          min="2"
+          max="12"
+          step="2"
+          value={hours}
+          onChange={(event) => setHours(Number(event.target.value))}
+          aria-label="Hours of service"
+        />
+        <div className="dame-range-labels"><span>2 hour minimum</span><span>12 hours</span></div>
+      </div>
+
+      <aside className="dame-estimate-card" aria-live="polite">
+        <p>Estimated event price</p>
+        <strong>{money(estimate)}</strong>
+        <span>plus applicable tax</span>
+        <ul>
+          <li>{drinks} drinks</li>
+          <li>{hours} hours of service</li>
+          <li>Standard travel included in the estimate</li>
+          <li>Cold brew and matcha service</li>
+        </ul>
+        <p className="dame-estimate-note">
+          We&apos;ll call to confirm availability, travel, menu choices, final price,
+          and the remaining balance.
+        </p>
+      </aside>
+
       <div className="dame-estimator-fields">
+        <div className="dame-form-intro dame-field-wide">
+          <p className="dame-kicker">Event details</p>
+          <h3>Now, tell us about the day.</h3>
+          <p>Share the essentials and we&apos;ll personally confirm every detail with you.</p>
+        </div>
+
         <label className="dame-field">
           <span>Your name</span>
           <input value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" required />
@@ -242,6 +303,7 @@ export default function CateringCalculator() {
             ) : null}
           </div>
           <small id="dame-address-help">Choose a suggestion to fill in the complete address.</small>
+          {addressSearchError ? <small className="dame-address-error" role="status">{addressSearchError} You can still enter the complete address.</small> : null}
           {mapHref ? (
             <a href={mapHref} target="_blank" rel="noreferrer">Preview this address on Google Maps ↗</a>
           ) : null}
@@ -268,76 +330,41 @@ export default function CateringCalculator() {
           />
         </label>
 
-        <label className="dame-field">
-          <span>Event setting</span>
-          <select value={eventSetting} onChange={(event) => setEventSetting(event.target.value as typeof eventSetting)}>
-            <option value="outdoor">Outdoor</option>
-            <option value="indoor">Indoor</option>
-            <option value="both">Indoor and outdoor</option>
-            <option value="unsure">Not sure yet</option>
-          </select>
-        </label>
+        <fieldset className="dame-field dame-field-wide dame-setting-field">
+          <legend>Event setting</legend>
+          <div className="dame-setting-options">
+            {[
+              ['outdoor', 'Outdoor', 'Open-air service'],
+              ['indoor', 'Indoor', 'Inside the venue'],
+              ['both', 'Both', 'A mix of both'],
+              ['unsure', 'Not sure', 'We’ll help you decide'],
+            ].map(([value, label, detail]) => (
+              <label key={value} className={eventSetting === value ? 'is-selected' : ''}>
+                <input
+                  type="radio"
+                  name="event-setting"
+                  value={value}
+                  checked={eventSetting === value}
+                  onChange={() => setEventSetting(value as typeof eventSetting)}
+                />
+                <strong>{label}</strong>
+                <span>{detail}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
 
         <label className="dame-field">
           <span>Budget · optional</span>
           <div className="dame-money-input"><b>$</b><input type="number" min="0" max="1000000" step="50" inputMode="numeric" value={budget} onChange={(event) => setBudget(event.target.value)} placeholder={String(estimate)} /></div>
         </label>
 
-        <label className="dame-field dame-field-wide">
+        <label className="dame-field dame-field-wide dame-notes-field">
           <span>Anything we should know? · optional</span>
-          <textarea rows={4} maxLength={2000} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Venue access, event type, timing, or anything that will help us prepare." />
+          <small>Venue access, event style, timing, or any detail that helps us serve beautifully.</small>
+          <textarea rows={5} maxLength={2000} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Tell us what will make the day feel seamless…" />
         </label>
       </div>
-
-      <div className="dame-slider-block">
-        <div>
-          <span>How many drinks?</span>
-          <strong>{drinks}</strong>
-        </div>
-        <input
-          type="range"
-          min="100"
-          max="600"
-          step="50"
-          value={drinks}
-          onChange={(event) => setDrinks(Number(event.target.value))}
-          aria-label="Number of drinks"
-        />
-        <div className="dame-range-labels"><span>100 minimum</span><span>600</span></div>
-      </div>
-
-      <div className="dame-slider-block">
-        <div>
-          <span>How long do you need us?</span>
-          <strong>{hours} hours</strong>
-        </div>
-        <input
-          type="range"
-          min="2"
-          max="12"
-          step="2"
-          value={hours}
-          onChange={(event) => setHours(Number(event.target.value))}
-          aria-label="Hours of service"
-        />
-        <div className="dame-range-labels"><span>2 hour minimum</span><span>12 hours</span></div>
-      </div>
-
-      <aside className="dame-estimate-card" aria-live="polite">
-        <p>Estimated event price</p>
-        <strong>{money(estimate)}</strong>
-        <span>plus applicable tax</span>
-        <ul>
-          <li>{drinks} drinks</li>
-          <li>{hours} hours of service</li>
-          <li>Standard travel included in the estimate</li>
-          <li>Cold brew and matcha service</li>
-        </ul>
-        <p className="dame-estimate-note">
-          We&apos;ll call to confirm availability, travel, menu choices, final price,
-          and the remaining balance.
-        </p>
-      </aside>
 
       <section className="dame-deposit-card" aria-labelledby="deposit-title">
         <div>

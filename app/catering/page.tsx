@@ -34,8 +34,8 @@ export default function CateringPage() {
       <section className="dame-catering-builder" aria-labelledby="builder-title">
         <div className="dame-builder-heading">
           <p className="dame-kicker">Your estimate</p>
-          <h2 id="builder-title">Tell us what you need.</h2>
-          <p>Travel is considered through the event address. Final details are always confirmed personally.</p>
+          <h2 id="builder-title">Start with the experience.</h2>
+          <p>Choose the number of drinks and service time first. Your estimate updates instantly before we ask for any event information.</p>
         </div>
         <CateringCalculator />
       </section>

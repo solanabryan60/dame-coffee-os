@@ -2042,6 +2042,29 @@
   gap: 20px;
 }
 
+.dame-form-intro {
+  margin-top: 22px;
+  padding: 44px 0 18px;
+  border-top: 1px solid var(--line);
+}
+
+.dame-form-intro h3 {
+  margin: 10px 0 12px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(42px, 5vw, 68px);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+}
+
+.dame-form-intro > p:last-child {
+  max-width: 620px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
 .dame-field-wide {
   grid-column: 1 / -1;
 }
@@ -2064,6 +2087,114 @@
   color: var(--muted);
   font-size: 11px;
   line-height: 1.5;
+}
+
+.dame-address-error {
+  color: var(--dame-red) !important;
+  font-weight: 800;
+}
+
+.dame-setting-field {
+  margin: 2px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.dame-setting-field legend {
+  margin-bottom: 10px;
+  padding: 0;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.dame-setting-options {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dame-setting-options label {
+  position: relative;
+  min-height: 112px;
+  padding: 20px 16px;
+  border: 1px solid rgba(31, 23, 20, 0.14);
+  border-radius: 22px;
+  display: grid;
+  align-content: space-between;
+  gap: 16px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.72);
+  cursor: pointer;
+  transition: border-color 180ms ease, background 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.dame-setting-options label:hover,
+.dame-setting-options label:focus-within {
+  border-color: rgba(150, 16, 16, 0.5);
+  transform: translateY(-2px);
+}
+
+.dame-setting-options label.is-selected {
+  border-color: var(--dame-red);
+  background: var(--dame-red);
+  color: white;
+}
+
+.dame-setting-options input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dame-setting-options strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 25px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.dame-setting-options span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.dame-setting-options label.is-selected span {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.dame-notes-field {
+  margin-top: 4px;
+  padding: 26px;
+  border: 1px solid rgba(150, 16, 16, 0.16);
+  border-radius: 28px;
+  gap: 8px;
+  background: linear-gradient(145deg, rgba(245, 240, 231, 0.96), rgba(255, 253, 248, 0.96));
+}
+
+.dame-notes-field textarea {
+  width: 100%;
+  margin-top: 10px;
+  padding: 20px 0 4px;
+  border: 0;
+  border-top: 1px solid rgba(31, 23, 20, 0.14);
+  outline: 0;
+  resize: vertical;
+  background: transparent;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20px;
+  line-height: 1.55;
+}
+
+.dame-notes-field textarea::placeholder {
+  color: rgba(105, 94, 88, 0.65);
 }
 
 .dame-address-autocomplete {
@@ -2500,6 +2631,10 @@
   .dame-estimate-card {
     grid-row: auto;
     position: static;
+  }
+
+  .dame-setting-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -2939,6 +3074,10 @@
   }
 
   .dame-estimator-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .dame-setting-options {
     grid-template-columns: 1fr;
   }
 

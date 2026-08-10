@@ -3593,3 +3593,15 @@ img {
     grid-template-columns: 1fr;
   }
 }
+
+/* Keep the time clock legible after the shared admin-card styles load. */
+.admin-card.admin-team-clock {
+  background: var(--dame-red);
+  color: white;
+}
+
+.admin-card.admin-team-clock .pill.solid {
+  border-color: white;
+  background: white;
+  color: var(--dame-red);
+}
