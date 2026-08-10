@@ -1,8 +1,8 @@
-# Dame Coffee OS — Phase 12 Menu Studio
+# Dame Coffee OS — Phase 13 Roadmap Completion
 
 Dame Coffee OS is the public website, pickup-ordering experience, rewards program, and private control center for Dame Coffee.
 
-Phase 12 adds a private Menu Studio on top of the live Square catalog. Square remains the source of truth for products, prices, modifiers, and checkout, while Dame can control website photos, descriptions, featured and seasonal badges, visibility, and same-day sold-out status.
+Phase 13 completes the original customer and operations roadmap: drag-and-drop menu photos, richer catering details, customer favorites and history, a private Team workspace, and combined Square + Dame growth analytics. Square remains the source of truth for products, prices, modifiers, checkout, and completed sales.
 
 See [`ROADMAP_AUDIT.md`](./ROADMAP_AUDIT.md) for the verified Phase 2–10 completion audit and remaining build order.
 
@@ -15,6 +15,7 @@ Visit `/admin` for the daily overview. Each workspace now has one purpose:
 - `/admin/menu` — Menu Studio for website presentation and same-day availability
 - `/admin/inventory` — ingredient and supply counts with low-stock warnings
 - `/admin/prep` — recurring opening, service, and closing checklist
+- `/admin/team` — time clock, schedules, today’s events, roles, recipes, and training
 - `/admin/catering` — deposits, event details, customer contact, notes, and status
 - `/admin/rewards` — customer reward-code redemption and 2× points campaigns
 - `/admin/events` — public upcoming-event publishing
@@ -38,6 +39,7 @@ The `/admin/menu` workspace combines the live Square catalog with Dame-only pres
 
 - add menu items, edit prices, and manage modifiers in Square so checkout always matches the POS
 - add or replace each item’s website photo
+- drag a photo directly onto the item or tap to choose it from a phone
 - rewrite the public website description without changing checkout data
 - mark items featured or seasonal
 - hide an item from the public menu and pickup ordering without deleting it from Square
@@ -61,7 +63,7 @@ The mobile order dashboard is separate from the main control center so live orde
 
 When a customer submits the catering estimator:
 
-- Dame Coffee OS saves their contact details, event address, date, time, drink count, service hours, estimate, and Square order ID
+- Dame Coffee OS saves contact details, company, guests, indoor/outdoor setting, budget, notes, event address, date, time, drink count, service hours, estimate, and Square order ID
 - The request begins as `Awaiting deposit`
 - A verified Square `payment.updated` webhook marks the $200 deposit paid
 - Catering deposits are excluded from customer rewards points
@@ -102,6 +104,9 @@ The web app manifest starts installed sessions at `/app`. The service worker cac
 - Earn 500 points after a referred friend makes a first eligible $5 purchase
 - Receive 250 welcome points when joining through a friend and completing that purchase
 - Earn extra points during active Dame 2× campaigns
+- Save favorite drinks
+- Review signed-in pickup order history
+- See catering dates requested while signed in
 
 The rewards are:
 
@@ -140,6 +145,9 @@ Staff can:
 - Update counts with quick plus/minus controls or exact quantities
 - Set a separate low-stock warning for every item
 - Filter the stockroom to see only low or out-of-stock supplies
+- Clock in and out, schedule shifts, and review today’s events
+- Keep recipes, written training, and video links in the Team workspace
+- See repeat customers, peak hour, events booked, rewards redeemed, new members, and product-category sales beside Square revenue
 
 ## How points are awarded
 
@@ -171,6 +179,8 @@ Apply these SQL files in order:
 12. `supabase-phase10-inventory-center.sql`
 13. `supabase-phase11-daily-prep.sql`
 14. `supabase-phase12-menu-studio.sql`
+15. `supabase-phase13-roadmap-completion.sql`
+16. `supabase-phase13b-policy-optimization.sql`
 
 Phase 4 and 4B create:
 

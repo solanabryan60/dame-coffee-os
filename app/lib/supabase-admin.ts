@@ -29,9 +29,15 @@ export type ActiveRewardPromotion = {
 type NewCateringRequest = Pick<
   CateringRequest,
   | 'id'
+  | 'customer_user_id'
   | 'name'
   | 'email'
   | 'phone'
+  | 'company'
+  | 'guest_count'
+  | 'event_setting'
+  | 'budget_cents'
+  | 'customer_notes'
   | 'address'
   | 'event_date'
   | 'start_time'
@@ -412,4 +418,25 @@ export async function recordDameSquareEvent(input: {
 
 export function hasDameRewardsServerConfig() {
   return Boolean(supabaseUrl && supabaseSecret);
+}
+
+export async function getDameBusinessActivity(startAt: string, endAt: string) {
+  const start = encodeURIComponent(startAt);
+  const end = encodeURIComponent(endAt);
+  const [bookings, redemptions, customers] = await Promise.all([
+    adminRequest<Array<{ id: string }>>(
+      `/catering_requests?created_at=gte.${start}&created_at=lt.${end}&status=not.in.(awaiting_payment,cancelled,refunded)&select=id`,
+    ),
+    adminRequest<Array<{ id: string }>>(
+      `/reward_redemptions?redeemed_at=gte.${start}&redeemed_at=lt.${end}&status=eq.redeemed&select=id`,
+    ),
+    adminRequest<Array<{ user_id: string }>>(
+      `/customer_profiles?created_at=gte.${start}&created_at=lt.${end}&select=user_id`,
+    ),
+  ]);
+  return {
+    eventsBooked: bookings.length,
+    rewardsRedeemed: redemptions.length,
+    newCustomers: customers.length,
+  };
 }

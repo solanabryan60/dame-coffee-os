@@ -1,7 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type ChangeEvent,
+  type DragEvent,
+  type FormEvent,
+} from 'react';
 import { useRouter } from 'next/navigation';
 import type { SquareMenuItem } from '../../lib/square';
 import {
@@ -9,6 +16,7 @@ import {
   listMenuPresentationForAdmin,
   setMenuItemPresentation,
   setMenuItemSoldOut,
+  uploadMenuPhoto,
   type MenuItemAvailability,
   type MenuItemPresentation,
 } from '../../lib/supabase-rest';
@@ -79,6 +87,7 @@ export default function AdminMenuAvailability({ items }: { items: SquareMenuItem
   );
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -231,6 +240,60 @@ export default function AdminMenuAvailability({ items }: { items: SquareMenuItem
     }
   }
 
+  async function uploadPhoto(item: SquareMenuItem, file?: File) {
+    if (!file) return;
+    const token = await getAdminAccessToken();
+    if (!token) {
+      router.replace('/admin/login');
+      return;
+    }
+
+    const draft = drafts[item.id] ?? baseDraft(item);
+    setSavingId(item.id);
+    setDraggingId(null);
+    setMessage('');
+    setError('');
+    try {
+      const imageUrl = await uploadMenuPhoto(token, item.id, file);
+      const updated = await setMenuItemPresentation(token, {
+        square_item_id: item.id,
+        description: draft.description,
+        image_url: imageUrl,
+        is_featured: draft.isFeatured,
+        is_seasonal: draft.isSeasonal,
+        is_hidden: draft.isHidden,
+      });
+      setPresentation((current) => [
+        updated,
+        ...current.filter((entry) => entry.square_item_id !== item.id),
+      ]);
+      setDrafts((current) => ({
+        ...current,
+        [item.id]: draftFromPresentation(item, updated),
+      }));
+      setMessage(`${item.name}'s photo is uploaded and live in the Menu Studio.`);
+    } catch (uploadError) {
+      if (isAdminSessionError(uploadError)) {
+        clearAdminSession();
+        router.replace('/admin/login');
+        return;
+      }
+      setError(uploadError instanceof Error ? uploadError.message : 'Could not upload that photo.');
+    } finally {
+      setSavingId(null);
+    }
+  }
+
+  function choosePhoto(event: ChangeEvent<HTMLInputElement>, item: SquareMenuItem) {
+    void uploadPhoto(item, event.target.files?.[0]);
+    event.target.value = '';
+  }
+
+  function dropPhoto(event: DragEvent<HTMLLabelElement>, item: SquareMenuItem) {
+    event.preventDefault();
+    void uploadPhoto(item, event.dataTransfer.files?.[0]);
+  }
+
   return (
     <main className="admin-shell admin-menu-shell">
       <AdminHeader title="Menu studio">
@@ -291,6 +354,24 @@ export default function AdminMenuAvailability({ items }: { items: SquareMenuItem
                   </header>
 
                   <form className="admin-menu-presentation-form" onSubmit={(event) => void savePresentation(event, item)}>
+                    <label
+                      className={`admin-menu-photo-drop${draggingId === item.id ? ' is-dragging' : ''}`}
+                      onDragEnter={(event) => { event.preventDefault(); setDraggingId(item.id); }}
+                      onDragOver={(event) => event.preventDefault()}
+                      onDragLeave={(event) => {
+                        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDraggingId(null);
+                      }}
+                      onDrop={(event) => dropPhoto(event, item)}
+                    >
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        disabled={busy}
+                        onChange={(event) => choosePhoto(event, item)}
+                      />
+                      <strong>{busy ? 'Uploading photo…' : 'Drop a drink photo here'}</strong>
+                      <span>or tap to choose a JPG, PNG, or WebP · 5 MB maximum</span>
+                    </label>
                     <label>
                       Website description
                       <textarea
@@ -301,8 +382,8 @@ export default function AdminMenuAvailability({ items }: { items: SquareMenuItem
                         placeholder="Tell customers what makes this item special."
                       />
                     </label>
-                    <label>
-                      Photo link
+                    <label className="admin-menu-photo-link">
+                      Or paste a photo link
                       <input
                         type="url"
                         maxLength={2048}

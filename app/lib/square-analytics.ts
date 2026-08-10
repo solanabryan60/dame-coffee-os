@@ -53,12 +53,27 @@ export type DameSalesAnalytics = {
     items: ItemSummary[];
   }>;
   topItems: ItemSummary[];
+  customerInsights: {
+    identifiedCustomers: number;
+    repeatCustomers: number;
+  };
+  peakHour: {
+    label: string;
+    orderCount: number;
+    salesCents: number;
+  } | null;
+  categorySummary: Array<{
+    name: string;
+    quantity: number;
+    salesCents: number;
+  }>;
 };
 
 type SquareMoney = { amount?: number };
 
 type AnalyticsOrder = {
   id?: string;
+  customer_id?: string;
   state?: string;
   closed_at?: string;
   total_money?: SquareMoney;
@@ -516,6 +531,62 @@ function topItems(orders: AnalyticsOrder[]) {
     .sort((a, b) => b.quantity - a.quantity || b.salesCents - a.salesCents);
 }
 
+function customerInsights(orders: AnalyticsOrder[]) {
+  const orderCounts = new Map<string, number>();
+  for (const order of orders) {
+    if (!order.customer_id) continue;
+    orderCounts.set(order.customer_id, (orderCounts.get(order.customer_id) ?? 0) + 1);
+  }
+  return {
+    identifiedCustomers: orderCounts.size,
+    repeatCustomers: [...orderCounts.values()].filter((count) => count > 1).length,
+  };
+}
+
+function peakHour(orders: AnalyticsOrder[]) {
+  const hours = new Map<number, { orderCount: number; salesCents: number }>();
+  for (const order of orders) {
+    if (!order.closed_at) continue;
+    const hour = dateParts(new Date(order.closed_at)).hour;
+    const current = hours.get(hour) ?? { orderCount: 0, salesCents: 0 };
+    current.orderCount += 1;
+    current.salesCents += cents(order.total_money)
+      - cents(order.total_tax_money)
+      - cents(order.total_tip_money)
+      - cents(order.total_service_charge_money);
+    hours.set(hour, current);
+  }
+  const best = [...hours.entries()].sort((a, b) => b[1].orderCount - a[1].orderCount || b[1].salesCents - a[1].salesCents)[0];
+  if (!best) return null;
+  const [hour, totals] = best;
+  const label = `${hour % 12 || 12} ${hour < 12 ? 'AM' : 'PM'}`;
+  return { label, ...totals };
+}
+
+function itemCategory(name: string) {
+  const normalized = name.toLowerCase();
+  if (/croissant|pastry|cookie|burrito|sandwich|muffin|food/.test(normalized)) return 'Food & pastries';
+  if (/matcha/.test(normalized)) return 'Matcha';
+  if (/cold brew|coffee|latte|mocha|americano|espresso|cortado/.test(normalized)) return 'Coffee';
+  return 'Other';
+}
+
+function categorySummary(orders: AnalyticsOrder[]) {
+  const categories = new Map<string, { quantity: number; salesCents: number }>();
+  for (const order of orders) {
+    for (const item of order.line_items ?? []) {
+      const category = itemCategory(item.name?.trim() || 'Other');
+      const current = categories.get(category) ?? { quantity: 0, salesCents: 0 };
+      current.quantity += Number(item.quantity ?? 0) || 0;
+      current.salesCents += cents(item.total_money) - cents(item.total_tax_money);
+      categories.set(category, current);
+    }
+  }
+  return [...categories.entries()]
+    .map(([name, totals]) => ({ name, quantity: Math.round(totals.quantity * 100) / 100, salesCents: totals.salesCents }))
+    .sort((a, b) => b.quantity - a.quantity || b.salesCents - a.salesCents);
+}
+
 export async function getDameSalesAnalytics(
   range: SalesRange,
   selection: SalesSelection = {},
@@ -552,5 +623,8 @@ export async function getDameSalesAnalytics(
     },
     chart: buildChart(currentOrders, period.start, period.end, range),
     topItems: topItems(currentOrders),
+    customerInsights: customerInsights(currentOrders),
+    peakHour: peakHour(currentOrders),
+    categorySummary: categorySummary(currentOrders),
   };
 }

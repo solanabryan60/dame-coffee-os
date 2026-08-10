@@ -9,6 +9,7 @@ import {
   useState,
 } from 'react';
 import { calculateCateringEstimateDollars } from '../lib/catering-pricing';
+import { getCustomerSession } from '../lib/customer-session';
 import GoogleMap from './google-map';
 
 type AddressSuggestion = {
@@ -31,6 +32,11 @@ export default function CateringCalculator() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [company, setCompany] = useState('');
+  const [guestCount, setGuestCount] = useState('');
+  const [eventSetting, setEventSetting] = useState<'indoor' | 'outdoor' | 'both' | 'unsure'>('outdoor');
+  const [budget, setBudget] = useState('');
+  const [notes, setNotes] = useState('');
   const [address, setAddress] = useState('');
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('');
@@ -122,13 +128,22 @@ export default function CateringCalculator() {
     setSubmitting(true);
 
     try {
+      const session = await getCustomerSession();
       const response = await fetch('/api/square/catering-deposit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
         body: JSON.stringify({
           name,
           email,
           phone,
+          company,
+          guestCount: guestCount ? Number(guestCount) : null,
+          eventSetting,
+          budgetDollars: budget ? Number(budget) : null,
+          notes,
           address,
           date,
           startTime,
@@ -164,6 +179,16 @@ export default function CateringCalculator() {
         <label className="dame-field dame-field-wide">
           <span>Phone number</span>
           <input type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} autoComplete="tel" required />
+        </label>
+
+        <label className="dame-field">
+          <span>Company or organization · optional</span>
+          <input value={company} onChange={(event) => setCompany(event.target.value)} autoComplete="organization" maxLength={160} />
+        </label>
+
+        <label className="dame-field">
+          <span>Estimated guests · optional</span>
+          <input type="number" min="1" max="5000" inputMode="numeric" value={guestCount} onChange={(event) => setGuestCount(event.target.value)} placeholder="150" />
         </label>
 
         <div className="dame-field dame-field-wide">
@@ -241,6 +266,26 @@ export default function CateringCalculator() {
             onChange={(event) => setStartTime(event.target.value)}
             required
           />
+        </label>
+
+        <label className="dame-field">
+          <span>Event setting</span>
+          <select value={eventSetting} onChange={(event) => setEventSetting(event.target.value as typeof eventSetting)}>
+            <option value="outdoor">Outdoor</option>
+            <option value="indoor">Indoor</option>
+            <option value="both">Indoor and outdoor</option>
+            <option value="unsure">Not sure yet</option>
+          </select>
+        </label>
+
+        <label className="dame-field">
+          <span>Budget · optional</span>
+          <div className="dame-money-input"><b>$</b><input type="number" min="0" max="1000000" step="50" inputMode="numeric" value={budget} onChange={(event) => setBudget(event.target.value)} placeholder={String(estimate)} /></div>
+        </label>
+
+        <label className="dame-field dame-field-wide">
+          <span>Anything we should know? · optional</span>
+          <textarea rows={4} maxLength={2000} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Venue access, event type, timing, or anything that will help us prepare." />
         </label>
       </div>
 

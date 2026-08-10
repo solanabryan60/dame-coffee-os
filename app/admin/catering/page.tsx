@@ -126,9 +126,11 @@ export default function AdminCateringPage() {
                 <div className="admin-catering-price"><strong>{money(request.estimate_cents)}</strong><small>estimated + tax</small></div>
               </header>
               <div className="admin-catering-details">
-                <div><small>Customer</small><a href={`tel:${request.phone}`}>{request.phone}</a><a href={`mailto:${request.email}`}>{request.email}</a></div>
+                <div><small>Customer</small><strong>{request.company || 'Personal event'}</strong><a href={`tel:${request.phone}`}>{request.phone}</a><a href={`mailto:${request.email}`}>{request.email}</a></div>
                 <div><small>Package</small><strong>{request.drinks} drinks · {request.service_hours} hours</strong><span>{request.deposit_paid_at ? '$200 deposit received' : '$200 deposit not completed'}</span></div>
                 <div className="admin-catering-address"><small>Event address</small><span>{request.address}</span><a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(request.address)}`} target="_blank" rel="noreferrer">Open map ↗</a></div>
+                <div><small>Event details</small><strong>{request.guest_count ? `${request.guest_count} guests` : 'Guest count not provided'}</strong><span>{request.event_setting === 'both' ? 'Indoor + outdoor' : request.event_setting}</span><span>{request.budget_cents != null ? `${money(request.budget_cents)} stated budget` : 'Budget not provided'}</span></div>
+                <div className="admin-catering-customer-notes"><small>Customer notes</small><span>{request.customer_notes || 'No additional notes.'}</span></div>
               </div>
               <div className="admin-catering-workflow">
                 <label>Request status<select value={request.status} onChange={(event) => edit(request.id, { status: event.target.value as CateringRequestStatus })}>{STATUS_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>

@@ -46,6 +46,10 @@ type Analytics = {
   };
   chart: ChartBucket[];
   topItems: ItemSummary[];
+  customerInsights: { identifiedCustomers: number; repeatCustomers: number };
+  peakHour: { label: string; orderCount: number; salesCents: number } | null;
+  categorySummary: ItemSummary[];
+  business: { eventsBooked: number; rewardsRedeemed: number; newCustomers: number };
 };
 
 const ranges: Array<{ value: SalesRange; label: string }> = [
@@ -314,6 +318,14 @@ export default function AdminInsights() {
             </article>
           </div>
 
+          <div className="admin-growth-metric-grid" aria-label="Customer and business growth">
+            <article><span>Repeat customers</span><strong>{analytics.customerInsights.repeatCustomers}</strong><p>Identified Square customers with more than one completed order in this period.</p></article>
+            <article><span>Peak hour</span><strong>{analytics.peakHour?.label ?? '—'}</strong><p>{analytics.peakHour ? `${analytics.peakHour.orderCount} completed orders · ${money(analytics.peakHour.salesCents)}` : 'Sales will reveal the busiest hour.'}</p></article>
+            <article><span>Events booked</span><strong>{analytics.business.eventsBooked}</strong><p>Paid catering requests created in this period.</p></article>
+            <article><span>Rewards redeemed</span><strong>{analytics.business.rewardsRedeemed}</strong><p>Dame rewards used at the cart.</p></article>
+            <article><span>New members</span><strong>{analytics.business.newCustomers}</strong><p>Customer accounts created in this period.</p></article>
+          </div>
+
           <article className="admin-sales-chart-card">
               <header>
                 <div>
@@ -429,6 +441,12 @@ export default function AdminInsights() {
               ) : (
                 <p className="admin-empty-copy">Top items will appear after the first completed sale in this period.</p>
               )}
+            </article>
+            <article className="admin-top-items-card">
+              <header><span>Product mix</span><strong>What customers chose</strong></header>
+              {analytics.categorySummary.length ? (
+                <ol>{analytics.categorySummary.map((category) => <li key={category.name}><div><b>{category.name}</b><span>{category.quantity} sold</span></div><strong>{money(category.salesCents)}</strong></li>)}</ol>
+              ) : <p className="admin-empty-copy">Coffee, matcha, and food totals will appear after completed sales.</p>}
             </article>
             <article className="admin-money-breakdown">
               <header>

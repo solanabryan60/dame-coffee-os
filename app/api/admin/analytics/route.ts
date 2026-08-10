@@ -1,4 +1,4 @@
-import { requireDameAdmin } from '@/app/lib/supabase-admin';
+import { getDameBusinessActivity, requireDameAdmin } from '@/app/lib/supabase-admin';
 import {
   getDameSalesAnalytics,
   type SalesRange,
@@ -32,7 +32,11 @@ export async function GET(request: Request) {
       quarter: Number.isInteger(quarter) ? quarter : undefined,
       year: Number.isInteger(year) ? year : undefined,
     });
-    return Response.json(analytics, {
+    const business = await getDameBusinessActivity(
+      analytics.period.startAt,
+      analytics.period.endAt,
+    );
+    return Response.json({ ...analytics, business }, {
       headers: { 'Cache-Control': 'private, no-store' },
     });
   } catch (error) {

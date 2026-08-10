@@ -160,6 +160,13 @@ export default function AdminDashboard() {
       action: 'Open today’s checklist',
     },
     {
+      href: '/admin/team',
+      eyebrow: 'Team workspace',
+      title: 'Schedule, clock, and train',
+      detail: 'Today’s events, team shifts, hours, recipes, and training stay together.',
+      action: 'Open team workspace',
+    },
+    {
       href: '/admin/catering',
       eyebrow: 'Catering center',
       title: `${overview.newCatering} new ${overview.newCatering === 1 ? 'deposit' : 'deposits'}`,

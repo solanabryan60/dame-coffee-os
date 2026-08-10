@@ -1,4 +1,5 @@
-import type { CustomerProfile } from './supabase-rest';
+import type { CateringRequest, CustomerProfile, PickupOrder } from './supabase-rest';
+import type { SquareMenuItem } from './square';
 
 export type RewardDefinition = {
   id: string;
@@ -300,4 +301,8 @@ export type RewardsAccountPayload = {
   };
   profile: CustomerProfile;
   rewards: DameRewardsStatus;
+  favorites: string[];
+  menu: SquareMenuItem[];
+  orders: PickupOrder[];
+  bookings: CateringRequest[];
 };
