@@ -11,6 +11,7 @@ const sections = [
   { href: '/admin/location', label: 'Location' },
   { href: '/admin/menu', label: 'Menu' },
   { href: '/admin/inventory', label: 'Inventory' },
+  { href: '/admin/prep', label: 'Daily Prep' },
   { href: '/admin/catering', label: 'Catering' },
   { href: '/admin/rewards', label: 'Rewards' },
   { href: '/admin/events', label: 'Events' },

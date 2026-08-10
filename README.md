@@ -1,8 +1,8 @@
-# Dame Coffee OS — Phase 10 Inventory Center
+# Dame Coffee OS — Phase 11 Daily Prep Center
 
 Dame Coffee OS is the public website, pickup-ordering experience, rewards program, and private control center for Dame Coffee.
 
-Phase 10 adds a private, phone-friendly stockroom for ingredients, milk, packaging, food, merchandise, and other operating supplies. It shows what is out, what is running low, and what is ready for service without changing Square item availability.
+Phase 11 adds a private, phone-friendly daily checklist for opening, service, and closing. Recurring tasks start fresh each day and can be completed, renamed, added, or removed without changing Square or public website data.
 
 ## Operations center
 
@@ -12,12 +12,23 @@ Visit `/admin` for the daily overview. Each workspace now has one purpose:
 - `/mobileorder` — dedicated live Square-connected mobile order queue
 - `/admin/menu` — website menu availability overrides
 - `/admin/inventory` — ingredient and supply counts with low-stock warnings
+- `/admin/prep` — recurring opening, service, and closing checklist
 - `/admin/catering` — deposits, event details, customer contact, notes, and status
 - `/admin/rewards` — customer reward-code redemption and 2× points campaigns
 - `/admin/events` — public upcoming-event publishing
 - `/admin/notifications` — opt-in customer updates
 
 The navigation stays available across every workspace, and the existing Supabase permissions and automatically refreshed admin session protect every private action.
+
+## Daily Prep Center
+
+The `/admin/prep` workspace keeps the day focused:
+
+- opening, during-service, and closing tasks are separated into clear lanes
+- the progress summary shows how much is complete at a glance
+- tapping a task marks it finished for the current day
+- each new calendar day starts with a fresh checklist automatically
+- approved admins can add, rename, or remove recurring tasks from a phone
 
 ## Mobile order center
 
