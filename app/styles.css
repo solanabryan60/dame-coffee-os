@@ -2038,6 +2038,214 @@ img {
   margin-top: 26px;
 }
 
+.admin-prep-hero,
+.admin-prep-add {
+  margin-top: 26px;
+}
+
+.admin-prep-progress {
+  margin-top: 32px;
+  padding: 20px 22px;
+  border-radius: 20px;
+  display: grid;
+  grid-template-columns: auto minmax(140px, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+  background: var(--cream);
+}
+
+.admin-prep-progress > div:first-child {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.admin-prep-progress strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 44px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.admin-prep-progress span,
+.admin-prep-progress b {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.admin-prep-progress-track {
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(31, 23, 20, 0.12);
+}
+
+.admin-prep-progress-track i {
+  height: 100%;
+  display: block;
+  border-radius: inherit;
+  background: var(--dame-red);
+  transition: width 240ms ease;
+}
+
+.admin-prep-board {
+  max-width: 1320px;
+  margin: 26px auto 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.admin-prep-lane {
+  min-width: 0;
+  margin: 0;
+  padding: 26px;
+}
+
+.admin-prep-lane > header {
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.admin-prep-lane h2 {
+  margin: 7px 0 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 34px;
+  font-weight: 500;
+  letter-spacing: -0.035em;
+}
+
+.admin-prep-lane > header > span {
+  min-width: 48px;
+  padding: 9px 11px;
+  border-radius: 999px;
+  background: var(--cream);
+  color: var(--dame-red);
+  font-size: 12px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.admin-prep-tasks {
+  margin-top: 18px;
+  display: grid;
+  gap: 11px;
+}
+
+.admin-prep-task {
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  background: var(--warm-white);
+  transition: border-color 180ms ease, background 180ms ease;
+}
+
+.admin-prep-task.is-done {
+  border-color: rgba(30, 113, 62, 0.35);
+  background: rgba(30, 113, 62, 0.07);
+}
+
+.admin-prep-check {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 2px solid rgba(150, 16, 16, 0.5);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: white;
+  color: white;
+  font-size: 17px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.admin-prep-check[aria-pressed="true"] {
+  border-color: var(--success);
+  background: var(--success);
+}
+
+.admin-prep-check:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.admin-prep-task > div:nth-child(2) {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.admin-prep-task strong {
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+
+.admin-prep-task.is-done strong {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.admin-prep-task small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.admin-prep-task input {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: white;
+  color: var(--ink);
+}
+
+.admin-prep-task-actions {
+  grid-column: 2;
+  display: flex;
+  gap: 12px;
+}
+
+.admin-prep-task-actions button {
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--dame-red);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.admin-prep-task-actions button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.admin-prep-add-form {
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.42fr) auto;
+  align-items: end;
+}
+
+@media (max-width: 1000px) {
+  .admin-prep-board {
+    grid-template-columns: 1fr;
+    max-width: 1040px;
+  }
+}
+
 .admin-catering-center {
   margin-top: 26px;
 }
@@ -3098,6 +3306,24 @@ img {
   }
 
   .admin-pickup-body {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-prep-progress {
+    grid-template-columns: 1fr auto;
+    gap: 14px;
+  }
+
+  .admin-prep-progress-track {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .admin-prep-lane {
+    padding: 22px;
+  }
+
+  .admin-prep-add-form {
     grid-template-columns: 1fr;
   }
 }

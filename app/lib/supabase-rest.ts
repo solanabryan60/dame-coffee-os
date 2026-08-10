@@ -78,6 +78,19 @@ export type InventoryItem = {
   updated_at: string;
 };
 
+export type PrepPhase = 'opening' | 'service' | 'closing';
+
+export type PrepTask = {
+  id: number;
+  title: string;
+  phase: PrepPhase;
+  sort_order: number;
+  last_completed_on: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type CateringRequestStatus =
   | 'awaiting_payment'
   | 'deposit_paid'
@@ -320,6 +333,80 @@ export async function deleteInventoryItemForAdmin(accessToken: string, itemId: s
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
     throw new Error(authError(payload, 'Could not remove that inventory item.'));
+  }
+}
+
+export async function listPrepTasksForAdmin(accessToken: string) {
+  return publicRequest<PrepTask[]>(
+    '/prep_tasks?select=*&order=phase.asc,sort_order.asc,id.asc',
+    accessToken,
+  );
+}
+
+export async function createPrepTaskForAdmin(
+  accessToken: string,
+  input: Pick<PrepTask, 'title' | 'phase' | 'sort_order'>,
+) {
+  const config = requireConfig();
+  const response = await fetch(`${config.supabaseUrl}/rest/v1/prep_tasks`, {
+    method: 'POST',
+    headers: {
+      apikey: config.supabaseKey,
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+    },
+    body: JSON.stringify(input),
+  });
+  const payload = await response.json();
+  if (!response.ok) throw new Error(authError(payload, 'Could not add that prep task.'));
+  const task = (payload as PrepTask[])[0];
+  if (!task) throw new Error('Could not add that prep task.');
+  return task;
+}
+
+export async function updatePrepTaskForAdmin(
+  accessToken: string,
+  taskId: number,
+  input: Partial<Pick<PrepTask, 'title' | 'phase' | 'sort_order' | 'last_completed_on' | 'completed_at'>>,
+) {
+  const config = requireConfig();
+  const response = await fetch(
+    `${config.supabaseUrl}/rest/v1/prep_tasks?id=eq.${taskId}`,
+    {
+      method: 'PATCH',
+      headers: {
+        apikey: config.supabaseKey,
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=representation',
+      },
+      body: JSON.stringify({ ...input, updated_at: new Date().toISOString() }),
+    },
+  );
+  const payload = await response.json();
+  if (!response.ok) throw new Error(authError(payload, 'Could not update that prep task.'));
+  const task = (payload as PrepTask[])[0];
+  if (!task) throw new Error('Could not update that prep task.');
+  return task;
+}
+
+export async function deletePrepTaskForAdmin(accessToken: string, taskId: number) {
+  const config = requireConfig();
+  const response = await fetch(
+    `${config.supabaseUrl}/rest/v1/prep_tasks?id=eq.${taskId}`,
+    {
+      method: 'DELETE',
+      headers: {
+        apikey: config.supabaseKey,
+        Authorization: `Bearer ${accessToken}`,
+        Prefer: 'return=minimal',
+      },
+    },
+  );
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(authError(payload, 'Could not remove that prep task.'));
   }
 }
 
