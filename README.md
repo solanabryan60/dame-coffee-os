@@ -9,7 +9,7 @@ Phase 10 adds a private, phone-friendly stockroom for ingredients, milk, packagi
 Visit `/admin` for the daily overview. Each workspace now has one purpose:
 
 - `/admin/location` — current location, hours, wait time, open status, and mobile ordering
-- `/admin/orders` — live Square-connected pickup queue
+- `/mobileorder` — dedicated live Square-connected mobile order queue
 - `/admin/menu` — website menu availability overrides
 - `/admin/inventory` — ingredient and supply counts with low-stock warnings
 - `/admin/catering` — deposits, event details, customer contact, notes, and status
@@ -19,19 +19,19 @@ Visit `/admin` for the daily overview. Each workspace now has one purpose:
 
 The navigation stays available across every workspace, and the existing Supabase permissions and automatically refreshed admin session protect every private action.
 
-## Pickup order center
+## Mobile order center
 
 When a customer begins Square checkout:
 
 - Dame Coffee OS saves their pickup name, contact information, order items, customizations, quoted wait, and location snapshot
 - The customer returns from Square to a private tracking link that cannot be guessed from the order number alone
 - A verified Square `payment.updated` webhook moves the order from `Awaiting payment` to `Paid`
-- Staff use `/admin/orders` to move the order through `Preparing`, `Ready for pickup`, and `Picked up`
+- Staff use `/mobileorder` to move the order through `Preparing`, `Ready for pickup`, and `Picked up`
 - Status changes made in Square Order Manager automatically move the Dame tracker through Preparing, Ready, Picked up, or Cancelled
 - The customer tracking page refreshes automatically as staff update the order
 - Marking an order `Refund needed` sends staff to Square; a verified full Square refund automatically marks the order refunded
 
-The pickup dashboard is separate from the main control center so live orders remain fast and focused during service.
+The mobile order dashboard is separate from the main control center so live orders remain easy to find, fast, and focused during service.
 
 ## Catering request center
 
@@ -91,7 +91,7 @@ The rewards are:
 
 ## What Dame staff can do
 
-The private `/admin` dashboard keeps all existing live-location controls and adds reward-code redemption, promotion scheduling, upcoming-event publishing, and opt-in notifications. The focused `/admin/orders` dashboard manages live pickup orders.
+The private `/admin` dashboard keeps all existing live-location controls and adds reward-code redemption, promotion scheduling, upcoming-event publishing, and opt-in notifications. The focused `/mobileorder` dashboard is the dedicated Mobile Orders center. The previous `/admin/orders` address remains available for compatibility.
 
 Staff can:
 

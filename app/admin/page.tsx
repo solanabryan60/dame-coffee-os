@@ -107,11 +107,11 @@ export default function AdminDashboard() {
       action: 'Manage live location',
     },
     {
-      href: '/admin/orders',
-      eyebrow: 'Pickup queue',
-      title: `${overview.activeOrders} active ${overview.activeOrders === 1 ? 'order' : 'orders'}`,
-      detail: 'See paid, preparing, ready, and refund-needed orders.',
-      action: 'Open pickup orders',
+      href: '/mobileorder',
+      eyebrow: 'Mobile orders',
+      title: `${overview.activeOrders} active ${overview.activeOrders === 1 ? 'mobile order' : 'mobile orders'}`,
+      detail: 'See every paid, preparing, ready, and refund-needed mobile order in one place.',
+      action: 'Open mobile orders',
     },
     {
       href: '/admin/menu',
