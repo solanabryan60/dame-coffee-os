@@ -19,7 +19,7 @@ const values = [
   {
     number: '02',
     title: 'Quality is care.',
-    copy: 'From 16-hour cold brew to matcha whisked smooth, every drink is made with intention. Giving people our best is one way we show respect.',
+    copy: 'Our cold brew steeps for 20 hours, drawing out a deeper, smoother flavor without the sharp finish. Our matcha is whisked until balanced and velvety. Every drink is made with intention because quality is how we show care.',
   },
   {
     number: '03',
@@ -53,9 +53,9 @@ export default function AboutPage() {
         <div>
           <h2 id="about-intro-title">A mobile coffee experience with a sense of home.</h2>
           <p>
-            Dame Coffee began with a cart and a clear purpose: serve beautiful drinks,
-            stay close to our roots, and create a space where people feel genuinely welcomed.
-            We move through Southern California, but the feeling stays the same.
+            Dame Coffee is a mobile cold brew and matcha bar serving Southern California.
+            Mexican culture shapes our flavors, hospitality, and visual language. The cart may
+            move, but our standards do not: thoughtful drinks, warm service, and room for everyone.
           </p>
         </div>
       </section>

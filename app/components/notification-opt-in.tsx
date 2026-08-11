@@ -15,9 +15,12 @@ export default function NotificationOptIn({ compact = false }: { compact?: boole
   const [state, setState] = useState<NotificationState>('loading');
   const [working, setWorking] = useState(false);
   const [message, setMessage] = useState('');
+  const [showPermissionHelp, setShowPermissionHelp] = useState(false);
+  const [isAppleMobile, setIsAppleMobile] = useState(false);
   const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
   useEffect(() => {
+    setIsAppleMobile(/iPhone|iPad|iPod/i.test(navigator.userAgent));
     if (!publicKey || !('serviceWorker' in navigator) || !('PushManager' in window)) {
       setState('unsupported');
       return;
@@ -65,6 +68,15 @@ export default function NotificationOptIn({ compact = false }: { compact?: boole
     }
   }
 
+  async function recheckNotifications() {
+    if (Notification.permission === 'denied') {
+      setMessage('Notifications are still blocked. Change the browser setting, then check again.');
+      return;
+    }
+    setShowPermissionHelp(false);
+    await enableNotifications();
+  }
+
   async function disableNotifications() {
     setWorking(true);
     setMessage('');
@@ -96,7 +108,7 @@ export default function NotificationOptIn({ compact = false }: { compact?: boole
           The good stuff,<br />right on time.
         </h2>
         <p>
-          Allow notifications for upcoming events, new drinks, special rewards, and where Dame is brewing.
+          Get a heads-up when the cart moves, a new drink drops, or a reward is waiting.
         </p>
       </div>
       <div className="dame-notification-action">
@@ -107,14 +119,52 @@ export default function NotificationOptIn({ compact = false }: { compact?: boole
         ) : state === 'unsupported' ? (
           <p>Add Dame to your phone&apos;s Home Screen to receive app notifications.</p>
         ) : state === 'denied' ? (
-          <p>Notifications are blocked in this browser&apos;s settings.</p>
+          <>
+            <button
+              type="button"
+              className="dame-button dame-button-light"
+              onClick={() => {
+                setMessage('');
+                setShowPermissionHelp((current) => !current);
+              }}
+              aria-expanded={showPermissionHelp}
+              aria-controls={`dame-notification-help-${compact ? 'app' : 'site'}`}
+            >
+              Turn notifications on
+            </button>
+            {showPermissionHelp ? (
+              <div
+                id={`dame-notification-help-${compact ? 'app' : 'site'}`}
+                className="dame-notification-help"
+                role="note"
+              >
+                <strong>Notifications are off in this browser.</strong>
+                {isAppleMobile ? (
+                  <ol>
+                    <li>Add Dame to your Home Screen from the Share menu.</li>
+                    <li>Open Dame from the new Home Screen icon.</li>
+                    <li>Return here and press Check again.</li>
+                  </ol>
+                ) : (
+                  <ol>
+                    <li>Open the site controls beside the address bar.</li>
+                    <li>Set Notifications to Allow.</li>
+                    <li>Return here and press Check again.</li>
+                  </ol>
+                )}
+                <button type="button" onClick={recheckNotifications} disabled={working}>
+                  {working ? 'Checking…' : 'Check again'}
+                </button>
+              </div>
+            ) : null}
+          </>
         ) : (
           <button type="button" className="dame-button dame-button-light" onClick={enableNotifications} disabled={working || state === 'loading'}>
             {working ? 'Turning on…' : state === 'loading' ? 'Checking…' : 'Let Dame notify me'}
           </button>
         )}
         {message ? <small role="status">{message}</small> : null}
-        <small>Optional. You can turn them off anytime.</small>
+        <small>Only Dame updates. Unsubscribe anytime.</small>
       </div>
     </section>
   );
