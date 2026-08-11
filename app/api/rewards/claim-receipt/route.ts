@@ -6,7 +6,7 @@ import {
   findCateringRequestBySquareOrder,
   findRewardUserByPayment,
   getRewardPromotionsAt,
-  recordDameSquareEvent,
+  recordDameReceiptClaim,
   type ActiveRewardPromotion,
 } from '@/app/lib/supabase-admin';
 import { readAuthUser } from '@/app/lib/supabase-rest';
@@ -128,10 +128,9 @@ export async function POST(request: Request) {
     const promotion = matchingPromotion(promotions, orderContext?.categories ?? []);
     const multiplier = promotion?.multiplier ?? 1;
     const points = Math.floor(eligibleAmountCents / 10) * multiplier;
-    const result = await recordDameSquareEvent({
+    const result = await recordDameReceiptClaim({
       userId: user.id,
-      squareId: payment.id,
-      eventType: 'purchase',
+      squarePaymentId: payment.id,
       points,
       amountCents: eligibleAmountCents,
       multiplier,
@@ -147,7 +146,11 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'We could not save those points.';
-    const status = /sign in|jwt|token|session/i.test(message) ? 401 : 500;
+    const status = /sign in|jwt|token|session/i.test(message)
+      ? 401
+      : /three receipt claims|claim limit/i.test(message)
+        ? 429
+        : 500;
     return Response.json({ error: message }, { status });
   }
 }

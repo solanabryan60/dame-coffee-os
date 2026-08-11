@@ -423,6 +423,32 @@ export async function recordDameSquareEvent(input: {
   });
 }
 
+export async function recordDameReceiptClaim(input: {
+  userId: string;
+  squarePaymentId: string;
+  points: number;
+  amountCents: number;
+  description: string;
+  multiplier: number;
+}) {
+  return adminRequest<{
+    duplicate: boolean;
+    points_delta?: number;
+    points_balance: number;
+    lifetime_points?: number;
+  }>('/rpc/record_dame_receipt_claim', {
+    method: 'POST',
+    body: JSON.stringify({
+      p_user_id: input.userId,
+      p_square_payment_id: input.squarePaymentId,
+      p_points: input.points,
+      p_amount_cents: input.amountCents,
+      p_description: input.description,
+      p_multiplier: input.multiplier,
+    }),
+  });
+}
+
 export function hasDameRewardsServerConfig() {
   return Boolean(supabaseUrl && supabaseSecret);
 }

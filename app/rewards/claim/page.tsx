@@ -34,7 +34,8 @@ export default function ReceiptClaimPage() {
           <h2>A little love,<br />saved for later.</h2>
           <p>
             Each completed receipt can be claimed once. Catering deposits and
-            refunded amounts do not earn points.
+            refunded amounts do not earn points. Members can save up to three
+            receipts per day.
           </p>
         </div>
         <ReceiptClaim />
