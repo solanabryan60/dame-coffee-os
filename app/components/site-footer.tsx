@@ -15,6 +15,7 @@ export default function SiteFooter() {
         <Link href="/#today">Find us today</Link>
         <Link href="/catering">Catering</Link>
         <Link href="/rewards">Rewards</Link>
+        <Link href="/merch">Merch</Link>
         <Link href="/events">Events</Link>
         <Link href="/about">Our story</Link>
         <Link href="/app">Dame App</Link>
