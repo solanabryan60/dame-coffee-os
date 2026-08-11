@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { getCustomerSession } from '../../lib/customer-session';
 
 const PENDING_CLAIM_KEY = 'dame_pending_receipt_claim';
@@ -27,6 +27,8 @@ export default function ReceiptClaim() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [accountPrompt, setAccountPrompt] = useState('');
+  const accountGateRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const saved = window.sessionStorage.getItem(PENDING_CLAIM_KEY);
@@ -62,7 +64,11 @@ export default function ReceiptClaim() {
 
     if (!accessToken) {
       rememberClaim();
-      setError('Your receipt is saved here. Join or sign in, then come back to finish claiming the points.');
+      setAccountPrompt('Create your Dame Rewards account or sign in before claiming these points. Your receipt details are saved here for you.');
+      window.requestAnimationFrame(() => {
+        accountGateRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        accountGateRef.current?.focus({ preventScroll: true });
+      });
       return;
     }
 
@@ -109,6 +115,39 @@ export default function ReceiptClaim() {
 
   return (
     <div className="dame-receipt-claim">
+      <div
+        ref={accountGateRef}
+        className={`dame-claim-account-gate${accessToken ? ' is-signed-in' : ''}${accountPrompt ? ' needs-account' : ''}`}
+        tabIndex={-1}
+      >
+        {checkingSession ? (
+          <>
+            <p className="dame-kicker">Dame Rewards account</p>
+            <h3>Checking your account…</h3>
+          </>
+        ) : accessToken ? (
+          <>
+            <p className="dame-kicker">Account ready</p>
+            <h3>You&apos;re signed in.</h3>
+            <p>Your receipt points will be saved to your Dame Rewards account.</p>
+          </>
+        ) : (
+          <>
+            <p className="dame-kicker">First, your account</p>
+            <h3>Keep your points with Dame.</h3>
+            <p>Sign in or create an account before saving the purchase below.</p>
+            {accountPrompt ? <p className="dame-claim-gate-alert" role="alert">{accountPrompt}</p> : null}
+            <Link
+              className="dame-button dame-claim-account-button"
+              href="/rewards?claim=1#join"
+              onClick={rememberClaim}
+            >
+              Sign in or sign up
+            </Link>
+          </>
+        )}
+      </div>
+
       <form onSubmit={submit}>
         <label>
           <span>Receipt number</span>
@@ -153,15 +192,11 @@ export default function ReceiptClaim() {
           {checkingSession ? 'Checking your account…' : submitting ? 'Saving your points…' : 'Save my points'}
         </button>
 
-        {!checkingSession && !accessToken ? (
-          <p className="dame-claim-account-note">
-            New to Dame Rewards? <Link href="/rewards?claim=1#join" onClick={rememberClaim}>Join or sign in</Link>—your receipt details will be waiting here.
-          </p>
-        ) : (
+        {!checkingSession && accessToken ? (
           <p className="dame-claim-account-note">
             Already saved it? <Link href="/rewards/account">See your rewards account</Link>.
           </p>
-        )}
+        ) : null}
       </form>
     </div>
   );

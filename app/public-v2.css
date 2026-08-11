@@ -1273,8 +1273,8 @@
 .dame-rewards-bean img {
   width: min(100%, 420px);
   height: auto;
-  mix-blend-mode: multiply;
-  filter: contrast(3.2) brightness(1.08);
+  opacity: 0.22;
+  filter: brightness(0) invert(1);
 }
 
 /* Receipt points */
@@ -1369,6 +1369,64 @@
   border-radius: 34px;
   background: white;
   box-shadow: 0 24px 65px rgba(59, 31, 20, 0.08);
+}
+
+.dame-claim-account-gate {
+  margin-bottom: 34px;
+  padding: clamp(24px, 3vw, 36px);
+  border: 1px solid rgba(150, 16, 16, 0.2);
+  border-radius: 26px;
+  background: var(--cream);
+  scroll-margin-top: 110px;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.dame-claim-account-gate:focus {
+  outline: none;
+}
+
+.dame-claim-account-gate.needs-account {
+  border-color: var(--dame-red);
+  box-shadow: 0 0 0 5px rgba(150, 16, 16, 0.1);
+  transform: translateY(-2px);
+}
+
+.dame-claim-account-gate.is-signed-in {
+  border-color: rgba(42, 112, 75, 0.3);
+  background: #f2f7f2;
+}
+
+.dame-claim-account-gate h3 {
+  margin: 11px 0 10px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(32px, 4vw, 48px);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+
+.dame-claim-account-gate > p:not(.dame-kicker) {
+  max-width: 620px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.dame-claim-account-gate .dame-claim-gate-alert {
+  margin-top: 18px;
+  padding: 13px 15px;
+  border-left: 3px solid var(--dame-red);
+  background: rgba(150, 16, 16, 0.08);
+  color: var(--dame-red-dark);
+  font-weight: 700;
+}
+
+.dame-claim-account-button {
+  width: 100%;
+  margin-top: 24px;
+  min-height: 58px;
+  font-size: 13px;
 }
 
 .dame-receipt-claim form {
@@ -3002,7 +3060,7 @@
     position: absolute;
     right: -65px;
     bottom: -100px;
-    opacity: 0.2;
+    opacity: 1;
   }
 
   .dame-rewards-copy {

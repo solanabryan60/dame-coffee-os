@@ -75,7 +75,7 @@ export default async function RewardsPage({ searchParams }: RewardsPageProps) {
           </div>
         </div>
         <div className="dame-rewards-bean">
-          <Image src="/assets/bean.png" alt="The Dame Bean welcoming rewards members" width={632} height={922} priority />
+          <Image src="/assets/bean-transparent.png" alt="The Dame Bean welcoming rewards members" width={1038} height={1515} priority />
         </div>
       </section>
 

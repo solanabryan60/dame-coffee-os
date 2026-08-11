@@ -160,7 +160,7 @@ export default function PickupTracker({
           <p>Your receipt is on its way. Head to today’s location and ask for the pickup name on your order.</p>
           <Link className="dame-button" href="/#today">See today’s location</Link>
         </div>
-        <Image src="/assets/bean.png" alt="The Dame Bean celebrating your order" width={632} height={922} priority />
+        <Image src="/assets/bean-transparent.png" alt="The Dame Bean celebrating your order" width={1038} height={1515} priority />
       </section>
     );
   }
@@ -168,7 +168,7 @@ export default function PickupTracker({
   if (!order) {
     return (
       <section className="dame-pickup-tracker dame-pickup-loading" aria-live="polite">
-        <Image src="/assets/bean.png" alt="The Dame Bean waiting with your order" width={632} height={922} priority />
+        <Image src="/assets/bean-transparent.png" alt="The Dame Bean waiting with your order" width={1038} height={1515} priority />
         <p className="dame-kicker">{error ? 'Still checking' : 'Finding your order'}</p>
         <h1>{error || 'One thoughtful cup at a time.'}</h1>
         <p>{error ? 'Keep this page open and we’ll try again.' : 'Your live pickup status will appear here.'}</p>
@@ -187,7 +187,7 @@ export default function PickupTracker({
           <h1>{copy.title}</h1>
           <p>{copy.body}</p>
         </div>
-        <Image src="/assets/bean.png" alt="The Dame Bean with your pickup order" width={632} height={922} priority />
+        <Image src="/assets/bean-transparent.png" alt="The Dame Bean with your pickup order" width={1038} height={1515} priority />
       </header>
 
       {!['refund_pending', 'refunded', 'cancelled'].includes(order.status) ? (
