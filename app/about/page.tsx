@@ -19,7 +19,7 @@ const values = [
   {
     number: '02',
     title: 'Quality is care.',
-    copy: 'From cold brew steeped for 20 hours to matcha whisked smooth, every drink is made with intention. The longer steep draws out a deeper, smoother cup with less of the sharp, bitter flavor, while our matcha is whisked until balanced and velvety. Giving people our best is how we show care and respect.',
+    copy: 'From cold brew steeped for 20 hours to matcha whisked smooth, every drink is made with intention. The slow steep draws out a deeper, smoother coffee with less of the sharp, bitter flavor. Our matcha is whisked until silky and balanced, bringing forward its naturally earthy character with a clean, creamy finish. Giving people our best is how we show care and respect.',
   },
   {
     number: '03',
