@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import BeanStateImage, { seasonalBeanFor, type BeanState } from './bean-state';
+import BeanStateImage, { seasonalBeanFor, type DameBeanState } from './bean-state';
 
 export default function SeasonalBean({ className }: { className?: string }) {
-  const [state, setState] = useState<BeanState | null>(null);
+  const [state, setState] = useState<DameBeanState | null>(null);
 
   useEffect(() => {
     setState(seasonalBeanFor(new Date()));

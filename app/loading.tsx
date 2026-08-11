@@ -3,10 +3,14 @@ import BeanStateImage from './components/bean-state';
 export default function Loading() {
   return (
     <main className="dame-loading-screen" aria-live="polite" aria-busy="true">
-      <BeanStateImage state="walking" className="dame-loading-bean" priority />
-      <p className="dame-kicker">The Bean is on the way</p>
+      <div className="dame-loading-bean-stage">
+        <BeanStateImage state="loading-start" className="dame-loading-bean" priority />
+        <BeanStateImage state="loading-sip" className="dame-loading-bean" decorative />
+        <BeanStateImage state="loading-ready" className="dame-loading-bean" decorative />
+      </div>
+      <p className="dame-kicker">The Bean is brewing your page</p>
       <div className="dame-loading-track" aria-hidden="true"><i /></div>
-      <span>Bringing Dame to you.</span>
+      <span>Arriving. Sipping. Ready.</span>
     </main>
   );
 }

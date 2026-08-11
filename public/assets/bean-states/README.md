@@ -20,10 +20,14 @@ The Bean is Dame Coffee's quiet guide—not wallpaper. Each appearance should he
 | `bean-halloween.png` | October |
 | `bean-winter.png` | December through February |
 
+The expanded library also includes automatic holiday art for New Year, Día de Reyes, Lunar New Year, Valentine’s Day, Saint Patrick’s Day, Easter, Earth Day, Cinco de Mayo, Mother’s Day, Memorial Day, Pride, Juneteenth, Father’s Day, Fourth of July, Labor Day, Mexican Independence Day, Indigenous Peoples’ Day, Halloween, Día de Muertos, Veterans Day, Thanksgiving, Hanukkah, Las Posadas, Christmas, Kwanzaa, and Eid.
+
+Everyday utility poses include loading arrival, sipping, ready/waving, chef, croissant, binoculars, construction, and birthday states. The loading screen uses a three-pose sequence: arrive, sip, and wave.
+
 ## Visual rules
 
 - Preserve the tall bean silhouette, center seam, long nose, and tiny puckered mouth.
-- Use warm burgundy linework, white fills, and the original hand-drawn imperfection.
+- Use warm burgundy linework, solid warm-white body fills, and the original hand-drawn imperfection.
 - Use the softer closed-eye Bean for calm moments and the expressive eyebrow Bean for playful feedback.
 - Keep props simple and immediately readable.
 - Never add the Bean only to fill empty space.

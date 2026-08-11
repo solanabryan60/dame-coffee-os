@@ -5525,12 +5525,29 @@
   text-align: center;
 }
 
-.dame-loading-bean {
+.dame-loading-bean-stage {
+  position: relative;
   width: min(58vw, 300px);
-  height: auto;
+  aspect-ratio: 1;
   margin-bottom: 10px;
+}
+
+.dame-loading-bean {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
-  animation: dame-bean-walk 1.4s ease-in-out infinite;
+  opacity: 0;
+  animation: dame-loading-bean-sequence 3.6s ease-in-out infinite;
+}
+
+.dame-loading-bean:nth-child(2) {
+  animation-delay: 1.2s;
+}
+
+.dame-loading-bean:nth-child(3) {
+  animation-delay: 2.4s;
 }
 
 .dame-loading-track {
@@ -5677,9 +5694,10 @@
   margin-bottom: 8px !important;
 }
 
-@keyframes dame-bean-walk {
-  0%, 100% { transform: translate(-12px, 0) rotate(-1deg); }
-  50% { transform: translate(12px, -5px) rotate(1deg); }
+@keyframes dame-loading-bean-sequence {
+  0% { opacity: 0; transform: translateX(-18px) translateY(4px) rotate(-1deg); }
+  10%, 28% { opacity: 1; transform: translateX(0) translateY(0) rotate(0); }
+  33%, 100% { opacity: 0; transform: translateX(14px) translateY(-3px) rotate(1deg); }
 }
 
 @keyframes dame-loading-progress {
@@ -5737,6 +5755,14 @@
 
   .dame-loading-track i {
     width: 68%;
+  }
+
+  .dame-loading-bean:first-child {
+    opacity: 1;
+  }
+
+  .dame-loading-bean:not(:first-child) {
+    display: none;
   }
 }
 
