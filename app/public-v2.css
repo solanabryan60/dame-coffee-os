@@ -1274,8 +1274,8 @@
 .dame-rewards-bean img {
   width: min(100%, 420px);
   height: auto;
-  opacity: 0.22;
-  filter: brightness(0) invert(1);
+  opacity: 0.96;
+  filter: drop-shadow(0 24px 38px rgba(69, 13, 13, 0.18));
 }
 
 /* Receipt points */
@@ -3092,10 +3092,14 @@
 
   .dame-rewards-bean {
     position: absolute;
-    right: -190px;
-    bottom: -100px;
+    right: -72px;
+    bottom: -52px;
     opacity: 1;
     transform: none;
+  }
+
+  .dame-rewards-bean img {
+    width: min(46vw, 360px);
   }
 
   .dame-rewards-copy {
@@ -3304,6 +3308,15 @@
   .dame-rewards-hero {
     min-height: 650px;
     padding: 76px 20px 0;
+  }
+
+  .dame-rewards-bean {
+    right: -34px;
+    bottom: -22px;
+  }
+
+  .dame-rewards-bean img {
+    width: min(62vw, 290px);
   }
 
   .dame-rewards-copy h1 {
