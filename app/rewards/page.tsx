@@ -12,8 +12,8 @@ export const metadata: Metadata = {
 const benefits = [
   {
     number: '01',
-    title: 'Ten points per dollar',
-    text: 'Earn 10 Dame points for every eligible $1 you spend on signed-in purchases.',
+    title: 'Every purchase carries forward',
+    text: 'Earn 10 Dame points for every eligible $1, whether you order online or save an in-person receipt afterward.',
   },
   {
     number: '02',
@@ -43,13 +43,15 @@ const benefits = [
 ];
 
 type RewardsPageProps = {
-  searchParams: Promise<{ ref?: string | string[] }>;
+  searchParams: Promise<{ ref?: string | string[]; claim?: string | string[] }>;
 };
 
 export default async function RewardsPage({ searchParams }: RewardsPageProps) {
   const params = await searchParams;
   const rawReferral = Array.isArray(params.ref) ? params.ref[0] : params.ref;
   const referralCode = rawReferral?.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8) ?? '';
+  const rawClaim = Array.isArray(params.claim) ? params.claim[0] : params.claim;
+  const returnTo = rawClaim === '1' ? '/rewards/claim' : '/rewards/account';
 
   return (
     <main className="dame-site dame-inner-page">
@@ -66,6 +68,9 @@ export default async function RewardsPage({ searchParams }: RewardsPageProps) {
             <a className="dame-button dame-button-light" href="#join">Join Dame Rewards</a>
             <a className="dame-inline-link dame-inline-link-light" href="/rewards/account">
               My account <span aria-hidden="true">→</span>
+            </a>
+            <a className="dame-inline-link dame-inline-link-light" href="/rewards/claim">
+              Save receipt points <span aria-hidden="true">→</span>
             </a>
           </div>
         </div>
@@ -103,7 +108,7 @@ export default async function RewardsPage({ searchParams }: RewardsPageProps) {
             your points and available rewards whenever you come back.
           </p>
         </div>
-        <RewardsSignup initialReferralCode={referralCode} />
+        <RewardsSignup initialReferralCode={referralCode} returnTo={returnTo} />
       </section>
 
       <SiteFooter />

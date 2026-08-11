@@ -154,7 +154,7 @@ export default function Home() {
       </section>
 
       <section className="dame-home-v3-story-link" aria-label="Dame Coffee story">
-        <p>Culture is not decoration. It is how we welcome people.</p>
+        <p>Rooted in culture. Made to make you feel at home.</p>
         <Link href="/about">Our story <span aria-hidden="true">↗</span></Link>
       </section>
 

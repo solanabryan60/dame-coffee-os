@@ -157,9 +157,17 @@ If more than one points campaign is active, only the highest multiplier applies.
 
 A friend referral qualifies only after the new member completes a first eligible purchase of at least $5. Self-referrals are blocked, each new member can qualify only once, and each member may receive up to ten referrer bonuses per calendar month. A qualifying refund reverses the referral points.
 
-For an in-person Square POS sale, points can be matched when the order has a Square customer attached whose email or mobile number matches the member’s Dame profile.
+For an in-person POS sale, points can be matched automatically when the order has a customer attached whose email or mobile number matches the member’s Dame profile. If the customer was not identified at checkout, they can visit `/rewards/claim` within 30 days and enter the receipt number, purchase date, and exact total. The server verifies the completed payment before awarding points, and each payment can be attached only once.
 
 Webhook processing is idempotent: repeated Square notifications cannot award the same payment twice.
+
+### Receipt invitation
+
+In Square Dashboard, open **Settings → Account & Settings → Payments → Receipts** and add this under **Additional text → Custom Text**:
+
+> Don’t let your Dame points go to waste. Join or sign in at damecoffeeco.com/rewards/claim and enter the receipt number above to save this purchase.
+
+This makes digital receipts a direct path back to Dame Rewards and gives printed-receipt customers a short address they can enter on their phone.
 
 ## Database setup
 

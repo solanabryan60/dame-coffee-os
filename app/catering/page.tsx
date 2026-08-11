@@ -49,7 +49,7 @@ export default function CateringPage() {
         <article>
           <span>02</span>
           <h3>Request the date</h3>
-          <p>Pay the $200 deposit securely with Square. It is applied to your final event balance.</p>
+          <p>Place a secure $200 deposit to request your date. It is applied to your final event balance.</p>
         </article>
         <article>
           <span>03</span>

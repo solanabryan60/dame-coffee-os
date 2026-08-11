@@ -383,8 +383,8 @@ export default function OrderExperience({
           <p className="dame-kicker">Pickup · Today only</p>
           <h1>Order where we&apos;re brewing.</h1>
           <p>
-            Customize your drinks here, pay securely with Square, and pick everything
-            up at today&apos;s live location.
+            Choose your favorite, make it yours, and we&apos;ll have it waiting at
+            today&apos;s Dame location.
           </p>
         </div>
         <aside>
@@ -404,8 +404,8 @@ export default function OrderExperience({
 
       {!squareConfigured ? (
         <section className="dame-order-notice">
-          <strong>Square is being connected.</strong>
-          <p>The menu is ready to preview, but checkout stays safely off until the private Square connection is complete.</p>
+          <strong>Online pickup is almost ready.</strong>
+          <p>Explore what sounds good today. We&apos;ll open checkout as soon as the ordering bar is ready.</p>
         </section>
       ) : !location.isOpen || !location.mobileOrdering ? (
         <section className="dame-order-notice">
@@ -511,16 +511,16 @@ export default function OrderExperience({
             disabled={!orderingEnabled || submitting}
             onClick={checkout}
           >
-            {submitting ? 'Opening Square…' : `Checkout securely · ${money(total)}`}
+            {submitting ? 'Preparing checkout…' : `Checkout securely · ${money(total)}`}
           </button>
           <p className="dame-square-note">
-            Final tax and total are calculated by Square. Payment details stay with Square.
+            Final tax appears at secure checkout. Dame never receives or stores your card details.
           </p>
           <p className="dame-square-note">
             {rewardsAccessToken ? (
-              <>This signed-in purchase earns 10 Dame points per eligible $1.</>
+              <>This eligible purchase earns 10 Dame points per $1.</>
             ) : (
-              <>Want points with this order? <Link href="/rewards#join">Join or sign in first.</Link></>
+              <>Ordering without an account? Keep your receipt and <Link href="/rewards/claim">save your points afterward.</Link></>
             )}
           </p>
           <Link href="/menu">Just browsing? View the menu →</Link>

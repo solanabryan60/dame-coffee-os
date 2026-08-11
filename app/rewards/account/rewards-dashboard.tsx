@@ -250,6 +250,9 @@ export default function RewardsDashboard() {
           <p className="dame-kicker dame-kicker-light">Dame Rewards</p>
           <h1>Welcome back,<br /><em>{profile.first_name || 'friend'}.</em></h1>
           <p>Every purchase deserves a little love.</p>
+          <Link className="dame-inline-link dame-inline-link-light" href="/rewards/claim">
+            Save an in-person receipt <span aria-hidden="true">→</span>
+          </Link>
         </div>
         <div className="dame-points-card">
           <p>Available balance</p>
@@ -432,7 +435,7 @@ export default function RewardsDashboard() {
               </div>
             ) : (
               <p className="dame-reward-empty">
-                Your first signed-in purchase will begin your rewards story.
+                Your first eligible purchase will begin your rewards story.
               </p>
             )}
           </section>

@@ -45,10 +45,8 @@ function displayPrice(item: SquareMenuItem) {
 
 export default function MenuExperience({
   items,
-  syncedWithSquare,
 }: {
   items: SquareMenuItem[];
-  syncedWithSquare: boolean;
 }) {
   const [activeCategory, setActiveCategory] = useState<MenuCategoryId>('basics');
   const category = categories.find((entry) => entry.id === activeCategory) ?? categories[0];
@@ -61,13 +59,15 @@ export default function MenuExperience({
           <p className="dame-kicker">Cold drinks · Made to order</p>
           <h1>What sounds good?</h1>
           <p>
-            Pick a section and take your time. Our menu stays connected to Square, so
-            prices and availability can follow the same catalog we use at the cart.
+            Settle in and choose what speaks to you. From slow-steeped cold brew to
+            matcha whisked smooth, every selection is prepared to feel distinctly Dame.
           </p>
         </div>
-        <div className="dame-menu-stamp" aria-hidden="true">
-          <span>Dame</span>
-          <strong>Menu</strong>
+        <div className="dame-menu-editorial" role="img" aria-label="Iced matcha and cold brew presented in warm sunlight">
+          <div>
+            <span>Dame</span>
+            <strong>Menu</strong>
+          </div>
         </div>
       </section>
 
@@ -144,9 +144,9 @@ export default function MenuExperience({
           )}
 
           <footer>
-            <span>{syncedWithSquare ? 'Live menu from Square' : 'Preview menu while Square connects'}</span>
+            <span>Made cold. Served with intention.</span>
             <Link className="dame-button" href="/order">
-              Order pickup
+              Make it yours
             </Link>
           </footer>
         </div>

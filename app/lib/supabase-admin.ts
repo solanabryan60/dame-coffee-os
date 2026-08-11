@@ -386,6 +386,13 @@ export async function getActiveRewardPromotions() {
   );
 }
 
+export async function getRewardPromotionsAt(timestamp: string) {
+  const moment = encodeURIComponent(timestamp);
+  return adminRequest<ActiveRewardPromotion[]>(
+    `/reward_promotions?active=is.true&starts_at=lte.${moment}&ends_at=gt.${moment}&select=id,name,multiplier,scope,eligible_categories&order=multiplier.desc,starts_at.asc`,
+  );
+}
+
 export async function recordDameSquareEvent(input: {
   userId: string;
   squareId: string;

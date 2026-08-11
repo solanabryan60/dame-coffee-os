@@ -16,8 +16,10 @@ type Mode = 'join' | 'signin';
 
 export default function RewardsSignup({
   initialReferralCode = '',
+  returnTo = '/rewards/account',
 }: {
   initialReferralCode?: string;
+  returnTo?: string;
 }) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>('join');
@@ -48,7 +50,7 @@ export default function RewardsSignup({
       if (mode === 'signin') {
         const session = await loginCustomer(email, password);
         saveCustomerSession(session);
-        router.push('/rewards/account');
+        router.push(returnTo);
         return;
       }
 
@@ -76,7 +78,7 @@ export default function RewardsSignup({
           expires_at: result.expires_at,
           user: result.user,
         });
-        router.push('/rewards/account');
+        router.push(returnTo);
         return;
       }
 

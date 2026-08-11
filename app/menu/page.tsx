@@ -30,7 +30,7 @@ export default async function MenuPage() {
   return (
     <main className="dame-site dame-inner-page">
       <SiteHeader />
-      <MenuExperience items={items} syncedWithSquare={catalog.configured} />
+      <MenuExperience items={items} />
       <SiteFooter />
     </main>
   );

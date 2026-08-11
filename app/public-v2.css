@@ -1274,7 +1274,173 @@
   width: min(100%, 420px);
   height: auto;
   mix-blend-mode: multiply;
-  filter: contrast(1.15);
+  filter: contrast(3.2) brightness(1.08);
+}
+
+/* Receipt points */
+.dame-claim-hero {
+  min-height: 680px;
+  padding: clamp(112px, 13vw, 190px) clamp(22px, 7vw, 110px) clamp(78px, 9vw, 130px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+  gap: clamp(56px, 9vw, 140px);
+  align-items: end;
+  background: var(--dame-red);
+  color: white;
+}
+
+.dame-claim-hero h1 {
+  margin: 18px 0 26px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(62px, 8vw, 116px);
+  font-weight: 500;
+  letter-spacing: -0.06em;
+  line-height: 0.88;
+}
+
+.dame-claim-hero h1 em {
+  font-weight: inherit;
+}
+
+.dame-claim-hero > div > p:last-child {
+  max-width: 650px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.dame-claim-hero ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.34);
+}
+
+.dame-claim-hero li {
+  padding: 22px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.34);
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.dame-claim-hero li span {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+}
+
+.dame-claim-hero li p {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.dame-claim-builder {
+  padding: clamp(82px, 10vw, 145px) clamp(22px, 7vw, 110px);
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(400px, 1.15fr);
+  gap: clamp(50px, 9vw, 130px);
+  align-items: start;
+  background: var(--warm-white);
+}
+
+.dame-claim-builder h2 {
+  margin: 18px 0 28px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(50px, 6vw, 86px);
+  font-weight: 500;
+  letter-spacing: -0.055em;
+  line-height: 0.92;
+}
+
+.dame-claim-builder > div:first-child > p:last-child {
+  max-width: 520px;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.dame-receipt-claim {
+  padding: clamp(28px, 4vw, 54px);
+  border: 1px solid var(--line);
+  border-radius: 34px;
+  background: white;
+  box-shadow: 0 24px 65px rgba(59, 31, 20, 0.08);
+}
+
+.dame-receipt-claim form {
+  display: grid;
+  gap: 24px;
+}
+
+.dame-receipt-claim label {
+  display: grid;
+  gap: 10px;
+}
+
+.dame-receipt-claim label > span {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.dame-receipt-claim input {
+  width: 100%;
+  min-height: 58px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--warm-white);
+  color: var(--ink);
+  font: inherit;
+}
+
+.dame-receipt-claim input:focus {
+  outline: 2px solid rgba(150, 16, 16, 0.2);
+  border-color: var(--dame-red);
+}
+
+.dame-receipt-claim small,
+.dame-claim-account-note {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.dame-money-input {
+  position: relative;
+}
+
+.dame-money-input b {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  z-index: 1;
+  transform: translateY(-50%);
+  color: var(--dame-red);
+}
+
+.dame-money-input input {
+  padding-left: 34px;
+}
+
+.dame-receipt-claim .dame-button {
+  width: 100%;
+  justify-content: center;
+}
+
+.dame-claim-account-note {
+  margin: 0;
+  text-align: center;
+}
+
+.dame-claim-account-note a {
+  color: var(--dame-red);
+  font-weight: 900;
 }
 
 .dame-benefits {
@@ -4018,36 +4184,53 @@
   line-height: 1.7;
 }
 
-.dame-menu-stamp {
-  width: min(100%, 360px);
-  aspect-ratio: 1;
-  padding: 44px;
-  border-radius: 50%;
-  display: grid;
-  align-content: center;
+.dame-menu-editorial {
+  position: relative;
+  width: min(100%, 620px);
+  min-height: 500px;
+  border-radius: 36px 36px 140px 36px;
   justify-self: center;
-  background: var(--dame-red);
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    linear-gradient(90deg, rgba(48, 22, 13, 0.58), rgba(48, 22, 13, 0.04) 76%),
+    url('/assets/dame-menu-editorial.png') center / cover no-repeat;
+  box-shadow: 0 30px 80px rgba(69, 31, 20, 0.18);
+}
+
+.dame-menu-editorial::after {
+  content: '';
+  position: absolute;
+  inset: 18px;
+  z-index: -1;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 24px 24px 124px 24px;
+  pointer-events: none;
+}
+
+.dame-menu-editorial > div {
+  position: absolute;
+  inset: auto auto 46px 42px;
+  display: grid;
   color: white;
-  text-align: center;
   text-transform: uppercase;
-  transform: rotate(-4deg);
+  text-shadow: 0 2px 24px rgba(30, 12, 8, 0.34);
 }
 
-.dame-menu-stamp span {
-  font-family: "Arial Black", Impact, Haettenschweiler, sans-serif;
-  font-size: clamp(30px, 4.4vw, 54px);
+.dame-menu-editorial span {
+  font-size: 14px;
   font-weight: 900;
-  letter-spacing: 0.19em;
+  letter-spacing: 0.34em;
+}
+
+.dame-menu-editorial strong {
+  margin-top: 4px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(58px, 6vw, 94px);
+  font-weight: 500;
+  letter-spacing: -0.055em;
   line-height: 0.9;
-}
-
-.dame-menu-stamp strong {
-  margin-top: 14px;
-  font-family: "Arial Black", Impact, Haettenschweiler, sans-serif;
-  font-size: clamp(54px, 7vw, 88px);
-  font-weight: 900;
-  letter-spacing: 0.04em;
-  line-height: 0.86;
+  text-transform: none;
 }
 
 .dame-menu-browser {
@@ -4898,12 +5081,15 @@
   .dame-menu-intro,
   .dame-order-hero,
   .dame-order-layout,
-  .dame-order-complete {
+  .dame-order-complete,
+  .dame-claim-hero,
+  .dame-claim-builder {
     grid-template-columns: 1fr;
   }
 
-  .dame-menu-stamp {
-    width: min(70vw, 300px);
+  .dame-menu-editorial {
+    width: min(100%, 680px);
+    min-height: 430px;
   }
 
   .dame-order-layout {
@@ -4919,14 +5105,40 @@
   .dame-menu-intro,
   .dame-order-hero,
   .dame-order-layout,
-  .dame-order-complete {
+  .dame-order-complete,
+  .dame-claim-hero,
+  .dame-claim-builder {
     padding: 72px 20px;
   }
 
   .dame-menu-intro h1,
   .dame-order-hero h1,
-  .dame-order-complete h1 {
+  .dame-order-complete h1,
+  .dame-claim-hero h1 {
     font-size: 58px;
+  }
+
+  .dame-claim-builder {
+    gap: 44px;
+  }
+
+  .dame-receipt-claim {
+    padding: 26px 20px;
+    border-radius: 26px;
+  }
+
+  .dame-menu-editorial {
+    min-height: 390px;
+    border-radius: 28px 28px 90px 28px;
+  }
+
+  .dame-menu-editorial::after {
+    inset: 12px;
+    border-radius: 20px 20px 78px 20px;
+  }
+
+  .dame-menu-editorial > div {
+    inset: auto auto 34px 28px;
   }
 
   .dame-menu-browser {

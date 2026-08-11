@@ -393,10 +393,10 @@ export default function CateringCalculator() {
       <div className="dame-estimator-actions">
         {error ? <p className="dame-checkout-error" role="alert">{error}</p> : null}
         <button className="dame-button" type="submit" disabled={submitting}>
-          {submitting ? 'Opening Square…' : 'Pay $200 deposit & request date'}
+          {submitting ? 'Preparing checkout…' : 'Pay $200 deposit & request date'}
         </button>
         <a className="dame-button dame-button-outline" href="tel:+19094519307">Call with questions</a>
-        <p className="dame-square-note">Secure checkout is handled by Square. Dame never receives your card details.</p>
+        <p className="dame-square-note">Your deposit is processed securely. Dame never receives or stores your card details.</p>
       </div>
     </form>
   );
