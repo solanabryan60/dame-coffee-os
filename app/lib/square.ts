@@ -1,4 +1,10 @@
 import { calculateCateringEstimateCents } from './catering-pricing';
+import {
+  isExclusiveModifierGroup,
+  isVirtualOrderModifier,
+  orderingModifierGroups,
+  requiredSelectionsForOrdering,
+} from './order-modifiers';
 import { readMenuAvailability } from './supabase-rest';
 
 const SQUARE_API_VERSION = '2026-07-15';
@@ -119,22 +125,6 @@ type CheckoutCustomer = {
   email?: string;
   note?: string;
 };
-
-function isExclusiveModifierGroup(groupName: string) {
-  return /\b(milk|coffee)\b/i.test(groupName);
-}
-
-function checkoutModifierGroups(item: SquareMenuItem) {
-  if (item.category !== 'foam') return item.modifierGroups;
-
-  return item.modifierGroups
-    .filter((group) => !/\bcold\s*foam\b/i.test(group.name))
-    .map((group) => ({
-      ...group,
-      options: group.options.filter((option) => !/\bcold\s*foam\b/i.test(option.name)),
-    }))
-    .filter((group) => group.options.length > 0);
-}
 
 export type PickupOrderLineItemSnapshot = {
   item_name: string;
@@ -675,7 +665,7 @@ export async function createSquarePaymentLink(
     if (soldOutItemIds.has(item.id)) {
       throw new Error(`${item.name} is sold out for today.`);
     }
-    const modifierGroups = checkoutModifierGroups(item);
+    const modifierGroups = orderingModifierGroups(item);
     if (!Number.isInteger(line.quantity) || line.quantity < 1 || line.quantity > 12) {
       throw new Error('Choose a quantity between 1 and 12.');
     }
@@ -690,13 +680,11 @@ export async function createSquarePaymentLink(
     for (const group of modifierGroups) {
       const groupOptionIds = new Set(group.options.map((option) => option.id));
       const selectedCount = line.modifierIds.filter((id) => groupOptionIds.has(id)).length;
-      const minimum = isExclusiveModifierGroup(group.name)
-        ? Math.min(group.minSelected, 1)
-        : group.minSelected;
+      const minimum = requiredSelectionsForOrdering(group);
       if (selectedCount < minimum) {
         throw new Error(`Choose the required ${group.name} option.`);
       }
-      if (isExclusiveModifierGroup(group.name) && selectedCount > 1) {
+      if (isExclusiveModifierGroup(group) && selectedCount > 1) {
         throw new Error(`Too many ${group.name} options were selected.`);
       }
     }
@@ -713,10 +701,21 @@ export async function createSquarePaymentLink(
       squareLine: {
         quantity: String(line.quantity),
         catalog_object_id: line.variationId,
-        modifiers: line.modifierIds.map((id) => ({
-          catalog_object_id: id,
-          quantity: '1',
-        })),
+        modifiers: selectedModifiers.map((modifier) =>
+          isVirtualOrderModifier(modifier.id)
+            ? {
+                name: modifier.name,
+                quantity: '1',
+                base_price_money: {
+                  amount: modifier.priceAmount,
+                  currency: 'USD',
+                },
+              }
+            : {
+                catalog_object_id: modifier.id,
+                quantity: '1',
+              },
+        ),
       },
       snapshot: {
         item_name: item.name,

@@ -4,6 +4,11 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import type { SquareMenuItem, SquareMenuModifierGroup } from '../lib/square';
 import { getCustomerSession } from '../lib/customer-session';
+import {
+  isExclusiveModifierGroup,
+  orderingModifierGroups,
+  requiredSelectionsForOrdering,
+} from '../lib/order-modifiers';
 import { readCustomerProfile } from '../lib/supabase-rest';
 
 type CartLine = {
@@ -35,22 +40,6 @@ function money(amount: number) {
   }).format(amount / 100);
 }
 
-function isExclusiveModifierGroup(group: SquareMenuModifierGroup) {
-  return /\b(milk|coffee)\b/i.test(group.name);
-}
-
-function orderModifierGroups(item: SquareMenuItem) {
-  if (item.category !== 'foam') return item.modifierGroups;
-
-  return item.modifierGroups
-    .filter((group) => !/\bcold\s*foam\b/i.test(group.name))
-    .map((group) => ({
-      ...group,
-      options: group.options.filter((option) => !/\bcold\s*foam\b/i.test(option.name)),
-    }))
-    .filter((group) => group.options.length > 0);
-}
-
 function ItemOrderCard({
   item,
   disabled,
@@ -70,12 +59,12 @@ function ItemOrderCard({
   const [variationId, setVariationId] = useState(item.variations[0]?.id ?? '');
   const [selections, setSelections] = useState<Record<string, string[]>>({});
   const variation = item.variations.find((entry) => entry.id === variationId) ?? item.variations[0];
-  const modifierGroups = orderModifierGroups(item);
+  const modifierGroups = orderingModifierGroups(item);
 
   useEffect(() => {
     if (!editingLine) return;
 
-    const restoredSelections = orderModifierGroups(item).reduce<Record<string, string[]>>(
+    const restoredSelections = orderingModifierGroups(item).reduce<Record<string, string[]>>(
       (groups, group) => {
         const optionIds = new Set(group.options.map((option) => option.id));
         groups[group.id] = editingLine.modifierIds.filter((id) => optionIds.has(id));
@@ -96,7 +85,7 @@ function ItemOrderCard({
   const requiredChoicesComplete = modifierGroups.every(
     (group) =>
       (selections[group.id]?.length ?? 0) >=
-      (isExclusiveModifierGroup(group) ? Math.min(group.minSelected, 1) : group.minSelected),
+      requiredSelectionsForOrdering(group),
   );
   const unitAmount =
     (variation?.priceAmount ?? 0) +
@@ -160,9 +149,9 @@ function ItemOrderCard({
               <legend>
                 {group.name}
                 {isExclusiveModifierGroup(group) ? (
-                  <span>{group.minSelected > 0 ? 'Choose one' : 'Optional · one only'}</span>
+                  <span>Required · pick one</span>
                 ) : (
-                  <span>{group.minSelected > 0 ? `Choose ${group.minSelected}+` : 'Pick any'}</span>
+                  <span>Optional · pick any</span>
                 )}
               </legend>
               <div>
