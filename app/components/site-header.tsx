@@ -60,12 +60,15 @@ export default function SiteHeader({ overlay = false }: { overlay?: boolean }) {
             {item.label}
           </Link>
         ))}
-        <Link className="dame-mobile-primary" href="/order" onClick={() => setMenuOpen(false)}>
+        <Link href="/order" onClick={() => setMenuOpen(false)}>
           Order pickup
         </Link>
         <div>
           <a href="tel:+19094519307">(909) 451-9307</a>
           <a href="mailto:info@damecoffeeco.com">info@damecoffeeco.com</a>
+          <a href="https://www.instagram.com/_dame.coffee_/" target="_blank" rel="noreferrer">
+            @_dame.coffee_
+          </a>
         </div>
       </nav>
     </header>

@@ -237,6 +237,7 @@ export default function OrderExperience({
 }) {
   const [cart, setCart] = useState<CartLine[]>([]);
   const [editingLineId, setEditingLineId] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<SquareMenuItem['category']>('foam');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -266,6 +267,7 @@ export default function OrderExperience({
     },
     [],
   ).sort((a, b) => groupOrder[a.id] - groupOrder[b.id]);
+  const activeGroup = itemGroups.find((group) => group.id === activeCategory) ?? itemGroups[0];
 
   useEffect(() => {
     getCustomerSession().then(async (session) => {
@@ -305,11 +307,15 @@ export default function OrderExperience({
   }
 
   function editLine(line: CartLine) {
+    const item = items.find((entry) => entry.id === line.itemId);
+    if (item) setActiveCategory(item.category);
     setEditingLineId(line.id);
     window.requestAnimationFrame(() => {
-      document.getElementById(`order-item-${line.itemId}`)?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
+      window.requestAnimationFrame(() => {
+        document.getElementById(`order-item-${line.itemId}`)?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
       });
     });
   }
@@ -409,15 +415,39 @@ export default function OrderExperience({
             <p className="dame-kicker">Build your order</p>
             <h2>Made how you like it.</h2>
           </header>
+          <div className="dame-menu-tabs dame-order-category-tabs" role="tablist" aria-label="Order menu sections">
+            {itemGroups.map((group, index) => (
+              <button
+                key={group.id}
+                type="button"
+                role="tab"
+                aria-selected={activeGroup?.id === group.id}
+                aria-controls="dame-order-category-panel"
+                onClick={() => {
+                  setEditingLineId(null);
+                  setActiveCategory(group.id);
+                }}
+              >
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                {group.label}
+              </button>
+            ))}
+          </div>
           <div className="dame-order-groups">
-            {itemGroups.map((group) => (
-              <section key={group.label} className="dame-order-group" aria-labelledby={`order-group-${group.label.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`}>
+            {activeGroup ? (
+              <section
+                key={activeGroup.id}
+                id="dame-order-category-panel"
+                className="dame-order-group dame-order-category-panel"
+                role="tabpanel"
+                aria-labelledby={`order-group-${activeGroup.label.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`}
+              >
                 <header>
                   <p>Choose your Dame</p>
-                  <h3 id={`order-group-${group.label.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`}>{group.label}</h3>
+                  <h3 id={`order-group-${activeGroup.label.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`}>{activeGroup.label}</h3>
                 </header>
                 <div className="dame-order-grid">
-                  {group.items.map((item) => (
+                  {activeGroup.items.map((item) => (
                     <ItemOrderCard
                       key={item.id}
                       item={item}
@@ -430,7 +460,7 @@ export default function OrderExperience({
                   ))}
                 </div>
               </section>
-            ))}
+            ) : null}
           </div>
         </div>
 
