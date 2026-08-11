@@ -5513,6 +5513,233 @@
   }
 }
 
+/* The Bean — purposeful mascot states */
+.dame-loading-screen {
+  min-height: 100svh;
+  padding: 48px 24px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  background: var(--cream);
+  color: var(--ink);
+  text-align: center;
+}
+
+.dame-loading-bean {
+  width: min(58vw, 300px);
+  height: auto;
+  margin-bottom: 10px;
+  object-fit: contain;
+  animation: dame-bean-walk 1.4s ease-in-out infinite;
+}
+
+.dame-loading-track {
+  width: min(280px, 72vw);
+  height: 4px;
+  margin: 18px 0 14px;
+  overflow: hidden;
+  background: rgba(150, 16, 16, 0.14);
+}
+
+.dame-loading-track i {
+  width: 42%;
+  height: 100%;
+  display: block;
+  background: var(--dame-red);
+  animation: dame-loading-progress 1.25s ease-in-out infinite;
+}
+
+.dame-loading-screen > span {
+  color: var(--muted);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 17px;
+  font-style: italic;
+}
+
+.dame-not-found-bean {
+  width: min(62vw, 330px);
+  height: auto;
+}
+
+.dame-catering-complete {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  gap: clamp(36px, 8vw, 120px);
+  align-items: center;
+}
+
+.dame-catering-complete-bean {
+  width: min(100%, 520px);
+  height: auto;
+  justify-self: center;
+}
+
+.dame-order-closed-notice {
+  padding-block: 15px;
+}
+
+.dame-order-closed-bean {
+  width: 92px;
+  height: 92px;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.dame-order-closed-notice > div {
+  display: grid;
+  gap: 5px;
+}
+
+.dame-menu-sold-out-note {
+  max-width: 530px;
+  margin-top: 28px;
+  padding: 18px 22px;
+  border: 1px solid rgba(150, 16, 16, 0.18);
+  border-radius: 22px;
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 18px;
+  align-items: center;
+  background: var(--cream);
+}
+
+.dame-menu-sold-out-note img {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+}
+
+.dame-menu-sold-out-note p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.dame-menu-sold-out-note strong {
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.dame-points-card {
+  position: relative;
+  overflow: hidden;
+  padding-right: clamp(150px, 14vw, 210px);
+}
+
+.dame-points-bean {
+  position: absolute;
+  top: 16px;
+  right: 4px;
+  width: clamp(140px, 16vw, 210px);
+  height: auto;
+  opacity: 0.94;
+  transform: rotate(2deg);
+}
+
+.dame-home-seasonal-bean {
+  max-width: 520px;
+  margin-top: 36px;
+  padding-top: 26px;
+  border-top: 1px solid rgba(31, 23, 20, 0.18);
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.dame-home-seasonal-bean img {
+  width: 104px;
+  height: 104px;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.dame-seasonal-bean-placeholder {
+  width: 104px;
+  height: 104px;
+  flex: 0 0 auto;
+}
+
+.dame-home-seasonal-bean p {
+  margin: 0;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 17px;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.dame-offline-bean {
+  width: min(66vw, 320px) !important;
+  height: auto !important;
+  margin-bottom: 8px !important;
+}
+
+@keyframes dame-bean-walk {
+  0%, 100% { transform: translate(-12px, 0) rotate(-1deg); }
+  50% { transform: translate(12px, -5px) rotate(1deg); }
+}
+
+@keyframes dame-loading-progress {
+  from { transform: translateX(-105%); }
+  to { transform: translateX(245%); }
+}
+
+@media (max-width: 760px) {
+  .dame-catering-complete {
+    grid-template-columns: 1fr;
+  }
+
+  .dame-catering-complete-bean {
+    order: -1;
+    width: min(92vw, 420px);
+  }
+
+  .dame-order-closed-notice {
+    align-items: center;
+    flex-direction: row;
+    gap: 16px;
+  }
+
+  .dame-order-closed-bean {
+    width: 76px;
+    height: 76px;
+  }
+
+  .dame-points-card {
+    padding-right: clamp(28px, 4vw, 44px);
+    padding-top: 166px;
+  }
+
+  .dame-points-bean {
+    top: 2px;
+    right: 8px;
+    width: 170px;
+  }
+
+  .dame-menu-sold-out-note {
+    grid-template-columns: 72px 1fr;
+  }
+
+  .dame-menu-sold-out-note img {
+    width: 72px;
+    height: 72px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dame-loading-bean,
+  .dame-loading-track i {
+    animation: none;
+  }
+
+  .dame-loading-track i {
+    width: 68%;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .dame-menu-panel {
     animation: none;

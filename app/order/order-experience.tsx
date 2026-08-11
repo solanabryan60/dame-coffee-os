@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import BeanStateImage from '../components/bean-state';
 import type { SquareMenuItem, SquareMenuModifierGroup } from '../lib/square';
 import { getCustomerSession } from '../lib/customer-session';
 import {
@@ -403,9 +404,12 @@ export default function OrderExperience({
           <p>Explore what sounds good today. We&apos;ll open checkout as soon as the ordering bar is ready.</p>
         </section>
       ) : !location.isOpen || !location.mobileOrdering ? (
-        <section className="dame-order-notice">
-          <strong>Pickup ordering is paused.</strong>
-          <p>You can still plan what sounds good. Ordering will open from the Dame dashboard when the cart is ready.</p>
+        <section className="dame-order-notice dame-order-closed-notice">
+          <BeanStateImage state="sleeping" className="dame-order-closed-bean" />
+          <div>
+            <strong>We&apos;re resting right now.</strong>
+            <p>We&apos;ll see you when the cart is brewing again. You can still plan what sounds good.</p>
+          </div>
         </section>
       ) : null}
 

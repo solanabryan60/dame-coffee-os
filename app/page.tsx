@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import GoogleMap from './components/google-map';
+import SeasonalBean from './components/seasonal-bean';
 import SiteFooter from './components/site-footer';
 import SiteHeader from './components/site-header';
 import { readSiteSettings, SiteSettings } from './lib/supabase-rest';
@@ -150,6 +151,10 @@ export default function Home() {
             ))}
           </div>
           <Link className="dame-button" href="/menu">Explore the full menu</Link>
+          <aside className="dame-home-seasonal-bean">
+            <SeasonalBean />
+            <p>A little seasonal Dame, right when it belongs.</p>
+          </aside>
         </div>
       </section>
 

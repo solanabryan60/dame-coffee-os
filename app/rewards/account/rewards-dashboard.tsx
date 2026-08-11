@@ -14,6 +14,7 @@ import {
   clearCustomerSession,
   getCustomerSession,
 } from '../../lib/customer-session';
+import BeanStateImage from '../../components/bean-state';
 
 function shortDate(value: string) {
   return new Intl.DateTimeFormat('en-US', {
@@ -255,6 +256,7 @@ export default function RewardsDashboard() {
           </Link>
         </div>
         <div className="dame-points-card">
+          <BeanStateImage state="rewards" className="dame-points-bean" decorative />
           <p>Available balance</p>
           <strong>{rewards.points}</strong>
           <span>points</span>
@@ -262,7 +264,7 @@ export default function RewardsDashboard() {
             <i style={{ width: `${progress}%` }} />
           </div>
           {nextReward ? (
-            <p><b>{nextReward.pointsAway}</b> points until {nextReward.name}</p>
+            <p>You&apos;re only <b>{nextReward.pointsAway}</b> points away from {nextReward.name}.</p>
           ) : (
             <p>Every Dame reward is within reach.</p>
           )}
