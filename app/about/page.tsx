@@ -56,7 +56,7 @@ export default function AboutPage() {
             Dame Coffee is a mobile cold brew and matcha bar serving Southern California.
             Mexican culture shapes our flavors, hospitality, and visual language. The cart may
             move, but our standards do not: thoughtful drinks, warm service, and room for everyone
-            to share in a small expression of the rich culture that shapes who we are.
+            to experience a small part of the rich culture that shapes who we are.
           </p>
         </div>
       </section>
