@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
+import BeanStateImage from '../components/bean-state';
 import SiteFooter from '../components/site-footer';
 import SiteHeader from '../components/site-header';
 import { missionStatement } from '../site-config';
@@ -46,6 +47,7 @@ export default function AboutPage() {
           <p className="dame-kicker dame-kicker-light">Our story</p>
           <h1 id="about-title">Coffee is how we<br /><em>bring people together.</em></h1>
         </div>
+        <BeanStateImage state="waving" className="dame-about-page-bean" decorative priority />
       </section>
 
       <section className="dame-about-intro" aria-labelledby="about-intro-title">
@@ -107,11 +109,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <SiteFooter
-        beanState="waving"
-        beanEyebrow="Come as you are."
-        beanMessage="There’s room for you."
-      />
+      <SiteFooter beanState={null} />
     </main>
   );
 }

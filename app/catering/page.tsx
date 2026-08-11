@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import BeanStateImage from '../components/bean-state';
 import CateringCalculator from '../components/catering-calculator';
 import SiteFooter from '../components/site-footer';
 import SiteHeader from '../components/site-header';
@@ -28,6 +29,7 @@ export default function CateringPage() {
           <strong>${CATERING_BASE_PRICE_DOLLARS}</strong>
           <p>100 drinks · 2 hours</p>
           <small>Plus applicable tax</small>
+          <BeanStateImage state="driving" className="dame-catering-page-bean" decorative priority />
         </div>
       </section>
 
@@ -58,11 +60,7 @@ export default function CateringPage() {
         </article>
       </section>
 
-      <SiteFooter
-        beanState="driving"
-        beanEyebrow="Dame on the move."
-        beanMessage="We bring the bar to you."
-      />
+      <SiteFooter beanState={null} />
     </main>
   );
 }

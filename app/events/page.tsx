@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import BeanStateImage from '../components/bean-state';
 import NotificationOptIn from '../components/notification-opt-in';
 import SiteFooter from '../components/site-footer';
 import SiteHeader from '../components/site-header';
@@ -22,9 +23,12 @@ export default function EventsPage() {
     <main className="dame-site dame-inner-page dame-events-page">
       <SiteHeader />
       <section className="dame-events-hero" aria-labelledby="events-title">
-        <p className="dame-kicker">Follow the cart</p>
-        <h1 id="events-title">Where Dame<br /><em>is headed next.</em></h1>
-        <p>Markets, pop-ups, and the places we cannot wait to serve.</p>
+        <div>
+          <p className="dame-kicker">Follow the cart</p>
+          <h1 id="events-title">Where Dame<br /><em>is headed next.</em></h1>
+          <p>Markets, pop-ups, and the places we cannot wait to serve.</p>
+        </div>
+        <BeanStateImage state="binoculars" className="dame-events-page-bean" decorative priority />
       </section>
       {events.length ? (
         <UpcomingEvents events={events} />
@@ -36,11 +40,7 @@ export default function EventsPage() {
         </section>
       ) : null}
       <NotificationOptIn />
-      <SiteFooter
-        beanState="binoculars"
-        beanEyebrow="Follow the cart."
-        beanMessage="See you at the next stop."
-      />
+      <SiteFooter beanState={null} />
     </main>
   );
 }

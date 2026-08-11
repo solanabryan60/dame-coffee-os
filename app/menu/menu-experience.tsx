@@ -93,6 +93,7 @@ export default function MenuExperience({
             <span>Dame</span>
             <strong>Menu</strong>
           </div>
+          <BeanStateImage state="pouring" className="dame-menu-page-bean" decorative priority />
         </div>
       </section>
 

@@ -395,6 +395,7 @@ export default function OrderExperience({
             <div><dt>Wait</dt><dd>{location.isOpen ? `About ${location.waitMinutes} min` : 'Unavailable'}</dd></div>
           </dl>
           <a href={location.mapsUrl} target="_blank" rel="noreferrer">Get directions ↗</a>
+          <BeanStateImage state="chef" className="dame-order-page-bean" decorative priority />
         </aside>
       </section>
 

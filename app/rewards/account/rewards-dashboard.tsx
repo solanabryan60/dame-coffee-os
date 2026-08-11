@@ -221,7 +221,7 @@ export default function RewardsDashboard() {
   if (loading) {
     return (
       <section className="dame-account-loading">
-        <span className="dame-live-dot" />
+        <BeanStateImage state="loading-sip" className="dame-account-loading-bean" decorative priority />
         <p>Pouring your rewards dashboard…</p>
       </section>
     );
@@ -230,6 +230,7 @@ export default function RewardsDashboard() {
   if (!account) {
     return (
       <section className="dame-account-empty">
+        <BeanStateImage state="rewards" className="dame-account-empty-bean" decorative priority />
         <p className="dame-kicker">Dame Rewards</p>
         <h1>Let&apos;s get you signed in.</h1>
         <p>{error || 'Your rewards account is waiting for you.'}</p>

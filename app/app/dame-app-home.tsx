@@ -138,6 +138,7 @@ export default function DameAppHome() {
           <em>right where you need it.</em>
         </h1>
         <p>Find us, order ahead, and keep every reward close.</p>
+        <BeanStateImage state="croissant" className="dame-app-page-bean" decorative priority />
       </section>
 
       <section className="dame-app-live" aria-labelledby="dame-app-live-title">
@@ -225,7 +226,6 @@ export default function DameAppHome() {
       ) : null}
 
       <footer className="dame-app-footer">
-        <BeanStateImage state="croissant" decorative />
         <div>
           <p>More flavor. More life. <b>Más Dame.</b></p>
           <Link href="/">Visit full website</Link>
