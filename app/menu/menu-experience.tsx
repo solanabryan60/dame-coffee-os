@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { MenuCategoryId, SquareMenuItem } from '../lib/square';
 
 const categories: Array<{
@@ -49,8 +49,32 @@ export default function MenuExperience({
   items: SquareMenuItem[];
 }) {
   const [activeCategory, setActiveCategory] = useState<MenuCategoryId>('basics');
+  const [selectedItem, setSelectedItem] = useState<SquareMenuItem | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
   const category = categories.find((entry) => entry.id === activeCategory) ?? categories[0];
   const visibleItems = items.filter((item) => item.category === activeCategory);
+
+  useEffect(() => {
+    if (!selectedItem) return;
+
+    const previouslyFocused = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeButtonRef.current?.focus();
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') setSelectedItem(null);
+    }
+
+    window.addEventListener('keydown', closeOnEscape);
+    return () => {
+      window.removeEventListener('keydown', closeOnEscape);
+      document.body.style.overflow = previousOverflow;
+      previouslyFocused?.focus();
+    };
+  }, [selectedItem]);
 
   return (
     <>
@@ -107,31 +131,46 @@ export default function MenuExperience({
               {visibleItems.map((item) => (
                 <article key={item.id} className={`dame-menu-card ${item.isSoldOut ? 'is-sold-out' : ''} ${item.isFeatured ? 'is-featured' : ''} ${item.imageUrl ? 'has-photo' : ''}`.trim()}>
                   <div
-                    className={`dame-menu-card-mark ${item.imageUrl ? 'has-photo' : ''}`.trim()}
-                    role={item.imageUrl ? 'img' : undefined}
-                    aria-label={item.imageUrl ? `${item.name} photo` : undefined}
-                    aria-hidden={item.imageUrl ? undefined : true}
-                    style={item.imageUrl ? { backgroundImage: `url(${JSON.stringify(item.imageUrl)})` } : undefined}
+                    className="dame-menu-card-trigger"
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`View ${item.name} details`}
+                    onClick={() => setSelectedItem(item)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        setSelectedItem(item);
+                      }
+                    }}
                   >
-                    {item.imageUrl ? null : <span>DC</span>}
-                  </div>
-                  <div>
-                    {item.isFeatured || item.isSeasonal ? (
-                      <div className="dame-menu-card-badges">
-                        {item.isFeatured ? <span>Featured</span> : null}
-                        {item.isSeasonal ? <span>Seasonal</span> : null}
-                      </div>
-                    ) : null}
-                    <div className="dame-menu-card-title">
-                      <h3>{item.name}</h3>
-                      <strong>{item.isSoldOut ? 'Sold out today' : displayPrice(item)}</strong>
+                    <div
+                      className={`dame-menu-card-mark ${item.imageUrl ? 'has-photo' : ''}`.trim()}
+                      role={item.imageUrl ? 'img' : undefined}
+                      aria-label={item.imageUrl ? `${item.name} photo` : undefined}
+                      aria-hidden={item.imageUrl ? undefined : true}
+                      style={item.imageUrl ? { backgroundImage: `url(${JSON.stringify(item.imageUrl)})` } : undefined}
+                    >
+                      {item.imageUrl ? null : <span>DC</span>}
                     </div>
-                    <p>{item.description || 'Made fresh and served cold.'}</p>
-                    {item.variations.length > 1 ? (
-                      <span className="dame-menu-variations">
-                        {item.variations.map((variation) => variation.name).join(' · ')}
-                      </span>
-                    ) : null}
+                    <div>
+                      {item.isFeatured || item.isSeasonal ? (
+                        <div className="dame-menu-card-badges">
+                          {item.isFeatured ? <span>Featured</span> : null}
+                          {item.isSeasonal ? <span>Seasonal</span> : null}
+                        </div>
+                      ) : null}
+                      <div className="dame-menu-card-title">
+                        <h3>{item.name}</h3>
+                        <strong>{item.isSoldOut ? 'Sold out today' : displayPrice(item)}</strong>
+                      </div>
+                      <p>{item.description || 'Made fresh and served cold.'}</p>
+                      {item.variations.length > 1 ? (
+                        <span className="dame-menu-variations">
+                          {item.variations.map((variation) => variation.name).join(' · ')}
+                        </span>
+                      ) : null}
+                      <span className="dame-menu-card-view">View details <span aria-hidden="true">↗</span></span>
+                    </div>
                   </div>
                 </article>
               ))}
@@ -164,6 +203,76 @@ export default function MenuExperience({
           <div><dt>Add cold foam</dt><dd>+$1</dd></div>
         </dl>
       </section>
+
+      {selectedItem ? (
+        <div
+          className="dame-menu-detail-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setSelectedItem(null);
+          }}
+        >
+          <section
+            className={`dame-menu-detail ${selectedItem.imageUrl ? 'has-photo' : ''}`.trim()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="dame-menu-detail-title"
+            aria-describedby="dame-menu-detail-description"
+          >
+            <button
+              ref={closeButtonRef}
+              className="dame-menu-detail-close"
+              type="button"
+              aria-label="Close drink details"
+              onClick={() => setSelectedItem(null)}
+            >
+              <span aria-hidden="true" />
+              <span aria-hidden="true" />
+            </button>
+
+            <div
+              className="dame-menu-detail-photo"
+              role={selectedItem.imageUrl ? 'img' : undefined}
+              aria-label={selectedItem.imageUrl ? `${selectedItem.name} photo` : undefined}
+              aria-hidden={selectedItem.imageUrl ? undefined : true}
+              style={selectedItem.imageUrl
+                ? { backgroundImage: `url(${JSON.stringify(selectedItem.imageUrl)})` }
+                : undefined}
+            >
+              {selectedItem.imageUrl ? null : <span>DC</span>}
+            </div>
+
+            <div className="dame-menu-detail-copy">
+              <p className="dame-kicker">{selectedItem.categoryLabel}</p>
+              {selectedItem.isFeatured || selectedItem.isSeasonal ? (
+                <div className="dame-menu-card-badges">
+                  {selectedItem.isFeatured ? <span>Featured</span> : null}
+                  {selectedItem.isSeasonal ? <span>Seasonal</span> : null}
+                </div>
+              ) : null}
+              <h2 id="dame-menu-detail-title">{selectedItem.name}</h2>
+              <strong className={selectedItem.isSoldOut ? 'is-sold-out' : ''}>
+                {selectedItem.isSoldOut ? 'Sold out today' : displayPrice(selectedItem)}
+              </strong>
+              <p id="dame-menu-detail-description">
+                {selectedItem.description || 'Made fresh and served cold.'}
+              </p>
+              {selectedItem.variations.length > 1 ? (
+                <span className="dame-menu-variations">
+                  Available as {selectedItem.variations.map((variation) => variation.name).join(' · ')}
+                </span>
+              ) : null}
+              <div className="dame-menu-detail-actions">
+                <Link className="dame-button" href="/order">
+                  Order now
+                </Link>
+                <button type="button" onClick={() => setSelectedItem(null)}>
+                  Keep browsing
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+      ) : null}
     </>
   );
 }
