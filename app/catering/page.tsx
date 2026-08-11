@@ -32,15 +32,6 @@ export default function CateringPage() {
         </div>
       </section>
 
-      <section className="dame-catering-builder" aria-labelledby="builder-title">
-        <div className="dame-builder-heading">
-          <p className="dame-kicker">Your estimate</p>
-          <h2 id="builder-title">Start with the experience.</h2>
-          <p>Choose the number of drinks and service time first. Your estimate updates instantly before we ask for any event information.</p>
-        </div>
-        <CateringCalculator />
-      </section>
-
       <section className="dame-catering-explainer">
         <article>
           <span>01</span>
@@ -58,6 +49,15 @@ export default function CateringPage() {
           <p>We confirm availability, menu, travel, final price, and the remaining balance.</p>
           <BeanStateImage state="driving" className="dame-catering-page-bean" decorative />
         </article>
+      </section>
+
+      <section className="dame-catering-builder" aria-labelledby="builder-title">
+        <div className="dame-builder-heading">
+          <p className="dame-kicker">Your estimate</p>
+          <h2 id="builder-title">Start with the experience.</h2>
+          <p>Choose the number of drinks and service time first. Your estimate updates instantly before we ask for any event information.</p>
+        </div>
+        <CateringCalculator />
       </section>
 
       <SiteFooter

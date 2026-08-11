@@ -100,6 +100,7 @@ export default function Home() {
               </span>
               <span>{location.hours}</span>
             </div>
+            <BeanStateImage state="walking" className="dame-home-page-bean" decorative />
             <h3>{location.title}</h3>
             <p className="dame-home-v3-address">{location.address}</p>
             <p className="dame-home-v3-directions">{location.directions}</p>
@@ -119,17 +120,11 @@ export default function Home() {
             </div>
           </article>
 
-          <div className="dame-home-v3-map-wrap">
-            <GoogleMap
-              address={location.address}
-              title={`Google Map showing ${location.title}`}
-              className="dame-home-v3-map"
-            />
-            <aside className="dame-home-v3-map-bean" aria-label="The Dame Bean points the way to today’s location">
-              <BeanStateImage state="walking" className="dame-home-page-bean" decorative />
-              <p><span>This way.</span>Come find Dame.</p>
-            </aside>
-          </div>
+          <GoogleMap
+            address={location.address}
+            title={`Google Map showing ${location.title}`}
+            className="dame-home-v3-map"
+          />
         </div>
       </section>
 
