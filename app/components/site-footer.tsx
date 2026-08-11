@@ -1,9 +1,15 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import SeasonalBean from './seasonal-bean';
 
 export default function SiteFooter() {
   return (
     <footer className="dame-footer" id="contact">
+      <aside className="dame-footer-bean" aria-label="A seasonal appearance from the Dame Bean">
+        <SeasonalBean />
+        <p><span>Until next time.</span> Dame vida.</p>
+      </aside>
+
       <div className="dame-footer-brand">
         <Image src="/assets/dame-logo-red.jpg" alt="Dame Coffee" width={954} height={843} />
         <p>Made with culture, unity, and love.</p>

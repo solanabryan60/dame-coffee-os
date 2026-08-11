@@ -56,7 +56,7 @@ export type BeanUtilityState =
 
 export type DameBeanState = BeanState | BeanHolidayState | BeanUtilityState;
 
-const beanCopy: Record<DameBeanState, { src: string; alt: string }> = {
+export const beanCopy: Record<DameBeanState, { src: string; alt: string }> = {
   walking: {
     src: '/assets/bean-states/bean-walking.png',
     alt: 'The Dame Bean walking with a cup of coffee',
@@ -144,6 +144,59 @@ const beanCopy: Record<DameBeanState, { src: string; alt: string }> = {
   construction: { src: '/assets/bean-states/bean-construction.png', alt: 'The Dame Bean building something new' },
   birthday: { src: '/assets/bean-states/bean-birthday.png', alt: 'The Dame Bean celebrating a birthday' },
 };
+
+export const beanStateGroups = {
+  moments: [
+    'walking',
+    'sleeping',
+    'confused',
+    'sold-out',
+    'celebrating',
+    'driving',
+    'rewards',
+    'pouring',
+  ],
+  utility: [
+    'loading-start',
+    'loading-sip',
+    'loading-ready',
+    'waving',
+    'chef',
+    'croissant',
+    'binoculars',
+    'construction',
+    'birthday',
+  ],
+  seasons: ['spring', 'summer', 'autumn', 'winter'],
+  holidays: [
+    'new-year',
+    'valentines',
+    'dia-de-reyes',
+    'lunar-new-year',
+    'st-patricks',
+    'easter',
+    'earth-day',
+    'mothers-day',
+    'fathers-day',
+    'memorial-day',
+    'cinco-de-mayo',
+    'pride',
+    'juneteenth',
+    'fourth-of-july',
+    'labor-day',
+    'mexican-independence',
+    'indigenous-peoples-day',
+    'halloween',
+    'dia-de-muertos',
+    'veterans-day',
+    'thanksgiving',
+    'hanukkah',
+    'las-posadas',
+    'christmas',
+    'kwanzaa',
+    'eid',
+  ],
+} satisfies Record<string, readonly DameBeanState[]>;
 
 function isNthWeekday(date: Date, weekday: number, occurrence: number) {
   return date.getDay() === weekday && Math.ceil(date.getDate() / 7) === occurrence;
