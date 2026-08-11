@@ -19,7 +19,7 @@ const values = [
   {
     number: '02',
     title: 'Quality is care.',
-    copy: 'Our cold brew steeps for 20 hours, drawing out a deeper, smoother flavor without the sharp finish. Our matcha is whisked until balanced and velvety. Every drink is made with intention because quality is how we show care.',
+    copy: 'Our cold brew steeps for 20 hours, drawing out a deeper, smoother cup with less of the sharp, bitter flavor. Our matcha is whisked until balanced and velvety. Every drink is made with intention because quality is how we show care.',
   },
   {
     number: '03',
