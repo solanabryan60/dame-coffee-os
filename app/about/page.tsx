@@ -47,7 +47,6 @@ export default function AboutPage() {
           <p className="dame-kicker dame-kicker-light">Our story</p>
           <h1 id="about-title">Coffee is how we<br /><em>bring people together.</em></h1>
         </div>
-        <BeanStateImage state="waving" className="dame-about-page-bean" decorative priority />
       </section>
 
       <section className="dame-about-intro" aria-labelledby="about-intro-title">
@@ -61,6 +60,7 @@ export default function AboutPage() {
             to experience a small part of the rich culture that shapes who we are.
           </p>
         </div>
+        <BeanStateImage state="waving" className="dame-about-page-bean" decorative priority />
       </section>
 
       <section className="dame-about-mission" aria-labelledby="mission-title">
@@ -109,7 +109,11 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <SiteFooter beanState={null} />
+      <SiteFooter
+        beanState="waving"
+        beanEyebrow="Come as you are."
+        beanMessage="There’s room for you."
+      />
     </main>
   );
 }

@@ -31,7 +31,11 @@ export default async function MenuPage() {
     <main className="dame-site dame-inner-page">
       <SiteHeader />
       <MenuExperience items={items} />
-      <SiteFooter beanState={null} />
+      <SiteFooter
+        beanState="pouring"
+        beanEyebrow="Poured with purpose."
+        beanMessage="Find your favorite."
+      />
     </main>
   );
 }

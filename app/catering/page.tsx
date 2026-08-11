@@ -29,7 +29,6 @@ export default function CateringPage() {
           <strong>${CATERING_BASE_PRICE_DOLLARS}</strong>
           <p>100 drinks · 2 hours</p>
           <small>Plus applicable tax</small>
-          <BeanStateImage state="driving" className="dame-catering-page-bean" decorative priority />
         </div>
       </section>
 
@@ -53,14 +52,19 @@ export default function CateringPage() {
           <h3>Request the date</h3>
           <p>Place a secure $200 deposit to request your date. It is applied to your final event balance.</p>
         </article>
-        <article>
+        <article className="dame-catering-arrival">
           <span>03</span>
           <h3>We call you</h3>
           <p>We confirm availability, menu, travel, final price, and the remaining balance.</p>
+          <BeanStateImage state="driving" className="dame-catering-page-bean" decorative />
         </article>
       </section>
 
-      <SiteFooter beanState={null} />
+      <SiteFooter
+        beanState="driving"
+        beanEyebrow="Dame on the move."
+        beanMessage="We bring the bar to you."
+      />
     </main>
   );
 }

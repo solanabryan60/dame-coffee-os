@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import GoogleMap from './components/google-map';
-import SeasonalBean from './components/seasonal-bean';
+import BeanStateImage from './components/bean-state';
 import SiteFooter from './components/site-footer';
 import SiteHeader from './components/site-header';
 import { readSiteSettings, SiteSettings } from './lib/supabase-rest';
@@ -79,7 +79,6 @@ export default function Home() {
             </Link>
           </div>
         </div>
-        <SeasonalBean className="dame-home-page-bean" priority />
         <p className="dame-home-v3-signature" aria-hidden="true">Dame Coffee · Dame Vida</p>
       </section>
 
@@ -118,6 +117,7 @@ export default function Home() {
                 {orderingAvailable ? 'Order pickup' : 'View menu'}
               </Link>
             </div>
+            <BeanStateImage state="walking" className="dame-home-page-bean" decorative />
           </article>
 
           <GoogleMap
@@ -160,7 +160,7 @@ export default function Home() {
         <Link href="/about">Our story <span aria-hidden="true">↗</span></Link>
       </section>
 
-      <SiteFooter beanState={null} />
+      <SiteFooter />
     </main>
   );
 }

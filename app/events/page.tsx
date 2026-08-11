@@ -28,19 +28,28 @@ export default function EventsPage() {
           <h1 id="events-title">Where Dame<br /><em>is headed next.</em></h1>
           <p>Markets, pop-ups, and the places we cannot wait to serve.</p>
         </div>
-        <BeanStateImage state="binoculars" className="dame-events-page-bean" decorative priority />
       </section>
       {events.length ? (
-        <UpcomingEvents events={events} />
+        <div className="dame-events-list-wrap">
+          <UpcomingEvents events={events} />
+          <BeanStateImage state="binoculars" className="dame-events-page-bean" decorative />
+        </div>
       ) : loaded ? (
         <section className="dame-events-empty">
-          <p className="dame-kicker">No dates posted yet</p>
-          <h2>The next stop is brewing.</h2>
-          <p>Turn on notifications and we’ll let you know when a new event is added.</p>
+          <div>
+            <p className="dame-kicker">No dates posted yet</p>
+            <h2>The next stop is brewing.</h2>
+            <p>Turn on notifications and we’ll let you know when a new event is added.</p>
+          </div>
+          <BeanStateImage state="binoculars" className="dame-events-page-bean" decorative />
         </section>
       ) : null}
       <NotificationOptIn />
-      <SiteFooter beanState={null} />
+      <SiteFooter
+        beanState="binoculars"
+        beanEyebrow="Follow the cart."
+        beanMessage="See you at the next stop."
+      />
     </main>
   );
 }

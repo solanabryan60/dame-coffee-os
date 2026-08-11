@@ -22,7 +22,6 @@ export default function ReceiptClaimPage() {
             to your Dame Rewards account within 30 days.
           </p>
         </div>
-        <BeanStateImage state="walking" className="dame-claim-page-bean" decorative priority />
         <ol>
           <li><span>01</span><p>Find the receipt number and exact total.</p></li>
           <li><span>02</span><p>Join or sign in to Dame Rewards.</p></li>
@@ -39,10 +38,15 @@ export default function ReceiptClaimPage() {
             refunded amounts do not earn points. Members can save up to three
             receipts per day.
           </p>
+          <BeanStateImage state="walking" className="dame-claim-page-bean" decorative />
         </div>
         <ReceiptClaim />
       </section>
-      <SiteFooter beanState={null} />
+      <SiteFooter
+        beanState="walking"
+        beanEyebrow="Points on the way."
+        beanMessage="Keep what you earned."
+      />
     </main>
   );
 }

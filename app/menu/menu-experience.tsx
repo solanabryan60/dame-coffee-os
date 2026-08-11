@@ -93,7 +93,6 @@ export default function MenuExperience({
             <span>Dame</span>
             <strong>Menu</strong>
           </div>
-          <BeanStateImage state="pouring" className="dame-menu-page-bean" decorative priority />
         </div>
       </section>
 
@@ -197,6 +196,7 @@ export default function MenuExperience({
         <div>
           <p className="dame-kicker">Make it yours</p>
           <h2>Simple choices. No surprises.</h2>
+          <BeanStateImage state="pouring" className="dame-menu-page-bean" decorative />
         </div>
         <dl>
           <div><dt>Whole milk</dt><dd>Included</dd></div>

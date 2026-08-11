@@ -57,7 +57,11 @@ export default async function OrderPage() {
         squareConfigured={catalog.configured}
         location={location}
       />
-      <SiteFooter beanState={null} />
+      <SiteFooter
+        beanState="chef"
+        beanEyebrow="Made your way."
+        beanMessage="We’ll take it from here."
+      />
     </main>
   );
 }

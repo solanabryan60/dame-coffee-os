@@ -395,7 +395,6 @@ export default function OrderExperience({
             <div><dt>Wait</dt><dd>{location.isOpen ? `About ${location.waitMinutes} min` : 'Unavailable'}</dd></div>
           </dl>
           <a href={location.mapsUrl} target="_blank" rel="noreferrer">Get directions ↗</a>
-          <BeanStateImage state="chef" className="dame-order-page-bean" decorative priority />
         </aside>
       </section>
 
@@ -501,6 +500,11 @@ export default function OrderExperience({
           ) : (
             <p className="dame-cart-empty">Choose a drink and it&apos;ll show up here.</p>
           )}
+
+          <div className="dame-order-companion">
+            <BeanStateImage state="chef" className="dame-order-page-bean" decorative />
+            <p><span>Made your way.</span> We&apos;ll take it from here.</p>
+          </div>
 
           <div className="dame-pickup-fields">
             <label>
