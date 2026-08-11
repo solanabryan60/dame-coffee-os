@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import GoogleMap from './components/google-map';
+import BeanStateImage from './components/bean-state';
 import SiteFooter from './components/site-footer';
 import SiteHeader from './components/site-header';
 import { readSiteSettings, SiteSettings } from './lib/supabase-rest';
@@ -99,6 +100,7 @@ export default function Home() {
               </span>
               <span>{location.hours}</span>
             </div>
+            <BeanStateImage state="walking" className="dame-home-page-bean" decorative />
             <h3>{location.title}</h3>
             <p className="dame-home-v3-address">{location.address}</p>
             <p className="dame-home-v3-directions">{location.directions}</p>

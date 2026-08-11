@@ -13,7 +13,7 @@ export default async function OrderCompletePage({
     <main className="dame-site dame-inner-page">
       <SiteHeader />
       <PickupTracker orderId={query.order ?? ''} trackingKey={query.key ?? ''} />
-      <SiteFooter />
+      <SiteFooter beanState={null} />
     </main>
   );
 }

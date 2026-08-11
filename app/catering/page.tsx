@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import BeanStateImage from '../components/bean-state';
 import CateringCalculator from '../components/catering-calculator';
 import SiteFooter from '../components/site-footer';
 import SiteHeader from '../components/site-header';
@@ -31,15 +32,6 @@ export default function CateringPage() {
         </div>
       </section>
 
-      <section className="dame-catering-builder" aria-labelledby="builder-title">
-        <div className="dame-builder-heading">
-          <p className="dame-kicker">Your estimate</p>
-          <h2 id="builder-title">Start with the experience.</h2>
-          <p>Choose the number of drinks and service time first. Your estimate updates instantly before we ask for any event information.</p>
-        </div>
-        <CateringCalculator />
-      </section>
-
       <section className="dame-catering-explainer">
         <article>
           <span>01</span>
@@ -51,14 +43,28 @@ export default function CateringPage() {
           <h3>Request the date</h3>
           <p>Place a secure $200 deposit to request your date. It is applied to your final event balance.</p>
         </article>
-        <article>
+        <article className="dame-catering-arrival">
           <span>03</span>
           <h3>We call you</h3>
           <p>We confirm availability, menu, travel, final price, and the remaining balance.</p>
+          <BeanStateImage state="driving" className="dame-catering-page-bean" decorative />
         </article>
       </section>
 
-      <SiteFooter />
+      <section className="dame-catering-builder" aria-labelledby="builder-title">
+        <div className="dame-builder-heading">
+          <p className="dame-kicker">Your estimate</p>
+          <h2 id="builder-title">Start with the experience.</h2>
+          <p>Choose the number of drinks and service time first. Your estimate updates instantly before we ask for any event information.</p>
+        </div>
+        <CateringCalculator />
+      </section>
+
+      <SiteFooter
+        beanState="celebrating"
+        beanEyebrow="Your date is closer."
+        beanMessage="We’ll call you soon."
+      />
     </main>
   );
 }

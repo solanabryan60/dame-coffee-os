@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import Link from 'next/link';
+import BeanStateImage from '../components/bean-state';
 import SiteFooter from '../components/site-footer';
 import SiteHeader from '../components/site-header';
 
@@ -30,16 +30,14 @@ export default function MerchPage() {
         </div>
 
         <div className="dame-merch-bean" aria-hidden="true">
-          <Image
-            src="/assets/bean-transparent.png"
-            alt=""
-            width={1032}
-            height={1112}
-            priority
-          />
+          <BeanStateImage state="construction" decorative priority />
         </div>
       </section>
-      <SiteFooter />
+      <SiteFooter
+        beanState="waving"
+        beanEyebrow="Keep Dame close."
+        beanMessage="Something special is coming."
+      />
     </main>
   );
 }

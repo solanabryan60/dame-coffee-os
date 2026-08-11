@@ -57,7 +57,11 @@ export default async function OrderPage() {
         squareConfigured={catalog.configured}
         location={location}
       />
-      <SiteFooter />
+      <SiteFooter
+        beanState="loading-ready"
+        beanEyebrow="Order in."
+        beanMessage="We’ll have it waiting."
+      />
     </main>
   );
 }

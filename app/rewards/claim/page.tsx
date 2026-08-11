@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import BeanStateImage from '../../components/bean-state';
 import SiteFooter from '../../components/site-footer';
 import SiteHeader from '../../components/site-header';
 import ReceiptClaim from './receipt-claim';
@@ -37,10 +38,15 @@ export default function ReceiptClaimPage() {
             refunded amounts do not earn points. Members can save up to three
             receipts per day.
           </p>
+          <BeanStateImage state="walking" className="dame-claim-page-bean" decorative />
         </div>
         <ReceiptClaim />
       </section>
-      <SiteFooter />
+      <SiteFooter
+        beanState="rewards"
+        beanEyebrow="Points saved."
+        beanMessage="A little love, kept."
+      />
     </main>
   );
 }

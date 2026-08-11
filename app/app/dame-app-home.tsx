@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import BeanStateImage from '../components/bean-state';
 import GoogleMap from '../components/google-map';
 import NotificationOptIn from '../components/notification-opt-in';
 import UpcomingEvents from '../components/upcoming-events';
@@ -194,10 +195,7 @@ export default function DameAppHome() {
             </>
           )}
         </div>
-        <div className="dame-app-rewards-mark" aria-hidden="true">
-          <span>Dame</span>
-          <strong>♥</strong>
-        </div>
+        <BeanStateImage state="croissant" className="dame-app-page-bean" decorative />
         <Link href={rewards ? '/rewards/account' : '/rewards#join'}>
           {rewards ? 'Open my rewards' : 'Join or sign in'} <span>→</span>
         </Link>
@@ -224,8 +222,11 @@ export default function DameAppHome() {
       ) : null}
 
       <footer className="dame-app-footer">
-        <p>More flavor. More life. <b>Más Dame.</b></p>
-        <Link href="/">Visit full website</Link>
+        <BeanStateImage state="waving" decorative />
+        <div>
+          <p>More flavor. More life. <b>Más Dame.</b></p>
+          <Link href="/">Visit full website</Link>
+        </div>
       </footer>
 
       {showInstallHelp ? (

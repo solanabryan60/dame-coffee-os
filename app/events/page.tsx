@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import BeanStateImage from '../components/bean-state';
 import NotificationOptIn from '../components/notification-opt-in';
 import SiteFooter from '../components/site-footer';
 import SiteHeader from '../components/site-header';
@@ -22,21 +23,33 @@ export default function EventsPage() {
     <main className="dame-site dame-inner-page dame-events-page">
       <SiteHeader />
       <section className="dame-events-hero" aria-labelledby="events-title">
-        <p className="dame-kicker">Follow the cart</p>
-        <h1 id="events-title">Where Dame<br /><em>is headed next.</em></h1>
-        <p>Markets, pop-ups, and the places we cannot wait to serve.</p>
+        <div>
+          <p className="dame-kicker">Follow the cart</p>
+          <h1 id="events-title">Where Dame<br /><em>is headed next.</em></h1>
+          <p>Markets, pop-ups, and the places we cannot wait to serve.</p>
+        </div>
       </section>
       {events.length ? (
-        <UpcomingEvents events={events} />
+        <div className="dame-events-list-wrap">
+          <UpcomingEvents events={events} />
+          <BeanStateImage state="binoculars" className="dame-events-page-bean" decorative />
+        </div>
       ) : loaded ? (
         <section className="dame-events-empty">
-          <p className="dame-kicker">No dates posted yet</p>
-          <h2>The next stop is brewing.</h2>
-          <p>Turn on notifications and we’ll let you know when a new event is added.</p>
+          <div>
+            <p className="dame-kicker">No dates posted yet</p>
+            <h2>The next stop is brewing.</h2>
+            <p>Turn on notifications and we’ll let you know when a new event is added.</p>
+          </div>
+          <BeanStateImage state="binoculars" className="dame-events-page-bean" decorative />
         </section>
       ) : null}
       <NotificationOptIn />
-      <SiteFooter />
+      <SiteFooter
+        beanState="walking"
+        beanEyebrow="Until the next stop."
+        beanMessage="See you out there."
+      />
     </main>
   );
 }

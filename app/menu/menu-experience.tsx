@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
+import BeanStateImage from '../components/bean-state';
 import type { MenuCategoryId, SquareMenuItem } from '../lib/square';
 
 const categories: Array<{
@@ -195,6 +196,7 @@ export default function MenuExperience({
         <div>
           <p className="dame-kicker">Make it yours</p>
           <h2>Simple choices. No surprises.</h2>
+          <BeanStateImage state="pouring" className="dame-menu-page-bean" decorative />
         </div>
         <dl>
           <div><dt>Whole milk</dt><dd>Included</dd></div>
@@ -256,15 +258,19 @@ export default function MenuExperience({
               <p id="dame-menu-detail-description">
                 {selectedItem.description || 'Made fresh and served cold.'}
               </p>
+              {selectedItem.isSoldOut ? (
+                <aside className="dame-menu-sold-out-note">
+                  <BeanStateImage state="sold-out" decorative />
+                  <p><strong>We brewed every last drop today.</strong><br />See what else the Bean recommends.</p>
+                </aside>
+              ) : null}
               {selectedItem.variations.length > 1 ? (
                 <span className="dame-menu-variations">
                   Available as {selectedItem.variations.map((variation) => variation.name).join(' · ')}
                 </span>
               ) : null}
               <div className="dame-menu-detail-actions">
-                <Link className="dame-button" href="/order">
-                  Order now
-                </Link>
+                {selectedItem.isSoldOut ? null : <Link className="dame-button" href="/order">Order now</Link>}
                 <button type="button" onClick={() => setSelectedItem(null)}>
                   Keep browsing
                 </button>
