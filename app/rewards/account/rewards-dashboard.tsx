@@ -256,7 +256,7 @@ export default function RewardsDashboard() {
           </Link>
         </div>
         <div className="dame-points-card">
-          <BeanStateImage state="rewards" className="dame-points-bean" decorative />
+          <BeanStateImage state="birthday" className="dame-points-bean" decorative />
           <p>Available balance</p>
           <strong>{rewards.points}</strong>
           <span>points</span>

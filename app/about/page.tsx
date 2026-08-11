@@ -107,7 +107,11 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <SiteFooter />
+      <SiteFooter
+        beanState="waving"
+        beanEyebrow="Come as you are."
+        beanMessage="There’s room for you."
+      />
     </main>
   );
 }

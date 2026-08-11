@@ -29,7 +29,7 @@ export default function CateringDepositCompletePage() {
         </div>
         <BeanStateImage state="driving" className="dame-catering-complete-bean" priority />
       </section>
-      <SiteFooter />
+      <SiteFooter beanState={null} />
     </main>
   );
 }

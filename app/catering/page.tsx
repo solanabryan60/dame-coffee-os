@@ -58,7 +58,11 @@ export default function CateringPage() {
         </article>
       </section>
 
-      <SiteFooter />
+      <SiteFooter
+        beanState="driving"
+        beanEyebrow="Dame on the move."
+        beanMessage="We bring the bar to you."
+      />
     </main>
   );
 }

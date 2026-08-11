@@ -17,7 +17,7 @@ export default function RewardsAccountPage() {
     <main className="dame-site dame-inner-page">
       <SiteHeader />
       <RewardsDashboard />
-      <SiteFooter />
+      <SiteFooter beanState={null} />
     </main>
   );
 }

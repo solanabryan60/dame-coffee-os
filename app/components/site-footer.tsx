@@ -1,14 +1,31 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import BeanStateImage, { type DameBeanState } from './bean-state';
 import SeasonalBean from './seasonal-bean';
 
-export default function SiteFooter() {
+type SiteFooterProps = {
+  beanState?: DameBeanState | 'seasonal' | null;
+  beanEyebrow?: string;
+  beanMessage?: string;
+};
+
+export default function SiteFooter({
+  beanState = 'seasonal',
+  beanEyebrow = 'Until next time.',
+  beanMessage = 'Dame vida.',
+}: SiteFooterProps) {
   return (
     <footer className="dame-footer" id="contact">
-      <aside className="dame-footer-bean" aria-label="A seasonal appearance from the Dame Bean">
-        <SeasonalBean />
-        <p><span>Until next time.</span> Dame vida.</p>
-      </aside>
+      {beanState ? (
+        <aside className="dame-footer-bean" aria-label="A page-inspired appearance from the Dame Bean">
+          {beanState === 'seasonal' ? (
+            <SeasonalBean />
+          ) : (
+            <BeanStateImage state={beanState} decorative />
+          )}
+          <p><span>{beanEyebrow}</span>{beanMessage}</p>
+        </aside>
+      ) : null}
 
       <div className="dame-footer-brand">
         <Image src="/assets/dame-logo-red.jpg" alt="Dame Coffee" width={954} height={843} />

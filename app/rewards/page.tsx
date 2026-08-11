@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
+import BeanStateImage from '../components/bean-state';
 import SiteFooter from '../components/site-footer';
 import SiteHeader from '../components/site-header';
 import RewardsSignup from '../components/rewards-signup';
@@ -75,7 +75,7 @@ export default async function RewardsPage({ searchParams }: RewardsPageProps) {
           </div>
         </div>
         <div className="dame-rewards-bean">
-          <Image src="/assets/bean-transparent.png" alt="The Dame Bean welcoming rewards members" width={1038} height={1515} priority />
+          <BeanStateImage state="rewards" priority />
         </div>
       </section>
 
@@ -111,7 +111,7 @@ export default async function RewardsPage({ searchParams }: RewardsPageProps) {
         <RewardsSignup initialReferralCode={referralCode} returnTo={returnTo} />
       </section>
 
-      <SiteFooter />
+      <SiteFooter beanState={null} />
     </main>
   );
 }
