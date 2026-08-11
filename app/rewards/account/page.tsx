@@ -17,7 +17,11 @@ export default function RewardsAccountPage() {
     <main className="dame-site dame-inner-page">
       <SiteHeader />
       <RewardsDashboard />
-      <SiteFooter beanState={null} />
+      <SiteFooter
+        beanState="walking"
+        beanEyebrow="One sip closer."
+        beanMessage="Keep your rewards moving."
+      />
     </main>
   );
 }

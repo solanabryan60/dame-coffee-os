@@ -43,9 +43,9 @@ export default function ReceiptClaimPage() {
         <ReceiptClaim />
       </section>
       <SiteFooter
-        beanState="walking"
-        beanEyebrow="Points on the way."
-        beanMessage="Keep what you earned."
+        beanState="rewards"
+        beanEyebrow="Points saved."
+        beanMessage="A little love, kept."
       />
     </main>
   );

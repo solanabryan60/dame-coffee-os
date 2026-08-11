@@ -46,9 +46,9 @@ export default function EventsPage() {
       ) : null}
       <NotificationOptIn />
       <SiteFooter
-        beanState="binoculars"
-        beanEyebrow="Follow the cart."
-        beanMessage="See you at the next stop."
+        beanState="walking"
+        beanEyebrow="Until the next stop."
+        beanMessage="See you out there."
       />
     </main>
   );

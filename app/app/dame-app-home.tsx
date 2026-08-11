@@ -222,7 +222,7 @@ export default function DameAppHome() {
       ) : null}
 
       <footer className="dame-app-footer">
-        <BeanStateImage state="croissant" decorative />
+        <BeanStateImage state="waving" decorative />
         <div>
           <p>More flavor. More life. <b>Más Dame.</b></p>
           <Link href="/">Visit full website</Link>

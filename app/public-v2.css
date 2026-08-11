@@ -6380,6 +6380,16 @@
   box-shadow: none;
 }
 
+.dame-home-v3-map-wrap {
+  position: relative;
+  min-width: 0;
+  min-height: 610px;
+}
+
+.dame-home-v3-map-wrap .dame-home-v3-map {
+  height: 100%;
+}
+
 .dame-home-v3-menu {
   min-height: 820px;
   display: grid;
@@ -7039,9 +7049,50 @@
 }
 
 .dame-home-page-bean {
-  width: clamp(150px, 18vw, 210px);
-  margin: 22px -8px -36px auto;
-  transform: rotate(2deg);
+  width: clamp(140px, 16vw, 190px);
+  margin: -30px 0 -30px -24px;
+  transform: rotate(-3deg);
+}
+
+.dame-home-v3-map-bean {
+  position: absolute;
+  z-index: 3;
+  right: 22px;
+  bottom: 22px;
+  min-width: min(390px, calc(100% - 44px));
+  padding: 12px 22px 12px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  overflow: hidden;
+  background: rgba(29, 20, 17, 0.94);
+  color: white;
+  box-shadow: 0 22px 48px rgba(29, 20, 17, 0.22);
+  backdrop-filter: blur(12px);
+}
+
+.dame-home-v3-map-bean p {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(20px, 2.1vw, 28px);
+  font-style: italic;
+  line-height: 1.05;
+  text-align: right;
+}
+
+.dame-home-v3-map-bean p span {
+  display: block;
+  margin-bottom: 6px;
+  color: rgba(255, 255, 255, 0.64);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
 }
 
 .dame-about-intro {
@@ -7209,9 +7260,22 @@
 }
 
 @media (max-width: 820px) {
+  .dame-home-v3-map-wrap {
+    min-height: 480px;
+  }
+
   .dame-home-page-bean {
-    width: min(48vw, 180px);
-    margin: 20px -6px -34px auto;
+    width: min(42vw, 155px);
+    margin: -22px 0 -28px -20px;
+  }
+
+  .dame-home-v3-map-bean {
+    right: 14px;
+    bottom: 14px;
+    min-width: 0;
+    width: calc(100% - 28px);
+    padding: 10px 18px 10px 10px;
+    border-radius: 22px;
   }
 
   .dame-about-intro {

@@ -58,9 +58,9 @@ export default async function OrderPage() {
         location={location}
       />
       <SiteFooter
-        beanState="chef"
-        beanEyebrow="Made your way."
-        beanMessage="We’ll take it from here."
+        beanState="loading-ready"
+        beanEyebrow="Order in."
+        beanMessage="We’ll have it waiting."
       />
     </main>
   );

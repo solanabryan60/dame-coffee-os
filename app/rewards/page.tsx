@@ -111,7 +111,11 @@ export default async function RewardsPage({ searchParams }: RewardsPageProps) {
         <RewardsSignup initialReferralCode={referralCode} returnTo={returnTo} />
       </section>
 
-      <SiteFooter beanState={null} />
+      <SiteFooter
+        beanState="celebrating"
+        beanEyebrow="Every purchase matters."
+        beanMessage="Your next reward is waiting."
+      />
     </main>
   );
 }

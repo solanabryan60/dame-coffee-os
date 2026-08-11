@@ -110,7 +110,7 @@ export default function AboutPage() {
       </section>
 
       <SiteFooter
-        beanState="waving"
+        beanState="walking"
         beanEyebrow="Come as you are."
         beanMessage="There’s room for you."
       />

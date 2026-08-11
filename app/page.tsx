@@ -117,14 +117,19 @@ export default function Home() {
                 {orderingAvailable ? 'Order pickup' : 'View menu'}
               </Link>
             </div>
-            <BeanStateImage state="walking" className="dame-home-page-bean" decorative />
           </article>
 
-          <GoogleMap
-            address={location.address}
-            title={`Google Map showing ${location.title}`}
-            className="dame-home-v3-map"
-          />
+          <div className="dame-home-v3-map-wrap">
+            <GoogleMap
+              address={location.address}
+              title={`Google Map showing ${location.title}`}
+              className="dame-home-v3-map"
+            />
+            <aside className="dame-home-v3-map-bean" aria-label="The Dame Bean points the way to today’s location">
+              <BeanStateImage state="walking" className="dame-home-page-bean" decorative />
+              <p><span>This way.</span>Come find Dame.</p>
+            </aside>
+          </div>
         </div>
       </section>
 

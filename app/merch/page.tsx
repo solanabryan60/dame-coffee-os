@@ -33,7 +33,11 @@ export default function MerchPage() {
           <BeanStateImage state="construction" decorative priority />
         </div>
       </section>
-      <SiteFooter beanState={null} />
+      <SiteFooter
+        beanState="waving"
+        beanEyebrow="Keep Dame close."
+        beanMessage="Something special is coming."
+      />
     </main>
   );
 }

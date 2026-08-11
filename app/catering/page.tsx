@@ -61,9 +61,9 @@ export default function CateringPage() {
       </section>
 
       <SiteFooter
-        beanState="driving"
-        beanEyebrow="Dame on the move."
-        beanMessage="We bring the bar to you."
+        beanState="celebrating"
+        beanEyebrow="Your date is closer."
+        beanMessage="We’ll call you soon."
       />
     </main>
   );

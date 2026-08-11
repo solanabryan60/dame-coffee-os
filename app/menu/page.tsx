@@ -32,9 +32,9 @@ export default async function MenuPage() {
       <SiteHeader />
       <MenuExperience items={items} />
       <SiteFooter
-        beanState="pouring"
-        beanEyebrow="Poured with purpose."
-        beanMessage="Find your favorite."
+        beanState="croissant"
+        beanEyebrow="Found your favorite?"
+        beanMessage="We’ll make it yours."
       />
     </main>
   );
