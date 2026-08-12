@@ -35,7 +35,7 @@ export default function BeanStudio() {
   }
 
   return (
-    <main className="dame-bean-studio">
+    <div className="dame-bean-studio">
       <header className="dame-bean-studio-header">
         <p className="dame-kicker">Private brand room</p>
         <h1>Meet every<br /><em>Dame Bean.</em></h1>
@@ -118,6 +118,6 @@ export default function BeanStudio() {
           <span aria-hidden="true"><i /></span>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

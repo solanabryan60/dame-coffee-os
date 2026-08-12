@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
-import BeanStudio from './bean-studio';
+import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: 'Bean Studio',
@@ -9,10 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function BeanStudioPage() {
-  return (
-    <>
-      <Link className="dame-bean-studio-back" href="/">← Back to Dame Coffee</Link>
-      <BeanStudio />
-    </>
-  );
+  redirect('/admin/bean-studio');
 }

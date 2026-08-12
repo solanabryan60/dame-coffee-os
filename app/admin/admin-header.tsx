@@ -17,6 +17,7 @@ const sections = [
   { href: '/admin/rewards', label: 'Rewards' },
   { href: '/admin/events', label: 'Events' },
   { href: '/admin/notifications', label: 'Notify' },
+  { href: '/admin/bean-studio', label: 'Bean Studio' },
 ];
 
 export default function AdminHeader({
