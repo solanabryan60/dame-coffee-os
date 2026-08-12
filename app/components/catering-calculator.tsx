@@ -35,7 +35,7 @@ export default function CateringCalculator() {
   const [company, setCompany] = useState('');
   const [guestCount, setGuestCount] = useState('');
   const [eventSetting, setEventSetting] = useState<'indoor' | 'outdoor' | 'both' | 'unsure'>('outdoor');
-  const [budget, setBudget] = useState('');
+  const [budget, setBudget] = useState('0');
   const [notes, setNotes] = useState('');
   const [address, setAddress] = useState('');
   const [date, setDate] = useState('');
@@ -223,8 +223,8 @@ export default function CateringCalculator() {
       <div className="dame-estimator-fields">
         <div className="dame-form-intro dame-field-wide">
           <p className="dame-kicker">Event details</p>
-          <h3>Now, tell us about the day.</h3>
-          <p>Share the essentials and we&apos;ll personally confirm every detail with you.</p>
+          <h3>Tell us about your event.</h3>
+          <p>We&apos;ll call to confirm the details.</p>
         </div>
 
         <label className="dame-field">
@@ -356,13 +356,13 @@ export default function CateringCalculator() {
 
         <label className="dame-field">
           <span>Budget · optional</span>
-          <div className="dame-money-input"><b>$</b><input type="number" min="0" max="1000000" step="50" inputMode="numeric" value={budget} onChange={(event) => setBudget(event.target.value)} placeholder={String(estimate)} /></div>
+          <div className="dame-money-input"><b aria-hidden="true">$</b><input aria-label="Event budget in dollars" type="number" min="0" max="1000000" step="50" inputMode="numeric" value={budget} onChange={(event) => setBudget(event.target.value)} placeholder="0" /></div>
         </label>
 
         <label className="dame-field dame-field-wide dame-notes-field">
           <span>Anything we should know? · optional</span>
-          <small>Venue access, event style, timing, or any detail that helps us serve beautifully.</small>
-          <textarea rows={5} maxLength={2000} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Tell us what will make the day feel seamless…" />
+          <small>Venue access, timing, or anything else we should know.</small>
+          <textarea rows={5} maxLength={2000} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Share any helpful details…" />
         </label>
       </div>
 

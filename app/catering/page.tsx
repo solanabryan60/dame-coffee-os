@@ -17,12 +17,10 @@ export default function CateringPage() {
 
       <section className="dame-page-hero dame-catering-hero">
         <div>
-          <p className="dame-kicker">Bring Dame to your event</p>
-          <h1>Build your event.</h1>
-          <p>
-            Start with 100 drinks and two hours of service. Move the sliders,
-            see your estimate immediately, and request your date with a secure $200 deposit.
-          </p>
+          <p className="dame-kicker">Catering · Eventos</p>
+          <h1>Bring Dame<br />to your event.</h1>
+          <p>Cold brew and matcha, served wherever you gather.</p>
+          <p lang="es">Cold brew y matcha para tu celebración.</p>
         </div>
         <div className="dame-catering-base">
           <span>Starting package</span>
@@ -36,17 +34,17 @@ export default function CateringPage() {
         <article>
           <span>01</span>
           <h3>Build an estimate</h3>
-          <p>Choose the event address, date, drink amount, and hours.</p>
+          <p>Choose your date, drinks, and service time.</p>
         </article>
         <article>
           <span>02</span>
           <h3>Request the date</h3>
-          <p>Place a secure $200 deposit to request your date. It is applied to your final event balance.</p>
+          <p>A $200 deposit requests the date and goes toward your balance.</p>
         </article>
         <article className="dame-catering-arrival">
           <span>03</span>
           <h3>We call you</h3>
-          <p>We confirm availability, menu, travel, final price, and the remaining balance.</p>
+          <p>We call to confirm the details.</p>
           <BeanStateImage state="driving" className="dame-catering-page-bean" decorative />
         </article>
       </section>
@@ -55,7 +53,7 @@ export default function CateringPage() {
         <div className="dame-builder-heading">
           <p className="dame-kicker">Your estimate</p>
           <h2 id="builder-title">Start with the experience.</h2>
-          <p>Choose the number of drinks and service time first. Your estimate updates instantly before we ask for any event information.</p>
+          <p>Choose your drinks and time. See the estimate right away.</p>
         </div>
         <CateringCalculator />
       </section>

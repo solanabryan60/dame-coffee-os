@@ -14,17 +14,17 @@ const menuCollections = [
   {
     number: '01',
     name: 'Cold Foam Lovers',
-    detail: 'Layered drinks finished with cold foam—already included.',
+    detail: 'Finished with cold foam.',
   },
   {
     number: '02',
     name: 'Specialty Drinks',
-    detail: 'Dame flavors served with cold brew or matcha, made without cold foam.',
+    detail: 'House flavors with cold brew or matcha.',
   },
   {
     number: '03',
     name: 'The Basics',
-    detail: 'Cold brew and matcha, simple and made your way.',
+    detail: 'Cold brew and matcha, your way.',
   },
 ];
 
@@ -67,11 +67,10 @@ export default function Home() {
         />
         <div className="dame-home-v3-hero-shade" />
         <div className="dame-home-v3-hero-copy">
-          <p className="dame-kicker dame-kicker-light">Mobile coffee · Southern California</p>
-          <h1 id="home-hero-title">Made to move.<br /><em>Rooted in home.</em></h1>
-          <p>
-            Cold brew and matcha served with care, culture, and a little more vida.
-          </p>
+          <p className="dame-kicker dame-kicker-light">Cold brew · Matcha · Southern California</p>
+          <h1 id="home-hero-title">Cold brew, matcha<br /><em>& cultura.</em></h1>
+          <p>Mexican roots. Cold drinks. Made for everyone.</p>
+          <p lang="es">Raíces mexicanas. Bebidas frías. Para todos.</p>
           <div className="dame-actions">
             <a className="dame-button dame-button-light" href="#today">Find Dame today</a>
             <Link className="dame-inline-link dame-inline-link-light" href="/menu">
@@ -89,7 +88,7 @@ export default function Home() {
             {location.isOpen ? 'Live location' : 'Next location'}
           </p>
           <h2 id="today-title">Find us today.</h2>
-          <p>Our cart moves. This page always tells you where to meet us.</p>
+          <p>Encuéntranos hoy.</p>
         </header>
 
         <div className="dame-home-v3-location-layout">
@@ -138,8 +137,8 @@ export default function Home() {
           />
         </div>
         <div className="dame-home-v3-menu-copy">
-          <p className="dame-kicker">What we make</p>
-          <h2 id="home-menu-title">Cold drinks.<br /><em>Full character.</em></h2>
+          <p className="dame-kicker">The menu · El menú</p>
+          <h2 id="home-menu-title">Made cold.<br /><em>Hecho con cariño.</em></h2>
           <div className="dame-home-v3-collections">
             {menuCollections.map((collection) => (
               <article key={collection.name}>
@@ -156,7 +155,7 @@ export default function Home() {
       </section>
 
       <section className="dame-home-v3-story-link" aria-label="Dame Coffee story">
-        <p>Rooted in culture. Made to make you feel at home.</p>
+        <p>Our roots are in every cup. Nuestras raíces, en cada taza.</p>
         <Link href="/about">Our story <span aria-hidden="true">↗</span></Link>
       </section>
 

@@ -60,7 +60,7 @@ export default function NotificationOptIn({ compact = false }: { compact?: boole
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || 'Could not turn on notifications.');
       setState('subscribed');
-      setMessage('You’re in. We’ll only send meaningful Dame updates.');
+      setMessage('You’re in. Dame updates only.');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Could not turn on notifications.');
     } finally {
@@ -103,13 +103,11 @@ export default function NotificationOptIn({ compact = false }: { compact?: boole
   return (
     <section className={`dame-notification-opt-in ${compact ? 'is-compact' : ''}`} aria-labelledby={`dame-notify-title-${compact ? 'app' : 'site'}`}>
       <div>
-        <p className="dame-kicker">Stay close to Dame</p>
+        <p className="dame-kicker">Stay close · Mantente cerca</p>
         <h2 id={`dame-notify-title-${compact ? 'app' : 'site'}`}>
-          The good stuff,<br />right on time.
+          Know where<br />Dame is brewing.
         </h2>
-        <p>
-          Get a heads-up when the cart moves, a new drink drops, or a reward is waiting.
-        </p>
+        <p>New stops, drinks, and rewards. Nothing extra.</p>
       </div>
       <div className="dame-notification-action">
         {state === 'subscribed' ? (

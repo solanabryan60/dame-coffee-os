@@ -376,12 +376,9 @@ export default function OrderExperience({
     <>
       <section className="dame-order-hero">
         <div>
-          <p className="dame-kicker">Pickup · Today only</p>
-          <h1>Order where we&apos;re brewing.</h1>
-          <p>
-            Choose your favorite, make it yours, and we&apos;ll have it waiting at
-            today&apos;s Dame location.
-          </p>
+          <p className="dame-kicker">Pickup today · Recoge hoy</p>
+          <h1>Your Dame,<br />made your way.</h1>
+          <p>Choose it. Customize it. We&apos;ll have it ready.</p>
         </div>
         <aside>
           <div>
@@ -416,7 +413,7 @@ export default function OrderExperience({
       <section className="dame-order-layout">
         <div className="dame-order-menu">
           <header>
-            <p className="dame-kicker">Build your order</p>
+            <p className="dame-kicker">Order · Ordena</p>
             <h2>Made how you like it.</h2>
           </header>
           <div className="dame-menu-tabs dame-order-category-tabs" role="tablist" aria-label="Order menu sections">

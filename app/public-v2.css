@@ -1483,8 +1483,9 @@
   color: var(--dame-red);
 }
 
+.dame-field .dame-money-input input,
 .dame-money-input input {
-  padding-left: 34px;
+  padding-left: 48px;
 }
 
 .dame-receipt-claim .dame-button {

@@ -14,18 +14,18 @@ export const metadata: Metadata = {
 const values = [
   {
     number: '01',
-    title: 'Rooted, not themed.',
-    copy: 'Mexican culture lives in our flavors, our hospitality, our visual details, and the way we welcome people. It is our foundation—not decoration.',
+    title: 'Our roots, always.',
+    copy: 'Mexican culture guides our flavors, our hospitality, and every detail.',
   },
   {
     number: '02',
-    title: 'Quality is care.',
-    copy: 'From cold brew steeped for 20 hours to matcha whisked smooth, every drink is made with intention. The slow steep draws out a deeper, smoother coffee with less of the sharp, bitter flavor. Our matcha is whisked until silky and balanced, bringing forward its naturally earthy character with a clean, creamy finish. Giving people our best is how we show care and respect.',
+    title: 'Made with care.',
+    copy: 'Our cold brew steeps for 20 hours for a deeper, smoother cup. Our matcha is whisked until silky and balanced.',
   },
   {
     number: '03',
-    title: 'Community comes first.',
-    copy: 'The cart goes where people already gather—markets, neighborhoods, beach walks, and celebrations—so a cup can become a shared moment.',
+    title: 'Made to gather.',
+    copy: 'Markets, neighborhoods, and celebrations. Wherever people come together, Dame feels at home.',
   },
 ];
 
@@ -44,21 +44,20 @@ export default function AboutPage() {
         />
         <div className="dame-about-hero-shade" />
         <div>
-          <p className="dame-kicker dame-kicker-light">Our story</p>
-          <h1 id="about-title">Coffee is how we<br /><em>bring people together.</em></h1>
+          <p className="dame-kicker dame-kicker-light">Our story · Nuestra historia</p>
+          <h1 id="about-title">A little coffee.<br /><em>A lot of cultura.</em></h1>
         </div>
       </section>
 
       <section className="dame-about-intro" aria-labelledby="about-intro-title">
         <p className="dame-kicker">Dame Coffee · Dame Vida</p>
         <div>
-          <h2 id="about-intro-title">A mobile coffee experience with a sense of home.</h2>
+          <h2 id="about-intro-title">Dame Coffee, made to move.</h2>
           <p>
-            Dame Coffee is a mobile cold brew and matcha bar serving Southern California.
-            Mexican culture shapes our flavors, hospitality, and visual language. The cart may
-            move, but our standards do not: thoughtful drinks, warm service, and room for everyone
-            to experience a small part of the rich culture that shapes who we are.
+            We are a mobile cold brew and matcha bar serving Southern California.
+            Our Mexican roots shape the flavors, the hospitality, and the feeling.
           </p>
+          <p lang="es">Una barra móvil de cold brew y matcha, hecha con raíces mexicanas.</p>
         </div>
         <BeanStateImage state="waving" className="dame-about-page-bean" decorative priority />
       </section>
@@ -81,8 +80,8 @@ export default function AboutPage() {
 
       <section className="dame-about-values" aria-labelledby="values-title">
         <header>
-          <p className="dame-kicker">What guides us</p>
-          <h2 id="values-title">Everything should feel intentional.</h2>
+          <p className="dame-kicker">What guides us · Lo que nos guía</p>
+          <h2 id="values-title">Simple things, done well.</h2>
         </header>
         <div>
           {values.map((value) => (

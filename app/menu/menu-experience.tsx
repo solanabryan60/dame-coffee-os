@@ -81,12 +81,10 @@ export default function MenuExperience({
     <>
       <section className="dame-menu-intro">
         <div>
-          <p className="dame-kicker">Cold drinks · Made to order</p>
+          <p className="dame-kicker">Our menu · Nuestro menú</p>
           <h1>What sounds good?</h1>
-          <p>
-            Settle in and choose what speaks to you. From slow-steeped cold brew to
-            matcha whisked smooth, every selection is prepared to feel distinctly Dame.
-          </p>
+          <p>20-hour cold brew, smooth matcha, and flavors inspired by home.</p>
+          <p lang="es">Cold brew de 20 horas, matcha suave y sabores de casa.</p>
         </div>
         <div className="dame-menu-editorial" role="img" aria-label="Iced matcha and cold brew presented in warm sunlight">
           <div>
