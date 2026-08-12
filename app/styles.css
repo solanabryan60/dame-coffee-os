@@ -1263,6 +1263,25 @@ img {
   text-transform: uppercase;
 }
 
+.admin-bean-studio-shell .dame-bean-studio {
+  max-width: 1040px;
+  min-height: auto;
+  margin: 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  box-shadow: 0 18px 48px rgba(56, 36, 30, 0.08);
+}
+
+.admin-bean-studio-shell .dame-bean-studio-header {
+  min-height: min(640px, 72svh);
+}
+
+@media (max-width: 560px) {
+  .admin-bean-studio-shell .dame-bean-studio {
+    border-radius: 22px;
+  }
+}
+
 .admin-section-nav a:hover,
 .admin-section-nav a.is-active {
   background: var(--dame-red);
