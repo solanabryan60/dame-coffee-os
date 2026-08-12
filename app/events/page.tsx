@@ -24,9 +24,9 @@ export default function EventsPage() {
       <SiteHeader />
       <section className="dame-events-hero" aria-labelledby="events-title">
         <div>
-          <p className="dame-kicker">Follow the cart</p>
-          <h1 id="events-title">Where Dame<br /><em>is headed next.</em></h1>
-          <p>Markets, pop-ups, and the places we cannot wait to serve.</p>
+          <p className="dame-kicker">Find Dame · Encuentra Dame</p>
+          <h1 id="events-title">See you<br /><em>at the next stop.</em></h1>
+          <p>Markets, pop-ups, and community events.</p>
         </div>
       </section>
       {events.length ? (

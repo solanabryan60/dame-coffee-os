@@ -15,11 +15,9 @@ export default function MerchPage() {
       <SiteHeader />
       <section className="dame-merch-coming" aria-labelledby="merch-title">
         <div className="dame-merch-copy">
-          <p className="dame-kicker dame-kicker-light">Dame Merch</p>
-          <h1 id="merch-title">Made to carry<br /><em>Dame with you.</em></h1>
-          <p>
-            Apparel, coffee, and small pieces of Dame—made with the same care as every cup.
-          </p>
+          <p className="dame-kicker dame-kicker-light">Dame Merch · Muy pronto</p>
+          <h1 id="merch-title">Take a little<br /><em>Dame with you.</em></h1>
+          <p>Apparel, coffee, and more. Coming soon.</p>
           <div className="dame-merch-status" aria-label="Merch launch status">
             <span aria-hidden="true" />
             Coming soon

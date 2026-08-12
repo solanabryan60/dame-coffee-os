@@ -15,12 +15,9 @@ export default function ReceiptClaimPage() {
       <SiteHeader />
       <section className="dame-claim-hero">
         <div>
-          <p className="dame-kicker dame-kicker-light">Keep what you earned</p>
-          <h1>Don&apos;t let your<br /><em>points go to waste.</em></h1>
-          <p>
-            Ordered at the cart before joining or signing in? Save the purchase
-            to your Dame Rewards account within 30 days.
-          </p>
+          <p className="dame-kicker dame-kicker-light">Save your points · Guarda tus puntos</p>
+          <h1>Keep the points<br /><em>you earned.</em></h1>
+          <p>Claim an in-person purchase within 30 days.</p>
         </div>
         <ol>
           <li><span>01</span><p>Find the receipt number and exact total.</p></li>
@@ -32,12 +29,8 @@ export default function ReceiptClaimPage() {
       <section className="dame-claim-builder">
         <div>
           <p className="dame-kicker">Your receipt</p>
-          <h2>A little love,<br />saved for later.</h2>
-          <p>
-            Each completed receipt can be claimed once. Catering deposits and
-            refunded amounts do not earn points. Members can save up to three
-            receipts per day.
-          </p>
+          <h2>Your purchase.<br />Your points.</h2>
+          <p>One claim per receipt. Up to three receipts per day.</p>
           <BeanStateImage state="walking" className="dame-claim-page-bean" decorative />
         </div>
         <ReceiptClaim />
