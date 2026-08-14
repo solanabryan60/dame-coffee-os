@@ -114,10 +114,10 @@ export default function DameAppHome() {
       <header className="dame-app-topbar">
         <Link className="dame-app-wordmark" href="/" aria-label="Dame Coffee website">
           <Image
-            src="/assets/logo.png"
+            src="/assets/dame-dc-logo-square.png"
             alt="Dame Coffee"
-            width={500}
-            height={500}
+            width={1024}
+            height={1024}
             priority
           />
         </Link>
@@ -239,7 +239,7 @@ export default function DameAppHome() {
             onClick={(event) => event.stopPropagation()}
           >
             <button type="button" aria-label="Close install instructions" onClick={() => setShowInstallHelp(false)}>×</button>
-            <Image src="/dame-icon" alt="" width={72} height={72} unoptimized />
+            <Image src="/icon.png" alt="" width={72} height={72} />
             <p className="dame-kicker">Dame App</p>
             <h2 id="dame-install-help-title">Add Dame to your home screen.</h2>
             {isIos ? (

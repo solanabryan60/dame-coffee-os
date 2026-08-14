@@ -35,8 +35,11 @@ export const metadata = {
     statusBarStyle: 'black-translucent',
   },
   icons: {
-    icon: '/dame-icon',
-    apple: '/dame-icon',
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon.png', type: 'image/png', sizes: '512x512' },
+    ],
+    apple: [{ url: '/apple-icon.png', type: 'image/png', sizes: '180x180' }],
   },
 };
 

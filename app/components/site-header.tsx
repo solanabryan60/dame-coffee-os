@@ -25,7 +25,13 @@ export default function SiteHeader({ overlay = false }: { overlay?: boolean }) {
   return (
     <header className={`dame-header ${overlay ? 'dame-header-overlay' : ''} ${menuOpen ? 'menu-open' : ''}`}>
       <Link className="dame-logo" href="/" aria-label="Dame Coffee home" onClick={() => setMenuOpen(false)}>
-        <Image src="/assets/dame-logo-red.jpg" alt="Dame Coffee" width={954} height={843} priority />
+        <Image
+          src="/assets/dame-dc-logo-square.png"
+          alt="Dame Coffee"
+          width={1024}
+          height={1024}
+          priority
+        />
       </Link>
 
       <nav className="dame-desktop-nav" aria-label="Main navigation">

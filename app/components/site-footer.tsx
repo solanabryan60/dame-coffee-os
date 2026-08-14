@@ -28,7 +28,7 @@ export default function SiteFooter({
       ) : null}
 
       <div className="dame-footer-brand">
-        <Image src="/assets/dame-logo-red.jpg" alt="Dame Coffee" width={954} height={843} />
+        <Image src="/assets/dame-dc-logo-square.png" alt="Dame Coffee" width={1024} height={1024} />
         <p>Cold brew, matcha y cultura.</p>
       </div>
 
