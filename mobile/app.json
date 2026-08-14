@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "Dame Coffee",
+    "slug": "dame-coffee",
+    "scheme": "damecoffee",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#d9d9d9"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.damecoffeeco.app",
+      "buildNumber": "1"
+    },
+    "android": {
+      "package": "com.damecoffeeco.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#d9d9d9",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "permissions": []
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-web-browser",
+      "expo-notifications"
+    ]
+  }
+}

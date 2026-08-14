@@ -44,7 +44,7 @@
 .dame-logo {
   position: relative;
   z-index: 102;
-  width: 82px;
+  width: 72px;
   height: 72px;
   display: block;
 }
@@ -52,7 +52,7 @@
 .dame-logo img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .dame-desktop-nav {
@@ -2833,8 +2833,8 @@
 
 .dame-footer-brand img {
   width: 150px;
-  height: 132px;
-  object-fit: cover;
+  height: 150px;
+  object-fit: contain;
 }
 
 .dame-footer-brand > p {
@@ -3140,7 +3140,7 @@
   }
 
   .dame-logo {
-    width: 64px;
+    width: 56px;
     height: 56px;
   }
 
@@ -3477,18 +3477,17 @@
 }
 
 .dame-app-wordmark {
-  width: 112px;
-  height: 58px;
+  width: 64px;
+  height: 64px;
   display: block;
   overflow: hidden;
 }
 
 .dame-app-wordmark img {
-  width: 112px;
-  height: 112px;
+  width: 64px;
+  height: 64px;
   display: block;
-  object-fit: cover;
-  transform: translateY(-27px);
+  object-fit: contain;
 }
 
 .dame-app-name {
@@ -4045,14 +4044,13 @@
   }
 
   .dame-app-wordmark {
-    width: 84px;
-    height: 46px;
+    width: 54px;
+    height: 54px;
   }
 
   .dame-app-wordmark img {
-    width: 84px;
-    height: 84px;
-    transform: translateY(-19px);
+    width: 54px;
+    height: 54px;
   }
 
   .dame-app-name strong {
