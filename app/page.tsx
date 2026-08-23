@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import HomeHeroReel from './components/home-hero-reel';
 import SiteFooter from './components/site-footer';
 import GoogleMap from './components/google-map';
 import NotificationOptIn from './components/notification-opt-in';
@@ -49,14 +50,7 @@ export default function Home() {
       <SiteHeader overlay />
 
       <section className="dame-landing" aria-labelledby="landing-title">
-        <Image
-          src="/assets/cart-venice.jpg"
-          alt="A Dame Coffee drink held in front of the cart at Venice Beach"
-          fill
-          priority
-          sizes="100vw"
-          className="dame-landing-image"
-        />
+        <HomeHeroReel />
         <div className="dame-landing-shade" />
 
         <div className="dame-landing-copy">

@@ -223,6 +223,7 @@
   min-height: 100svh;
   display: flex;
   align-items: flex-end;
+  overflow: hidden;
   background: #21100d;
   color: white;
 }
@@ -233,6 +234,22 @@
   object-position: 50% 48%;
   scale: 1.025;
   animation: dame-image-breathe 14s ease-out both;
+}
+
+.dame-landing-video {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  opacity: 0;
+  transition: opacity 850ms ease-in-out;
+}
+
+.dame-landing-video.is-active {
+  opacity: 1;
 }
 
 .dame-landing-shade {
