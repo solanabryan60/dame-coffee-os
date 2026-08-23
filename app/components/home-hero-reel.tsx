@@ -8,12 +8,12 @@ const clips = [
     description: 'Iced cold brew in a clear plastic cup.',
   },
   {
-    src: '/assets/hero-source/matcha-pour.mp4',
-    description: 'Fresh whisked matcha being poured into milk.',
+    src: '/assets/hero-source/matcha-cafe-pour.mp4',
+    description: 'Fresh whisked matcha being poured into milk at the café bar.',
   },
 ];
 
-const cutDurationSeconds = 5;
+const cutDurationSeconds = 3;
 
 export default function HomeHeroReel() {
   const videoRef = useRef<HTMLVideoElement>(null);
