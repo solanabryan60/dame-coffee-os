@@ -8,12 +8,8 @@ const clips = [
     description: 'Iced cold brew in a clear plastic cup.',
   },
   {
-    src: '/assets/hero-source/matcha-plastic.mp4',
-    description: 'Iced matcha in a clear plastic cup.',
-  },
-  {
-    src: '/assets/hero-source/cold-foam.mp4',
-    description: 'Cold foam being added to an iced drink.',
+    src: '/assets/hero-source/matcha-pour.mp4',
+    description: 'Fresh whisked matcha being poured into milk.',
   },
 ];
 
