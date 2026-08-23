@@ -4,12 +4,16 @@ import { useEffect, useRef, useState } from 'react';
 
 const clips = [
   {
-    src: '/assets/hero-source/cold-brew-source.mp4',
-    description: 'Cold brew pouring over ice.',
+    src: '/assets/hero-source/cold-brew-plastic.mp4',
+    description: 'Iced cold brew in a clear plastic cup.',
   },
   {
-    src: '/assets/hero-source/milk-source.mp4',
-    description: 'Milk swirling into iced coffee.',
+    src: '/assets/hero-source/matcha-plastic.mp4',
+    description: 'Iced matcha in a clear plastic cup.',
+  },
+  {
+    src: '/assets/hero-source/cold-foam.mp4',
+    description: 'Cold foam being added to an iced drink.',
   },
 ];
 
