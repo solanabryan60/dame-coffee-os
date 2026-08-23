@@ -10,10 +10,11 @@ const clips = [
   {
     src: '/assets/hero-source/matcha-cafe-pour.mp4',
     description: 'Fresh whisked matcha being poured into milk at the café bar.',
+    className: 'dame-home-v3-hero-video--matcha',
   },
 ];
 
-const cutDurationSeconds = 3;
+const cutDurationSeconds = 5;
 
 export default function HomeHeroReel() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -37,7 +38,7 @@ export default function HomeHeroReel() {
     <video
       key={clipIndex}
       ref={videoRef}
-      className="dame-home-v3-hero-video"
+      className={`dame-home-v3-hero-video ${clips[clipIndex].className ?? ''}`}
       src={clips[clipIndex].src}
       autoPlay
       muted

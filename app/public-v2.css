@@ -6200,6 +6200,12 @@
   animation: dame-image-breathe 14s ease-out both;
 }
 
+.dame-home-v3-hero-video--matcha {
+  /* Keep the pour and the finished drink in frame; the background tools stay out. */
+  object-position: center 58%;
+  scale: 1.2;
+}
+
 .dame-home-v3-hero-shade {
   position: absolute;
   inset: 0;
