@@ -10,48 +10,55 @@ const clips = [
   {
     src: '/assets/hero-source/matcha-cafe-pour.mp4',
     description: 'Fresh whisked matcha being poured into milk at the café bar.',
-    className: 'dame-home-v3-hero-video--matcha',
   },
 ];
 
-const cutDurationSeconds = 5;
+const cutDurationMilliseconds = 6500;
 
 export default function HomeHeroReel() {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const [clipIndex, setClipIndex] = useState(0);
 
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      video.pause();
+      videoRefs.current.forEach((video) => video?.pause());
       return;
     }
 
-    video.play().catch(() => {
-      // The reel is decorative; a visitor can continue using the page without it.
-    });
+    const nextIndex = (clipIndex + 1) % clips.length;
+    const nextVideo = videoRefs.current[nextIndex];
+
+    const timer = window.setTimeout(() => {
+      if (nextVideo) {
+        nextVideo.currentTime = 0;
+        nextVideo.play().catch(() => {
+          // The reel is decorative; a visitor can continue using the page without it.
+        });
+      }
+      setClipIndex(nextIndex);
+    }, cutDurationMilliseconds);
+
+    return () => window.clearTimeout(timer);
   }, [clipIndex]);
 
   return (
-    <video
-      key={clipIndex}
-      ref={videoRef}
-      className={`dame-home-v3-hero-video ${clips[clipIndex].className ?? ''}`}
-      src={clips[clipIndex].src}
-      autoPlay
-      muted
-      playsInline
-      preload="auto"
-      aria-label={clips[clipIndex].description}
-      onTimeUpdate={(event) => {
-        if (event.currentTarget.currentTime >= cutDurationSeconds) {
-          setClipIndex((current) => (current + 1) % clips.length);
-        }
-      }}
-      onEnded={() => setClipIndex((current) => (current + 1) % clips.length)}
-      onError={() => setClipIndex((current) => (current + 1) % clips.length)}
-    />
+    <>
+      {clips.map((clip, index) => (
+        <video
+          key={clip.src}
+          ref={(video) => {
+            videoRefs.current[index] = video;
+          }}
+          className={`dame-home-v3-hero-video ${index === clipIndex ? 'is-active' : ''}`}
+          src={clip.src}
+          autoPlay
+          muted
+          playsInline
+          loop
+          preload="auto"
+          aria-label={clip.description}
+        />
+      ))}
+    </>
   );
 }
