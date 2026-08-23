@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import GoogleMap from './components/google-map';
 import BeanStateImage from './components/bean-state';
+import HomeHeroReel from './components/home-hero-reel';
 import SiteFooter from './components/site-footer';
 import SiteHeader from './components/site-header';
 import { readSiteSettings, SiteSettings } from './lib/supabase-rest';
@@ -57,14 +58,7 @@ export default function Home() {
       <SiteHeader overlay />
 
       <section className="dame-home-v3-hero" aria-labelledby="home-hero-title">
-        <Image
-          src="/assets/cart-venice.jpg"
-          alt="A Dame Coffee drink held in front of the mobile cart in Venice"
-          fill
-          priority
-          sizes="100vw"
-          className="dame-home-v3-hero-image"
-        />
+        <HomeHeroReel />
         <div className="dame-home-v3-hero-shade" />
         <div className="dame-home-v3-hero-copy">
           <p className="dame-kicker dame-kicker-light">Cold brew · Matcha · Southern California</p>
