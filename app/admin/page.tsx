@@ -13,7 +13,9 @@ import {
 import { listRewardPromotions } from '../lib/dame-rewards';
 import {
   listCateringRequestsForAdmin,
+  listInventoryItemsForAdmin,
   listMenuAvailabilityForAdmin,
+  listPrepTasksForAdmin,
   listPickupOrdersForAdmin,
   listUpcomingEventsForAdmin,
   readSiteSettings,
@@ -25,12 +27,27 @@ type Overview = {
   ordering: boolean;
   activeOrders: number;
   soldOut: number;
+  inventoryOut: number;
+  inventoryLow: number;
+  prepDone: number;
+  prepTotal: number;
   newCatering: number;
   upcomingCatering: number;
   activePromotions: number;
   publishedEvents: number;
   subscribers: number;
 };
+
+function localDateKey(date = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  const value = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${value.year}-${value.month}-${value.day}`;
+}
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -47,10 +64,12 @@ export default function AdminDashboard() {
       }
 
       try {
-        const [settings, orders, availability, catering, promotions, events, notifications] = await Promise.all([
+        const [settings, orders, availability, inventory, prepTasks, catering, promotions, events, notifications] = await Promise.all([
           readSiteSettings(),
           listPickupOrdersForAdmin(token),
           listMenuAvailabilityForAdmin(token),
+          listInventoryItemsForAdmin(token),
+          listPrepTasksForAdmin(token),
           listCateringRequestsForAdmin(token),
           listRewardPromotions(token),
           listUpcomingEventsForAdmin(token),
@@ -64,7 +83,7 @@ export default function AdminDashboard() {
           }),
         ]);
         if (!active) return;
-        const today = new Date().toISOString().slice(0, 10);
+        const today = localDateKey();
         const now = Date.now();
         setOverview({
           location: settings.location_title,
@@ -72,6 +91,10 @@ export default function AdminDashboard() {
           ordering: settings.is_open && settings.mobile_ordering,
           activeOrders: orders.filter((order) => ['paid', 'preparing', 'ready', 'refund_pending'].includes(order.status)).length,
           soldOut: availability.filter((item) => item.is_sold_out).length,
+          inventoryOut: inventory.filter((item) => Number(item.quantity) <= 0).length,
+          inventoryLow: inventory.filter((item) => Number(item.quantity) > 0 && Number(item.quantity) <= Number(item.low_stock_at)).length,
+          prepDone: prepTasks.filter((task) => task.last_completed_on === today).length,
+          prepTotal: prepTasks.length,
           newCatering: catering.filter((request) => request.status === 'deposit_paid').length,
           upcomingCatering: catering.filter((request) => request.event_date >= today && !['cancelled', 'refunded'].includes(request.status)).length,
           activePromotions: promotions.filter((promotion) => promotion.active && new Date(promotion.starts_at).getTime() <= now && new Date(promotion.ends_at).getTime() >= now).length,
@@ -101,11 +124,11 @@ export default function AdminDashboard() {
       action: 'Manage live location',
     },
     {
-      href: '/admin/orders',
-      eyebrow: 'Pickup queue',
-      title: `${overview.activeOrders} active ${overview.activeOrders === 1 ? 'order' : 'orders'}`,
-      detail: 'See paid, preparing, ready, and refund-needed orders.',
-      action: 'Open pickup orders',
+      href: '/mobileorder',
+      eyebrow: 'Mobile orders',
+      title: `${overview.activeOrders} active ${overview.activeOrders === 1 ? 'mobile order' : 'mobile orders'}`,
+      detail: 'See every paid, preparing, ready, and refund-needed mobile order in one place.',
+      action: 'Open mobile orders',
     },
     {
       href: '/admin/menu',
@@ -113,6 +136,35 @@ export default function AdminDashboard() {
       title: `${overview.soldOut} sold out`,
       detail: overview.soldOut ? 'Customers cannot order those items online.' : 'Every synced menu item is available online.',
       action: 'Manage availability',
+    },
+    {
+      href: '/admin/inventory',
+      eyebrow: 'Stockroom',
+      title: overview.inventoryOut
+        ? `${overview.inventoryOut} out of stock`
+        : `${overview.inventoryLow} running low`,
+      detail: overview.inventoryOut
+        ? `${overview.inventoryLow} more ${overview.inventoryLow === 1 ? 'item is' : 'items are'} running low.`
+        : overview.inventoryLow
+          ? 'Restock these supplies before service.'
+          : 'Every tracked supply is above its low-stock level.',
+      action: 'Check inventory',
+    },
+    {
+      href: '/admin/prep',
+      eyebrow: 'Daily prep',
+      title: `${overview.prepDone} of ${overview.prepTotal} complete`,
+      detail: overview.prepTotal && overview.prepDone === overview.prepTotal
+        ? 'The full checklist is finished for today.'
+        : 'Opening, service, and closing tasks stay together here.',
+      action: 'Open today’s checklist',
+    },
+    {
+      href: '/admin/team',
+      eyebrow: 'Team workspace',
+      title: 'Schedule, clock, and train',
+      detail: 'Today’s events, team shifts, hours, recipes, and training stay together.',
+      action: 'Open team workspace',
     },
     {
       href: '/admin/catering',
@@ -125,7 +177,7 @@ export default function AdminDashboard() {
       href: '/admin/rewards',
       eyebrow: 'Dame Rewards',
       title: `${overview.activePromotions} live ${overview.activePromotions === 1 ? 'campaign' : 'campaigns'}`,
-      detail: 'Redeem customer codes and schedule 2× points moments.',
+      detail: 'Look up one-time reward codes and schedule 2× points moments.',
       action: 'Open rewards',
     },
     {

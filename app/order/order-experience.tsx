@@ -2,8 +2,14 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import BeanStateImage from '../components/bean-state';
 import type { SquareMenuItem, SquareMenuModifierGroup } from '../lib/square';
 import { getCustomerSession } from '../lib/customer-session';
+import {
+  isExclusiveModifierGroup,
+  orderingModifierGroups,
+  requiredSelectionsForOrdering,
+} from '../lib/order-modifiers';
 import { readCustomerProfile } from '../lib/supabase-rest';
 
 type CartLine = {
@@ -35,22 +41,6 @@ function money(amount: number) {
   }).format(amount / 100);
 }
 
-function isExclusiveModifierGroup(group: SquareMenuModifierGroup) {
-  return /\b(milk|coffee)\b/i.test(group.name);
-}
-
-function orderModifierGroups(item: SquareMenuItem) {
-  if (item.category !== 'foam') return item.modifierGroups;
-
-  return item.modifierGroups
-    .filter((group) => !/\bcold\s*foam\b/i.test(group.name))
-    .map((group) => ({
-      ...group,
-      options: group.options.filter((option) => !/\bcold\s*foam\b/i.test(option.name)),
-    }))
-    .filter((group) => group.options.length > 0);
-}
-
 function ItemOrderCard({
   item,
   disabled,
@@ -70,12 +60,12 @@ function ItemOrderCard({
   const [variationId, setVariationId] = useState(item.variations[0]?.id ?? '');
   const [selections, setSelections] = useState<Record<string, string[]>>({});
   const variation = item.variations.find((entry) => entry.id === variationId) ?? item.variations[0];
-  const modifierGroups = orderModifierGroups(item);
+  const modifierGroups = orderingModifierGroups(item);
 
   useEffect(() => {
     if (!editingLine) return;
 
-    const restoredSelections = orderModifierGroups(item).reduce<Record<string, string[]>>(
+    const restoredSelections = orderingModifierGroups(item).reduce<Record<string, string[]>>(
       (groups, group) => {
         const optionIds = new Set(group.options.map((option) => option.id));
         groups[group.id] = editingLine.modifierIds.filter((id) => optionIds.has(id));
@@ -96,7 +86,7 @@ function ItemOrderCard({
   const requiredChoicesComplete = modifierGroups.every(
     (group) =>
       (selections[group.id]?.length ?? 0) >=
-      (isExclusiveModifierGroup(group) ? Math.min(group.minSelected, 1) : group.minSelected),
+      requiredSelectionsForOrdering(group),
   );
   const unitAmount =
     (variation?.priceAmount ?? 0) +
@@ -160,9 +150,9 @@ function ItemOrderCard({
               <legend>
                 {group.name}
                 {isExclusiveModifierGroup(group) ? (
-                  <span>{group.minSelected > 0 ? 'Choose one' : 'Optional · one only'}</span>
+                  <span>Required · pick one</span>
                 ) : (
-                  <span>{group.minSelected > 0 ? `Choose ${group.minSelected}+` : 'Pick any'}</span>
+                  <span>Optional · pick any</span>
                 )}
               </legend>
               <div>
@@ -248,6 +238,7 @@ export default function OrderExperience({
 }) {
   const [cart, setCart] = useState<CartLine[]>([]);
   const [editingLineId, setEditingLineId] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<SquareMenuItem['category']>('foam');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -277,6 +268,7 @@ export default function OrderExperience({
     },
     [],
   ).sort((a, b) => groupOrder[a.id] - groupOrder[b.id]);
+  const activeGroup = itemGroups.find((group) => group.id === activeCategory) ?? itemGroups[0];
 
   useEffect(() => {
     getCustomerSession().then(async (session) => {
@@ -316,11 +308,15 @@ export default function OrderExperience({
   }
 
   function editLine(line: CartLine) {
+    const item = items.find((entry) => entry.id === line.itemId);
+    if (item) setActiveCategory(item.category);
     setEditingLineId(line.id);
     window.requestAnimationFrame(() => {
-      document.getElementById(`order-item-${line.itemId}`)?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
+      window.requestAnimationFrame(() => {
+        document.getElementById(`order-item-${line.itemId}`)?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
       });
     });
   }
@@ -380,12 +376,9 @@ export default function OrderExperience({
     <>
       <section className="dame-order-hero">
         <div>
-          <p className="dame-kicker">Pickup · Today only</p>
-          <h1>Order where we&apos;re brewing.</h1>
-          <p>
-            Customize your drinks here, pay securely with Square, and pick everything
-            up at today&apos;s live location.
-          </p>
+          <p className="dame-kicker">Pickup today · Recoge hoy</p>
+          <h1>Your Dame,<br />made your way.</h1>
+          <p>Choose it. Customize it. We&apos;ll have it ready.</p>
         </div>
         <aside>
           <div>
@@ -404,31 +397,58 @@ export default function OrderExperience({
 
       {!squareConfigured ? (
         <section className="dame-order-notice">
-          <strong>Square is being connected.</strong>
-          <p>The menu is ready to preview, but checkout stays safely off until the private Square connection is complete.</p>
+          <strong>Online pickup is almost ready.</strong>
+          <p>Explore what sounds good today. We&apos;ll open checkout as soon as the ordering bar is ready.</p>
         </section>
       ) : !location.isOpen || !location.mobileOrdering ? (
-        <section className="dame-order-notice">
-          <strong>Pickup ordering is paused.</strong>
-          <p>You can still plan what sounds good. Ordering will open from the Dame dashboard when the cart is ready.</p>
+        <section className="dame-order-notice dame-order-closed-notice">
+          <BeanStateImage state="sleeping" className="dame-order-closed-bean" />
+          <div>
+            <strong>We&apos;re resting right now.</strong>
+            <p>We&apos;ll see you when the cart is brewing again. You can still plan what sounds good.</p>
+          </div>
         </section>
       ) : null}
 
       <section className="dame-order-layout">
         <div className="dame-order-menu">
           <header>
-            <p className="dame-kicker">Build your order</p>
+            <p className="dame-kicker">Order · Ordena</p>
             <h2>Made how you like it.</h2>
           </header>
+          <div className="dame-menu-tabs dame-order-category-tabs" role="tablist" aria-label="Order menu sections">
+            {itemGroups.map((group, index) => (
+              <button
+                key={group.id}
+                type="button"
+                role="tab"
+                aria-selected={activeGroup?.id === group.id}
+                aria-controls="dame-order-category-panel"
+                onClick={() => {
+                  setEditingLineId(null);
+                  setActiveCategory(group.id);
+                }}
+              >
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                {group.label}
+              </button>
+            ))}
+          </div>
           <div className="dame-order-groups">
-            {itemGroups.map((group) => (
-              <section key={group.label} className="dame-order-group" aria-labelledby={`order-group-${group.label.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`}>
+            {activeGroup ? (
+              <section
+                key={activeGroup.id}
+                id="dame-order-category-panel"
+                className="dame-order-group dame-order-category-panel"
+                role="tabpanel"
+                aria-labelledby={`order-group-${activeGroup.label.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`}
+              >
                 <header>
                   <p>Choose your Dame</p>
-                  <h3 id={`order-group-${group.label.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`}>{group.label}</h3>
+                  <h3 id={`order-group-${activeGroup.label.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`}>{activeGroup.label}</h3>
                 </header>
                 <div className="dame-order-grid">
-                  {group.items.map((item) => (
+                  {activeGroup.items.map((item) => (
                     <ItemOrderCard
                       key={item.id}
                       item={item}
@@ -441,7 +461,7 @@ export default function OrderExperience({
                   ))}
                 </div>
               </section>
-            ))}
+            ) : null}
           </div>
         </div>
 
@@ -478,6 +498,11 @@ export default function OrderExperience({
             <p className="dame-cart-empty">Choose a drink and it&apos;ll show up here.</p>
           )}
 
+          <div className="dame-order-companion">
+            <BeanStateImage state="chef" className="dame-order-page-bean" decorative />
+            <p><span>Made your way.</span> We&apos;ll take it from here.</p>
+          </div>
+
           <div className="dame-pickup-fields">
             <label>
               <span>Pickup name</span>
@@ -511,16 +536,16 @@ export default function OrderExperience({
             disabled={!orderingEnabled || submitting}
             onClick={checkout}
           >
-            {submitting ? 'Opening Square…' : `Checkout securely · ${money(total)}`}
+            {submitting ? 'Preparing checkout…' : `Checkout securely · ${money(total)}`}
           </button>
           <p className="dame-square-note">
-            Final tax and total are calculated by Square. Payment details stay with Square.
+            Final tax appears at secure checkout. Dame never receives or stores your card details.
           </p>
           <p className="dame-square-note">
             {rewardsAccessToken ? (
-              <>This signed-in purchase earns 10 Dame points per eligible $1.</>
+              <>This eligible purchase earns 10 Dame points per $1.</>
             ) : (
-              <>Want points with this order? <Link href="/rewards#join">Join or sign in first.</Link></>
+              <>Ordering without an account? Keep your receipt and <Link href="/rewards/claim">save your points afterward.</Link></>
             )}
           </p>
           <Link href="/menu">Just browsing? View the menu →</Link>

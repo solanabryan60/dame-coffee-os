@@ -1,16 +1,21 @@
-# Dame Coffee OS — Phase 9 Operations Center
+# Dame Coffee OS — Phase 13 Roadmap Completion
 
 Dame Coffee OS is the public website, pickup-ordering experience, rewards program, and private control center for Dame Coffee.
 
-Phase 9 turns the private admin area into a focused, phone-friendly operations center. The overview shows what needs attention, then routes staff into a dedicated workspace for location, pickup orders, menu availability, catering, rewards, events, or notifications.
+Phase 13 completes the original customer and operations roadmap: drag-and-drop menu photos, richer catering details, customer favorites and history, a private Team workspace, and combined Square + Dame growth analytics. Square remains the source of truth for products, prices, modifiers, checkout, and completed sales.
+
+See [`ROADMAP_AUDIT.md`](./ROADMAP_AUDIT.md) for the verified Phase 2–10 completion audit and remaining build order.
 
 ## Operations center
 
 Visit `/admin` for the daily overview. Each workspace now has one purpose:
 
 - `/admin/location` — current location, hours, wait time, open status, and mobile ordering
-- `/admin/orders` — live Square-connected pickup queue
-- `/admin/menu` — website menu availability overrides
+- `/mobileorder` — dedicated live Square-connected mobile order queue
+- `/admin/menu` — Menu Studio for website presentation and same-day availability
+- `/admin/inventory` — ingredient and supply counts with low-stock warnings
+- `/admin/prep` — recurring opening, service, and closing checklist
+- `/admin/team` — time clock, schedules, today’s events, roles, recipes, and training
 - `/admin/catering` — deposits, event details, customer contact, notes, and status
 - `/admin/rewards` — customer reward-code redemption and 2× points campaigns
 - `/admin/events` — public upcoming-event publishing
@@ -18,25 +23,47 @@ Visit `/admin` for the daily overview. Each workspace now has one purpose:
 
 The navigation stays available across every workspace, and the existing Supabase permissions and automatically refreshed admin session protect every private action.
 
-## Pickup order center
+## Daily Prep Center
+
+The `/admin/prep` workspace keeps the day focused:
+
+- opening, during-service, and closing tasks are separated into clear lanes
+- the progress summary shows how much is complete at a glance
+- tapping a task marks it finished for the current day
+- each new calendar day starts with a fresh checklist automatically
+- approved admins can add, rename, or remove recurring tasks from a phone
+
+## Menu Studio
+
+The `/admin/menu` workspace combines the live Square catalog with Dame-only presentation controls:
+
+- add menu items, edit prices, and manage modifiers in Square so checkout always matches the POS
+- add or replace each item’s website photo
+- drag a photo directly onto the item or tap to choose it from a phone
+- rewrite the public website description without changing checkout data
+- mark items featured or seasonal
+- hide an item from the public menu and pickup ordering without deleting it from Square
+- mark an item sold out for today across both the public menu and pickup ordering
+
+## Mobile order center
 
 When a customer begins Square checkout:
 
 - Dame Coffee OS saves their pickup name, contact information, order items, customizations, quoted wait, and location snapshot
 - The customer returns from Square to a private tracking link that cannot be guessed from the order number alone
 - A verified Square `payment.updated` webhook moves the order from `Awaiting payment` to `Paid`
-- Staff use `/admin/orders` to move the order through `Preparing`, `Ready for pickup`, and `Picked up`
+- Staff use `/mobileorder` to move the order through `Preparing`, `Ready for pickup`, and `Picked up`
 - Status changes made in Square Order Manager automatically move the Dame tracker through Preparing, Ready, Picked up, or Cancelled
 - The customer tracking page refreshes automatically as staff update the order
 - Marking an order `Refund needed` sends staff to Square; a verified full Square refund automatically marks the order refunded
 
-The pickup dashboard is separate from the main control center so live orders remain fast and focused during service.
+The mobile order dashboard is separate from the main control center so live orders remain easy to find, fast, and focused during service.
 
 ## Catering request center
 
 When a customer submits the catering estimator:
 
-- Dame Coffee OS saves their contact details, event address, date, time, drink count, service hours, estimate, and Square order ID
+- Dame Coffee OS saves contact details, company, guests, indoor/outdoor setting, budget, notes, event address, date, time, drink count, service hours, estimate, and Square order ID
 - The request begins as `Awaiting deposit`
 - A verified Square `payment.updated` webhook marks the $200 deposit paid
 - Catering deposits are excluded from customer rewards points
@@ -77,6 +104,9 @@ The web app manifest starts installed sessions at `/app`. The service worker cac
 - Earn 500 points after a referred friend makes a first eligible $5 purchase
 - Receive 250 welcome points when joining through a friend and completing that purchase
 - Earn extra points during active Dame 2× campaigns
+- Save favorite drinks
+- Review signed-in pickup order history
+- See catering dates requested while signed in
 
 The rewards are:
 
@@ -90,7 +120,7 @@ The rewards are:
 
 ## What Dame staff can do
 
-The private `/admin` dashboard keeps all existing live-location controls and adds reward-code redemption, promotion scheduling, upcoming-event publishing, and opt-in notifications. The focused `/admin/orders` dashboard manages live pickup orders.
+The private `/admin` dashboard keeps all existing live-location controls and adds reward-code redemption, promotion scheduling, upcoming-event publishing, and opt-in notifications. The focused `/mobileorder` dashboard is the dedicated Mobile Orders center. The previous `/admin/orders` address remains available for compatibility.
 
 Staff can:
 
@@ -108,8 +138,16 @@ Staff can:
 - Review every website pickup order and its customer, items, customizations, location, and payment state
 - Move pickup orders from paid to preparing, ready, and picked up while the customer watches their private tracker
 - Flag an order for a Square refund and have the verified refund update Dame Coffee OS automatically
+- Add website photos, descriptions, featured and seasonal badges, and visibility from `/admin/menu`
 - Mark menu items sold out or available from `/admin/menu`
 - Prevent sold-out items from being added through website checkout
+- Add ingredients and supplies to the private stockroom
+- Update counts with quick plus/minus controls or exact quantities
+- Set a separate low-stock warning for every item
+- Filter the stockroom to see only low or out-of-stock supplies
+- Clock in and out, schedule shifts, and review today’s events
+- Keep recipes, written training, and video links in the Team workspace
+- See repeat customers, peak hour, events booked, rewards redeemed, new members, and product-category sales beside Square revenue
 
 ## How points are awarded
 
@@ -119,9 +157,17 @@ If more than one points campaign is active, only the highest multiplier applies.
 
 A friend referral qualifies only after the new member completes a first eligible purchase of at least $5. Self-referrals are blocked, each new member can qualify only once, and each member may receive up to ten referrer bonuses per calendar month. A qualifying refund reverses the referral points.
 
-For an in-person Square POS sale, points can be matched when the order has a Square customer attached whose email or mobile number matches the member’s Dame profile.
+For an in-person POS sale, points can be matched automatically when the order has a customer attached whose email or mobile number matches the member’s Dame profile. If the customer was not identified at checkout, they can visit `/rewards/claim` within 30 days and enter the receipt number, purchase date, and exact total. The server verifies the completed payment before awarding points, and each payment can be attached only once.
 
 Webhook processing is idempotent: repeated Square notifications cannot award the same payment twice.
+
+### Receipt invitation
+
+In Square Dashboard, open **Settings → Account & Settings → Payments → Receipts** and add this under **Additional text → Custom Text**:
+
+> Don’t let your Dame points go to waste. Join or sign in at damecoffeeco.com/rewards/claim and enter the receipt number above to save this purchase.
+
+This makes digital receipts a direct path back to Dame Rewards and gives printed-receipt customers a short address they can enter on their phone.
 
 ## Database setup
 
@@ -138,6 +184,11 @@ Apply these SQL files in order:
 9. `supabase-phase6-catering-center.sql`
 10. `supabase-phase7-pickup-center.sql`
 11. `supabase-phase8-menu-availability.sql`
+12. `supabase-phase10-inventory-center.sql`
+13. `supabase-phase11-daily-prep.sql`
+14. `supabase-phase12-menu-studio.sql`
+15. `supabase-phase13-roadmap-completion.sql`
+16. `supabase-phase13b-policy-optimization.sql`
 
 Phase 4 and 4B create:
 
@@ -261,6 +312,11 @@ Also confirm:
 - Customer tracking pages never expose private staff notes or Square identifiers
 - Sold-out controls are writable only by approved Dame admins
 - Sold-out items remain visible to customers but cannot be checked out
+- Menu presentation is publicly readable but writable only by approved Dame admins
+- Hidden menu items do not appear on either the public menu or pickup ordering
+- Square remains the source of truth for product prices and modifiers
+- Inventory data is readable and writable only by approved Dame admins
+- Low-stock status changes at the configured threshold and never allows negative quantities
 - `/admin` and `/admin/login` still work
 
 ## Dame Insights

@@ -61,7 +61,10 @@ export async function GET(request: Request) {
         status: response.status,
         upstreamMessage,
       });
-      return Response.json({ suggestions: [] }, { status: 502 });
+      return Response.json(
+        { suggestions: [], error: 'Google address suggestions are temporarily unavailable.' },
+        { status: 502 },
+      );
     }
 
     const payload = (await response.json()) as GoogleAutocompleteResponse;
@@ -86,6 +89,9 @@ export async function GET(request: Request) {
     );
   } catch (error) {
     console.error('Google Places autocomplete could not be reached.', error);
-    return Response.json({ suggestions: [] }, { status: 502 });
+    return Response.json(
+      { suggestions: [], error: 'Google address suggestions are temporarily unavailable.' },
+      { status: 502 },
+    );
   }
 }

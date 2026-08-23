@@ -1,21 +1,47 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import BeanStateImage, { type DameBeanState } from './bean-state';
+import SeasonalBean from './seasonal-bean';
 
-export default function SiteFooter() {
+type SiteFooterProps = {
+  beanState?: DameBeanState | 'seasonal' | null;
+  beanEyebrow?: string;
+  beanMessage?: string;
+};
+
+export default function SiteFooter({
+  beanState = 'seasonal',
+  beanEyebrow = 'Until next time.',
+  beanMessage = 'Dame vida.',
+}: SiteFooterProps) {
   return (
     <footer className="dame-footer" id="contact">
+      {beanState ? (
+        <aside className="dame-footer-bean" aria-label="A page-inspired appearance from the Dame Bean">
+          {beanState === 'seasonal' ? (
+            <SeasonalBean />
+          ) : (
+            <BeanStateImage state={beanState} decorative />
+          )}
+          <p><span>{beanEyebrow}</span>{beanMessage}</p>
+        </aside>
+      ) : null}
+
       <div className="dame-footer-brand">
-        <Image src="/assets/dame-logo-red.jpg" alt="Dame Coffee" width={954} height={843} />
-        <p>Made with culture, unity, and love.</p>
+        <Image src="/assets/dame-dc-logo-square.png" alt="Dame Coffee" width={1024} height={1024} />
+        <p>Cold brew, matcha y cultura.</p>
       </div>
 
       <nav aria-label="Footer navigation">
         <p>Explore</p>
         <Link href="/menu">Menu</Link>
+        <Link href="/#today">Find us today</Link>
         <Link href="/catering">Catering</Link>
         <Link href="/rewards">Rewards</Link>
+        <Link href="/merch">Merch</Link>
+        <Link href="/events">Events</Link>
+        <Link href="/about">Our story</Link>
         <Link href="/app">Dame App</Link>
-        <Link href="/#info">Information</Link>
       </nav>
 
       <div className="dame-footer-contact">

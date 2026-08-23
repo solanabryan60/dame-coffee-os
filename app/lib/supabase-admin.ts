@@ -29,9 +29,15 @@ export type ActiveRewardPromotion = {
 type NewCateringRequest = Pick<
   CateringRequest,
   | 'id'
+  | 'customer_user_id'
   | 'name'
   | 'email'
   | 'phone'
+  | 'company'
+  | 'guest_count'
+  | 'event_setting'
+  | 'budget_cents'
+  | 'customer_notes'
   | 'address'
   | 'event_date'
   | 'start_time'
@@ -380,6 +386,13 @@ export async function getActiveRewardPromotions() {
   );
 }
 
+export async function getRewardPromotionsAt(timestamp: string) {
+  const moment = encodeURIComponent(timestamp);
+  return adminRequest<ActiveRewardPromotion[]>(
+    `/reward_promotions?active=is.true&starts_at=lte.${moment}&ends_at=gt.${moment}&select=id,name,multiplier,scope,eligible_categories&order=multiplier.desc,starts_at.asc`,
+  );
+}
+
 export async function recordDameSquareEvent(input: {
   userId: string;
   squareId: string;
@@ -410,6 +423,53 @@ export async function recordDameSquareEvent(input: {
   });
 }
 
+export async function recordDameReceiptClaim(input: {
+  userId: string;
+  squarePaymentId: string;
+  points: number;
+  amountCents: number;
+  description: string;
+  multiplier: number;
+}) {
+  return adminRequest<{
+    duplicate: boolean;
+    points_delta?: number;
+    points_balance: number;
+    lifetime_points?: number;
+  }>('/rpc/record_dame_receipt_claim', {
+    method: 'POST',
+    body: JSON.stringify({
+      p_user_id: input.userId,
+      p_square_payment_id: input.squarePaymentId,
+      p_points: input.points,
+      p_amount_cents: input.amountCents,
+      p_description: input.description,
+      p_multiplier: input.multiplier,
+    }),
+  });
+}
+
 export function hasDameRewardsServerConfig() {
   return Boolean(supabaseUrl && supabaseSecret);
+}
+
+export async function getDameBusinessActivity(startAt: string, endAt: string) {
+  const start = encodeURIComponent(startAt);
+  const end = encodeURIComponent(endAt);
+  const [bookings, redemptions, customers] = await Promise.all([
+    adminRequest<Array<{ id: string }>>(
+      `/catering_requests?created_at=gte.${start}&created_at=lt.${end}&status=not.in.(awaiting_payment,cancelled,refunded)&select=id`,
+    ),
+    adminRequest<Array<{ id: string }>>(
+      `/reward_redemptions?redeemed_at=gte.${start}&redeemed_at=lt.${end}&status=eq.redeemed&select=id`,
+    ),
+    adminRequest<Array<{ user_id: string }>>(
+      `/customer_profiles?created_at=gte.${start}&created_at=lt.${end}&select=user_id`,
+    ),
+  ]);
+  return {
+    eventsBooked: bookings.length,
+    rewardsRedeemed: redemptions.length,
+    newCustomers: customers.length,
+  };
 }

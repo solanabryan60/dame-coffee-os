@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import BeanStateImage from '../components/bean-state';
 import GoogleMap from '../components/google-map';
 import NotificationOptIn from '../components/notification-opt-in';
 import UpcomingEvents from '../components/upcoming-events';
@@ -113,10 +114,10 @@ export default function DameAppHome() {
       <header className="dame-app-topbar">
         <Link className="dame-app-wordmark" href="/" aria-label="Dame Coffee website">
           <Image
-            src="/assets/logo.png"
+            src="/assets/dame-dc-logo-square.png"
             alt="Dame Coffee"
-            width={500}
-            height={500}
+            width={1024}
+            height={1024}
             priority
           />
         </Link>
@@ -194,10 +195,7 @@ export default function DameAppHome() {
             </>
           )}
         </div>
-        <div className="dame-app-rewards-mark" aria-hidden="true">
-          <span>Dame</span>
-          <strong>♥</strong>
-        </div>
+        <BeanStateImage state="croissant" className="dame-app-page-bean" decorative />
         <Link href={rewards ? '/rewards/account' : '/rewards#join'}>
           {rewards ? 'Open my rewards' : 'Join or sign in'} <span>→</span>
         </Link>
@@ -224,8 +222,11 @@ export default function DameAppHome() {
       ) : null}
 
       <footer className="dame-app-footer">
-        <p>More flavor. More life. <b>Más Dame.</b></p>
-        <Link href="/">Visit full website</Link>
+        <BeanStateImage state="waving" decorative />
+        <div>
+          <p>More flavor. More life. <b>Más Dame.</b></p>
+          <Link href="/">Visit full website</Link>
+        </div>
       </footer>
 
       {showInstallHelp ? (
@@ -238,7 +239,7 @@ export default function DameAppHome() {
             onClick={(event) => event.stopPropagation()}
           >
             <button type="button" aria-label="Close install instructions" onClick={() => setShowInstallHelp(false)}>×</button>
-            <Image src="/dame-icon" alt="" width={72} height={72} unoptimized />
+            <Image src="/icon.png" alt="" width={72} height={72} />
             <p className="dame-kicker">Dame App</p>
             <h2 id="dame-install-help-title">Add Dame to your home screen.</h2>
             {isIos ? (

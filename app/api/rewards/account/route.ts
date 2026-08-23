@@ -1,8 +1,14 @@
 import { getDameRewardsStatus } from '@/app/lib/dame-rewards';
 import {
+  listCustomerCateringRequests,
+  listCustomerFavorites,
+  listCustomerPickupOrders,
   readAuthUser,
   readCustomerProfile,
+  readMenuPresentation,
 } from '@/app/lib/supabase-rest';
+import { getSquareCatalog } from '@/app/lib/square';
+import { applyMenuPresentation } from '@/app/lib/menu-presentation';
 
 function bearerToken(request: Request) {
   const authorization = request.headers.get('authorization') ?? '';
@@ -20,8 +26,15 @@ export async function GET(request: Request) {
     if (!user.email) {
       return Response.json({ error: 'Your account needs a confirmed email address.' }, { status: 400 });
     }
-    const profile = await readCustomerProfile(accessToken, user.id);
-    const rewards = await getDameRewardsStatus(accessToken, user.id);
+    const [profile, rewards, favoriteRows, orders, bookings, catalog, presentation] = await Promise.all([
+      readCustomerProfile(accessToken, user.id),
+      getDameRewardsStatus(accessToken, user.id),
+      listCustomerFavorites(accessToken, user.id).catch(() => []),
+      listCustomerPickupOrders(accessToken, user.id).catch(() => []),
+      listCustomerCateringRequests(accessToken, user.id).catch(() => []),
+      getSquareCatalog(),
+      readMenuPresentation().catch(() => []),
+    ]);
 
     return Response.json({
       user: {
@@ -31,6 +44,10 @@ export async function GET(request: Request) {
       },
       profile,
       rewards,
+      favorites: favoriteRows.map((favorite) => favorite.square_item_id),
+      menu: applyMenuPresentation(catalog.items, presentation),
+      orders,
+      bookings,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Could not load your rewards.';

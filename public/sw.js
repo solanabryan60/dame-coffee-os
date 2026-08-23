@@ -1,7 +1,7 @@
-const CACHE_NAME = 'dame-app-v2';
+const CACHE_NAME = 'dame-app-v3';
 const APP_SHELL = [
   '/offline',
-  '/dame-icon',
+  '/icon-192.png',
 ];
 
 self.addEventListener('install', (event) => {
@@ -64,8 +64,8 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
-      icon: '/dame-icon',
-      badge: '/dame-icon',
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
       tag: 'dame-coffee-update',
       data: { url: data.url || '/app' },
     }),

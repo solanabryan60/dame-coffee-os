@@ -14,13 +14,19 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ['food', 'lifestyle', 'shopping'],
     icons: [
       {
-        src: '/dame-icon',
+        src: '/icon-192.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/icon-512.png',
         sizes: '512x512',
         type: 'image/png',
         purpose: 'any',
       },
       {
-        src: '/dame-icon',
+        src: '/app-icon-maskable-512.png',
         sizes: '512x512',
         type: 'image/png',
         purpose: 'maskable',
@@ -32,14 +38,14 @@ export default function manifest(): MetadataRoute.Manifest {
         short_name: 'Order',
         description: 'Start a Dame pickup order',
         url: '/order',
-        icons: [{ src: '/dame-icon', sizes: '512x512', type: 'image/png' }],
+        icons: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }],
       },
       {
         name: 'My rewards',
         short_name: 'Rewards',
         description: 'See your Dame points and rewards',
         url: '/rewards/account',
-        icons: [{ src: '/dame-icon', sizes: '512x512', type: 'image/png' }],
+        icons: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }],
       },
     ],
   };

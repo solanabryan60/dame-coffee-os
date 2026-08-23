@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import BeanStateImage from '../components/bean-state';
 import CateringCalculator from '../components/catering-calculator';
 import SiteFooter from '../components/site-footer';
 import SiteHeader from '../components/site-header';
@@ -16,12 +17,10 @@ export default function CateringPage() {
 
       <section className="dame-page-hero dame-catering-hero">
         <div>
-          <p className="dame-kicker">Bring Dame to your event</p>
-          <h1>Build your event.</h1>
-          <p>
-            Start with 100 drinks and two hours of service. Move the sliders,
-            see your estimate immediately, and request your date with a secure $200 deposit.
-          </p>
+          <p className="dame-kicker">Catering · Eventos</p>
+          <h1>Bring Dame<br />to your event.</h1>
+          <p>Cold brew and matcha, served wherever you gather.</p>
+          <p lang="es">Cold brew y matcha para tu celebración.</p>
         </div>
         <div className="dame-catering-base">
           <span>Starting package</span>
@@ -31,34 +30,39 @@ export default function CateringPage() {
         </div>
       </section>
 
-      <section className="dame-catering-builder" aria-labelledby="builder-title">
-        <div className="dame-builder-heading">
-          <p className="dame-kicker">Your estimate</p>
-          <h2 id="builder-title">Tell us what you need.</h2>
-          <p>Travel is considered through the event address. Final details are always confirmed personally.</p>
-        </div>
-        <CateringCalculator />
-      </section>
-
       <section className="dame-catering-explainer">
         <article>
           <span>01</span>
           <h3>Build an estimate</h3>
-          <p>Choose the event address, date, drink amount, and hours.</p>
+          <p>Choose your date, drinks, and service time.</p>
         </article>
         <article>
           <span>02</span>
           <h3>Request the date</h3>
-          <p>Pay the $200 deposit securely with Square. It is applied to your final event balance.</p>
+          <p>A $200 deposit requests the date and goes toward your balance.</p>
         </article>
-        <article>
+        <article className="dame-catering-arrival">
           <span>03</span>
           <h3>We call you</h3>
-          <p>We confirm availability, menu, travel, final price, and the remaining balance.</p>
+          <p>We call to confirm the details.</p>
+          <BeanStateImage state="driving" className="dame-catering-page-bean" decorative />
         </article>
       </section>
 
-      <SiteFooter />
+      <section className="dame-catering-builder" aria-labelledby="builder-title">
+        <div className="dame-builder-heading">
+          <p className="dame-kicker">Your estimate</p>
+          <h2 id="builder-title">Start with the experience.</h2>
+          <p>Choose your drinks and time. See the estimate right away.</p>
+        </div>
+        <CateringCalculator />
+      </section>
+
+      <SiteFooter
+        beanState="celebrating"
+        beanEyebrow="Your date is closer."
+        beanMessage="We’ll call you soon."
+      />
     </main>
   );
 }

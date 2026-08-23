@@ -84,7 +84,7 @@ export default function AdminPickupOrdersPage() {
         router.replace('/admin/login');
         return;
       }
-      setError(loadError instanceof Error ? loadError.message : 'Could not load pickup orders.');
+      setError(loadError instanceof Error ? loadError.message : 'Could not load mobile orders.');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -149,7 +149,7 @@ export default function AdminPickupOrdersPage() {
 
   return (
     <main className="admin-shell admin-orders-shell">
-      <AdminHeader title="Pickup orders">
+      <AdminHeader title="Mobile orders">
         <Link className="pill solid" href="/order" target="_blank">View ordering</Link>
       </AdminHeader>
 
@@ -162,7 +162,7 @@ export default function AdminPickupOrdersPage() {
           <p>Update fulfillment on the Square machine. This queue and the customer’s private tracking page will follow automatically; these controls remain available as a backup.</p>
         </div>
 
-        <div className="admin-catering-summary" aria-label="Pickup order summary">
+        <div className="admin-catering-summary" aria-label="Mobile order summary">
           <article><strong>{orders.filter((order) => order.status === 'paid').length}</strong><span>New paid</span></article>
           <article><strong>{orders.filter((order) => order.status === 'preparing').length}</strong><span>Preparing</span></article>
           <article><strong>{orders.filter((order) => order.status === 'ready').length}</strong><span>Ready</span></article>
@@ -170,7 +170,7 @@ export default function AdminPickupOrdersPage() {
         </div>
 
         <div className="admin-order-toolbar">
-          <div role="group" aria-label="Filter pickup orders">
+          <div role="group" aria-label="Filter mobile orders">
             <button className={filter === 'active' ? 'is-active' : ''} type="button" onClick={() => setFilter('active')}>Active</button>
             <button className={filter === 'all' ? 'is-active' : ''} type="button" onClick={() => setFilter('all')}>All orders</button>
           </div>
@@ -184,9 +184,9 @@ export default function AdminPickupOrdersPage() {
       </section>
 
       {loading ? (
-        <section className="admin-card admin-rewards-card"><p>Loading pickup orders…</p></section>
+        <section className="admin-card admin-rewards-card"><p>Loading mobile orders…</p></section>
       ) : visibleOrders.length ? (
-        <section className="admin-pickup-list" aria-label="Pickup orders">
+        <section className="admin-pickup-list" aria-label="Mobile orders">
           {visibleOrders.map((order) => {
             const statusLabel = order.status === 'refunded'
               ? 'Refunded'
@@ -276,7 +276,7 @@ export default function AdminPickupOrdersPage() {
       ) : (
         <section className="admin-card admin-rewards-card admin-order-empty">
           <p className="eyebrow">Queue clear</p>
-          <h2>No {filter === 'active' ? 'active' : ''} pickup orders yet.</h2>
+          <h2>No {filter === 'active' ? 'active' : ''} mobile orders yet.</h2>
           <p>New online orders will appear here after customers begin Square checkout, then move to Paid automatically when Square confirms payment.</p>
         </section>
       )}

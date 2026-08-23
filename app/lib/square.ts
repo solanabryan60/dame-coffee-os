@@ -1,4 +1,10 @@
 import { calculateCateringEstimateCents } from './catering-pricing';
+import {
+  isExclusiveModifierGroup,
+  isVirtualOrderModifier,
+  orderingModifierGroups,
+  requiredSelectionsForOrdering,
+} from './order-modifiers';
 import { readMenuAvailability } from './supabase-rest';
 
 const SQUARE_API_VERSION = '2026-07-15';
@@ -38,6 +44,8 @@ export type SquareMenuItem = {
   variations: SquareMenuVariation[];
   modifierGroups: SquareMenuModifierGroup[];
   isSoldOut?: boolean;
+  isFeatured?: boolean;
+  isSeasonal?: boolean;
 };
 
 export type SquareCatalogResult = {
@@ -118,22 +126,6 @@ type CheckoutCustomer = {
   note?: string;
 };
 
-function isExclusiveModifierGroup(groupName: string) {
-  return /\b(milk|coffee)\b/i.test(groupName);
-}
-
-function checkoutModifierGroups(item: SquareMenuItem) {
-  if (item.category !== 'foam') return item.modifierGroups;
-
-  return item.modifierGroups
-    .filter((group) => !/\bcold\s*foam\b/i.test(group.name))
-    .map((group) => ({
-      ...group,
-      options: group.options.filter((option) => !/\bcold\s*foam\b/i.test(option.name)),
-    }))
-    .filter((group) => group.options.length > 0);
-}
-
 export type PickupOrderLineItemSnapshot = {
   item_name: string;
   variation_name: string;
@@ -148,6 +140,26 @@ export type SquareCustomer = {
   given_name?: string;
   email_address?: string;
   phone_number?: string;
+};
+
+export type SquareReceiptPayment = {
+  id: string;
+  orderId: string | null;
+  receiptNumber: string;
+  createdAt: string;
+  totalCents: number;
+  refundedCents: number;
+};
+
+type SquarePayment = {
+  id?: string;
+  order_id?: string;
+  receipt_number?: string;
+  created_at?: string;
+  status?: string;
+  amount_money?: SquareMoney;
+  total_money?: SquareMoney;
+  refunded_money?: SquareMoney;
 };
 
 type SquareOrder = {
@@ -176,7 +188,7 @@ const fallbackItems: SquareMenuItem[] = [
   {
     id: 'fallback-cold-brew',
     name: 'Cold Brew',
-    description: 'Our smooth house cold brew, steeped for 16 hours.',
+    description: 'Our house cold brew, steeped for 20 hours for a deeper, smoother cup with less sharp bitterness.',
     category: 'basics',
     categoryLabel: 'The Basics',
     imageUrl: null,
@@ -304,7 +316,7 @@ function objectIsAtLocation(object: CatalogObject, locationId: string) {
 async function listCatalogObjects(required = false) {
   const config = getSquareConfig();
   if (!config) {
-    if (required) throw new Error('Square ordering has not been configured yet.');
+    if (required) throw new Error('Online ordering is not ready yet.');
     return null;
   }
 
@@ -490,7 +502,8 @@ async function squareRequest<T>(
 
   if (options.allowNotFound && response.status === 404) return null;
   if (!response.ok) {
-    throw new Error(payload.errors?.[0]?.detail || 'Square is temporarily unavailable.');
+    console.error('Payment service request failed:', response.status, payload.errors?.[0]);
+    throw new Error('The payment service is temporarily unavailable. Please try again.');
   }
   return payload;
 }
@@ -502,6 +515,71 @@ export async function getSquareCustomer(customerId: string) {
     { allowNotFound: true },
   );
   return payload?.customer ?? null;
+}
+
+function losAngelesDate(value: string) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Los_Angeles',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(value));
+}
+
+export async function findSquarePaymentForReceiptClaim(input: {
+  receiptNumber: string;
+  purchaseDate: string;
+  totalCents: number;
+}) {
+  const config = getSquareConfig();
+  if (!config) throw new Error('Receipt lookup is temporarily unavailable.');
+
+  const purchaseDay = new Date(`${input.purchaseDate}T12:00:00Z`);
+  if (Number.isNaN(purchaseDay.getTime())) return null;
+  const begin = new Date(purchaseDay.getTime() - 36 * 60 * 60 * 1000).toISOString();
+  const end = new Date(purchaseDay.getTime() + 36 * 60 * 60 * 1000).toISOString();
+  const wantedReceipt = input.receiptNumber.trim().toUpperCase();
+  let cursor = '';
+
+  for (let page = 0; page < 3; page += 1) {
+    const query = new URLSearchParams({
+      begin_time: begin,
+      end_time: end,
+      location_id: config.locationId,
+      total: String(input.totalCents),
+      sort_order: 'DESC',
+      limit: '100',
+    });
+    if (cursor) query.set('cursor', cursor);
+
+    const payload = await squareRequest<{
+      payments?: SquarePayment[];
+      cursor?: string;
+    }>(`/v2/payments?${query.toString()}`);
+    const payment = payload?.payments?.find((candidate) =>
+      candidate.id &&
+      candidate.status === 'COMPLETED' &&
+      candidate.created_at &&
+      candidate.receipt_number?.trim().toUpperCase() === wantedReceipt &&
+      losAngelesDate(candidate.created_at) === input.purchaseDate,
+    );
+
+    if (payment?.id && payment.created_at && payment.receipt_number) {
+      return {
+        id: payment.id,
+        orderId: payment.order_id ?? null,
+        receiptNumber: payment.receipt_number,
+        createdAt: payment.created_at,
+        totalCents: payment.total_money?.amount ?? payment.amount_money?.amount ?? 0,
+        refundedCents: payment.refunded_money?.amount ?? 0,
+      } satisfies SquareReceiptPayment;
+    }
+
+    cursor = payload?.cursor ?? '';
+    if (!cursor) break;
+  }
+
+  return null;
 }
 
 export async function getSquareOrderRewardContext(orderId: string) {
@@ -572,7 +650,7 @@ export async function createSquarePaymentLink(
     availability.filter((item) => item.is_sold_out).map((item) => item.square_item_id),
   );
   const config = getSquareConfig();
-  if (!config || !catalog.configured) throw new Error('Square ordering has not been configured yet.');
+  if (!config || !catalog.configured) throw new Error('Online ordering is not ready yet.');
 
   const variationItems = new Map(
     catalog.items.flatMap((item) =>
@@ -587,7 +665,7 @@ export async function createSquarePaymentLink(
     if (soldOutItemIds.has(item.id)) {
       throw new Error(`${item.name} is sold out for today.`);
     }
-    const modifierGroups = checkoutModifierGroups(item);
+    const modifierGroups = orderingModifierGroups(item);
     if (!Number.isInteger(line.quantity) || line.quantity < 1 || line.quantity > 12) {
       throw new Error('Choose a quantity between 1 and 12.');
     }
@@ -602,13 +680,11 @@ export async function createSquarePaymentLink(
     for (const group of modifierGroups) {
       const groupOptionIds = new Set(group.options.map((option) => option.id));
       const selectedCount = line.modifierIds.filter((id) => groupOptionIds.has(id)).length;
-      const minimum = isExclusiveModifierGroup(group.name)
-        ? Math.min(group.minSelected, 1)
-        : group.minSelected;
+      const minimum = requiredSelectionsForOrdering(group);
       if (selectedCount < minimum) {
         throw new Error(`Choose the required ${group.name} option.`);
       }
-      if (isExclusiveModifierGroup(group.name) && selectedCount > 1) {
+      if (isExclusiveModifierGroup(group) && selectedCount > 1) {
         throw new Error(`Too many ${group.name} options were selected.`);
       }
     }
@@ -625,10 +701,21 @@ export async function createSquarePaymentLink(
       squareLine: {
         quantity: String(line.quantity),
         catalog_object_id: line.variationId,
-        modifiers: line.modifierIds.map((id) => ({
-          catalog_object_id: id,
-          quantity: '1',
-        })),
+        modifiers: selectedModifiers.map((modifier) =>
+          isVirtualOrderModifier(modifier.id)
+            ? {
+                name: modifier.name,
+                quantity: '1',
+                base_price_money: {
+                  amount: modifier.priceAmount,
+                  currency: 'USD',
+                },
+              }
+            : {
+                catalog_object_id: modifier.id,
+                quantity: '1',
+              },
+        ),
       },
       snapshot: {
         item_name: item.name,
@@ -695,7 +782,8 @@ export async function createSquarePaymentLink(
   };
 
   if (!response.ok || !payload.payment_link?.url || !payload.payment_link.order_id) {
-    throw new Error(payload.errors?.[0]?.detail || 'Square could not start checkout.');
+    console.error('Pickup checkout failed:', response.status, payload.errors?.[0]);
+    throw new Error('Secure checkout could not open. Please try again.');
   }
 
   return {
@@ -722,7 +810,7 @@ export async function createSquareCateringDepositLink(
   requestId: string,
 ) {
   const config = getSquareConfig();
-  if (!config) throw new Error('Square payments have not been configured yet.');
+  if (!config) throw new Error('Secure deposits are not ready yet.');
 
   const estimateCents = calculateCateringEstimateCents(request.drinks, request.hours);
   const eventSummary = [
@@ -775,7 +863,8 @@ export async function createSquareCateringDepositLink(
   };
 
   if (!response.ok || !payload.payment_link?.url || !payload.payment_link.order_id) {
-    throw new Error(payload.errors?.[0]?.detail || 'Square could not start the deposit checkout.');
+    console.error('Catering deposit checkout failed:', response.status, payload.errors?.[0]);
+    throw new Error('Secure deposit checkout could not open. Please try again.');
   }
 
   return {

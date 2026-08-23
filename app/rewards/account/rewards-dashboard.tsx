@@ -14,6 +14,7 @@ import {
   clearCustomerSession,
   getCustomerSession,
 } from '../../lib/customer-session';
+import BeanStateImage from '../../components/bean-state';
 
 function shortDate(value: string) {
   return new Intl.DateTimeFormat('en-US', {
@@ -37,6 +38,7 @@ export default function RewardsDashboard() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [workingReward, setWorkingReward] = useState('');
+  const [workingFavorite, setWorkingFavorite] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [referralMessage, setReferralMessage] = useState('');
@@ -185,10 +187,41 @@ export default function RewardsDashboard() {
     }
   }
 
+  async function toggleFavorite(squareItemId: string) {
+    if (!account || !accessToken) return;
+    const selected = !account.favorites.includes(squareItemId);
+    setWorkingFavorite(squareItemId);
+    setMessage('');
+    setError('');
+    try {
+      const response = await fetch('/api/rewards/favorites', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ squareItemId, selected }),
+      });
+      const payload = (await response.json()) as { error?: string };
+      if (!response.ok) throw new Error(payload.error || 'Could not update that favorite.');
+      setAccount((current) => current ? {
+        ...current,
+        favorites: selected
+          ? [...current.favorites, squareItemId]
+          : current.favorites.filter((itemId) => itemId !== squareItemId),
+      } : current);
+      setMessage(selected ? 'Added to your Dame favorites.' : 'Removed from your favorites.');
+    } catch (favoriteError) {
+      setError(favoriteError instanceof Error ? favoriteError.message : 'Could not update that favorite.');
+    } finally {
+      setWorkingFavorite('');
+    }
+  }
+
   if (loading) {
     return (
       <section className="dame-account-loading">
-        <span className="dame-live-dot" />
+        <BeanStateImage state="loading-sip" className="dame-account-loading-bean" decorative priority />
         <p>Pouring your rewards dashboard…</p>
       </section>
     );
@@ -197,6 +230,7 @@ export default function RewardsDashboard() {
   if (!account) {
     return (
       <section className="dame-account-empty">
+        <BeanStateImage state="rewards" className="dame-account-empty-bean" decorative priority />
         <p className="dame-kicker">Dame Rewards</p>
         <h1>Let&apos;s get you signed in.</h1>
         <p>{error || 'Your rewards account is waiting for you.'}</p>
@@ -218,8 +252,12 @@ export default function RewardsDashboard() {
           <p className="dame-kicker dame-kicker-light">Dame Rewards</p>
           <h1>Welcome back,<br /><em>{profile.first_name || 'friend'}.</em></h1>
           <p>Every purchase deserves a little love.</p>
+          <Link className="dame-inline-link dame-inline-link-light" href="/rewards/claim">
+            Save an in-person receipt <span aria-hidden="true">→</span>
+          </Link>
         </div>
         <div className="dame-points-card">
+          <BeanStateImage state="birthday" className="dame-points-bean" decorative />
           <p>Available balance</p>
           <strong>{rewards.points}</strong>
           <span>points</span>
@@ -227,7 +265,7 @@ export default function RewardsDashboard() {
             <i style={{ width: `${progress}%` }} />
           </div>
           {nextReward ? (
-            <p><b>{nextReward.pointsAway}</b> points until {nextReward.name}</p>
+            <p>You&apos;re only <b>{nextReward.pointsAway}</b> points away from {nextReward.name}.</p>
           ) : (
             <p>Every Dame reward is within reach.</p>
           )}
@@ -296,6 +334,58 @@ export default function RewardsDashboard() {
             </div>
           </section>
 
+          <section className="dame-account-favorites" aria-labelledby="favorite-drinks-title">
+            <header>
+              <p className="dame-kicker">Favorite drinks</p>
+              <h2 id="favorite-drinks-title">Keep your usual close.</h2>
+              <p>Tap the heart beside any current Dame item. Your favorites stay here even as the menu grows.</p>
+            </header>
+            <div className="dame-favorite-grid">
+              {account.menu.map((item) => {
+                const favorite = account.favorites.includes(item.id);
+                return (
+                  <article className={favorite ? 'is-favorite' : ''} key={item.id}>
+                    {item.imageUrl ? <div className="dame-favorite-photo" style={{ backgroundImage: `url(${JSON.stringify(item.imageUrl)})` }} aria-hidden="true" /> : null}
+                    <div><span>{item.categoryLabel}</span><h3>{item.name}</h3><p>{item.description}</p></div>
+                    <button type="button" aria-pressed={favorite} disabled={workingFavorite === item.id} onClick={() => void toggleFavorite(item.id)}>
+                      {workingFavorite === item.id ? 'Saving…' : favorite ? '♥ Saved' : '♡ Add favorite'}
+                    </button>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="dame-account-orders" aria-labelledby="order-history-title">
+            <header><p className="dame-kicker">Order history</p><h2 id="order-history-title">Made for you before.</h2></header>
+            {account.orders.length ? (
+              <div className="dame-account-list">
+                {account.orders.slice(0, 12).map((order) => (
+                  <article key={order.id}>
+                    <div><strong>{shortDate(order.created_at)}</strong><span>{order.status.replaceAll('_', ' ')}</span></div>
+                    <p>{order.line_items.map((item) => `${item.quantity} ${item.item_name}`).join(' · ')}</p>
+                    <b>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format((order.paid_cents ?? order.subtotal_cents) / 100)}</b>
+                  </article>
+                ))}
+              </div>
+            ) : <p className="dame-reward-empty">Signed-in mobile orders will appear here.</p>}
+          </section>
+
+          <section className="dame-account-bookings" aria-labelledby="catering-bookings-title">
+            <header><p className="dame-kicker">Catering</p><h2 id="catering-bookings-title">Your upcoming Dame dates.</h2></header>
+            {account.bookings.length ? (
+              <div className="dame-account-list">
+                {account.bookings.map((booking) => (
+                  <article key={booking.id}>
+                    <div><strong>{shortDate(`${booking.event_date}T12:00:00`)}</strong><span>{booking.status.replaceAll('_', ' ')}</span></div>
+                    <p>{booking.address} · {booking.drinks} drinks · {booking.service_hours} hours</p>
+                    <b>{booking.deposit_paid_at ? '$200 deposit paid' : 'Deposit pending'}</b>
+                  </article>
+                ))}
+              </div>
+            ) : <p className="dame-reward-empty">Catering booked while signed in will stay connected to your account.</p>}
+          </section>
+
           <section className="dame-account-rewards" aria-labelledby="your-rewards">
             <header>
               <p className="dame-kicker">Your rewards</p>
@@ -348,7 +438,7 @@ export default function RewardsDashboard() {
               </div>
             ) : (
               <p className="dame-reward-empty">
-                Your first signed-in purchase will begin your rewards story.
+                Your first eligible purchase will begin your rewards story.
               </p>
             )}
           </section>

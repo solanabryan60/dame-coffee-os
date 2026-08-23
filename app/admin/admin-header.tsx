@@ -7,13 +7,17 @@ import { clearAdminSession } from '../lib/admin-session';
 
 const sections = [
   { href: '/admin', label: 'Overview' },
+  { href: '/mobileorder', label: 'Mobile Orders' },
   { href: '/admin/location', label: 'Location' },
-  { href: '/admin/orders', label: 'Orders' },
   { href: '/admin/menu', label: 'Menu' },
+  { href: '/admin/inventory', label: 'Inventory' },
+  { href: '/admin/prep', label: 'Daily Prep' },
+  { href: '/admin/team', label: 'Team' },
   { href: '/admin/catering', label: 'Catering' },
   { href: '/admin/rewards', label: 'Rewards' },
   { href: '/admin/events', label: 'Events' },
   { href: '/admin/notifications', label: 'Notify' },
+  { href: '/admin/bean-studio', label: 'Bean Studio' },
 ];
 
 export default function AdminHeader({
@@ -48,7 +52,8 @@ export default function AdminHeader({
         {sections.map((section) => {
           const active = section.href === '/admin'
             ? pathname === section.href
-            : pathname.startsWith(section.href);
+            : pathname.startsWith(section.href)
+              || (section.href === '/mobileorder' && pathname.startsWith('/admin/orders'));
           return (
             <Link
               key={section.href}

@@ -1,8 +1,8 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import BeanStateImage, { type BeanState } from '../../components/bean-state';
 import type {
   PickupOrderLineItem,
   PickupOrderStatus,
@@ -54,7 +54,7 @@ function statusCopy(order: TrackingOrder) {
   if (order.status === 'awaiting_payment') {
     return {
       kicker: 'Confirming payment',
-      title: 'Square is finishing your order.',
+      title: 'Your payment is being confirmed.',
       body: 'This page will update as soon as your payment is confirmed.',
     };
   }
@@ -90,14 +90,14 @@ function statusCopy(order: TrackingOrder) {
     return {
       kicker: 'Refund requested',
       title: 'We’re taking care of it.',
-      body: 'Your refund is being handled through Square. This page will update when it is complete.',
+      body: 'Your refund is in progress. This page will update when it is complete.',
     };
   }
   if (order.status === 'refunded') {
     return {
       kicker: 'Refund completed',
       title: 'Your payment is on its way back.',
-      body: 'Square has completed the refund. Your bank may need additional time to post it.',
+      body: 'Your refund has been completed. Your bank may need additional time to post it.',
     };
   }
   return {
@@ -105,6 +105,13 @@ function statusCopy(order: TrackingOrder) {
     title: 'This pickup order was cancelled.',
     body: 'Call Dame Coffee if you have any questions about this order.',
   };
+}
+
+function trackerBean(status: PickupOrderStatus): BeanState {
+  if (status === 'preparing') return 'pouring';
+  if (status === 'ready' || status === 'picked_up') return 'celebrating';
+  if (status === 'refund_pending' || status === 'refunded' || status === 'cancelled') return 'confused';
+  return 'walking';
 }
 
 export default function PickupTracker({
@@ -157,10 +164,10 @@ export default function PickupTracker({
         <div>
           <p className="dame-kicker">Order received</p>
           <h1>We’re making something special.</h1>
-          <p>Square will send your receipt. Head to today’s location and ask for the pickup name on your order.</p>
+          <p>Your receipt is on its way. Head to today’s location and ask for the pickup name on your order.</p>
           <Link className="dame-button" href="/#today">See today’s location</Link>
         </div>
-        <Image src="/assets/bean.png" alt="The Dame Bean celebrating your order" width={632} height={922} priority />
+        <BeanStateImage state="celebrating" priority />
       </section>
     );
   }
@@ -168,7 +175,7 @@ export default function PickupTracker({
   if (!order) {
     return (
       <section className="dame-pickup-tracker dame-pickup-loading" aria-live="polite">
-        <Image src="/assets/bean.png" alt="The Dame Bean waiting with your order" width={632} height={922} priority />
+        <BeanStateImage state="walking" priority />
         <p className="dame-kicker">{error ? 'Still checking' : 'Finding your order'}</p>
         <h1>{error || 'One thoughtful cup at a time.'}</h1>
         <p>{error ? 'Keep this page open and we’ll try again.' : 'Your live pickup status will appear here.'}</p>
@@ -187,7 +194,7 @@ export default function PickupTracker({
           <h1>{copy.title}</h1>
           <p>{copy.body}</p>
         </div>
-        <Image src="/assets/bean.png" alt="The Dame Bean with your pickup order" width={632} height={922} priority />
+        <BeanStateImage state={trackerBean(order.status)} priority />
       </header>
 
       {!['refund_pending', 'refunded', 'cancelled'].includes(order.status) ? (
@@ -221,7 +228,7 @@ export default function PickupTracker({
             ))}
           </ul>
           <div className="dame-pickup-total">
-            <span>{order.paidCents ? 'Paid with Square' : 'Subtotal before Square checkout'}</span>
+            <span>{order.paidCents ? 'Payment confirmed' : 'Subtotal before checkout'}</span>
             <strong>{money(order.paidCents ?? order.subtotalCents)}</strong>
           </div>
         </article>
