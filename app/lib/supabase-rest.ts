@@ -1040,6 +1040,12 @@ export async function updateSiteSettings(
 function authError(payload: unknown, fallback: string) {
   if (!payload || typeof payload !== 'object') return fallback;
   const record = payload as Record<string, unknown>;
+  if (record.error_code === 'email_not_confirmed' || record.code === 'email_not_confirmed') {
+    return 'Please confirm your email first. Use Resend confirmation email below if you need a new link.';
+  }
+  if (record.error_code === 'over_email_send_rate_limit' || record.code === 'over_email_send_rate_limit') {
+    return 'Email sending is temporarily limited. Please wait before trying again. If this continues, contact info@damecoffeeco.com.';
+  }
   return String(
     record.error_description ||
       record.msg ||
@@ -1066,7 +1072,8 @@ export async function signUpCustomer(input: {
   referralCode?: string;
 }) {
   const config = requireConfig();
-  const response = await fetch(`${config.supabaseUrl}/auth/v1/signup`, {
+  const redirectTo = typeof window === 'undefined' ? '' : `${window.location.origin}/rewards/account`;
+  const response = await fetch(`${config.supabaseUrl}/auth/v1/signup?redirect_to=${encodeURIComponent(redirectTo)}`, {
     method: 'POST',
     headers: {
       apikey: config.supabaseKey,
@@ -1094,6 +1101,29 @@ export async function signUpCustomer(input: {
     expires_at?: number;
     user: AuthUser;
   };
+}
+
+export async function sendCustomerEmail(email: string, type: 'confirmation' | 'recovery') {
+  const config = requireConfig();
+  const redirectTo = `${window.location.origin}/rewards/${type === 'recovery' ? 'reset' : 'account'}`;
+  const response = await fetch(`${config.supabaseUrl}/auth/v1/${type === 'confirmation' ? 'resend' : 'recover'}?redirect_to=${encodeURIComponent(redirectTo)}`, {
+    method: 'POST',
+    headers: { apikey: config.supabaseKey, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email.trim().toLowerCase(), ...(type === 'confirmation' ? { type: 'signup' } : {}) }),
+  });
+  const payload = await response.json();
+  if (!response.ok) throw new Error(authError(payload, 'We could not send that email. Please try again.'));
+}
+
+export async function updateCustomerPassword(accessToken: string, password: string) {
+  const config = requireConfig();
+  const response = await fetch(`${config.supabaseUrl}/auth/v1/user`, {
+    method: 'PUT',
+    headers: { apikey: config.supabaseKey, Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password }),
+  });
+  const payload = await response.json();
+  if (!response.ok) throw new Error(authError(payload, 'Could not update your password. Request a new reset link.'));
 }
 
 export async function loginCustomer(email: string, password: string): Promise<AuthSession> {

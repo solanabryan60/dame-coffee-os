@@ -15,6 +15,8 @@ import {
   getCustomerSession,
 } from '../../lib/customer-session';
 import BeanStateImage from '../../components/bean-state';
+import RewardsSignup from '../../components/rewards-signup';
+import RewardsHelp from './rewards-help';
 
 function shortDate(value: string) {
   return new Intl.DateTimeFormat('en-US', {
@@ -42,12 +44,15 @@ export default function RewardsDashboard() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [referralMessage, setReferralMessage] = useState('');
+  const [tab, setTab] = useState<'overview' | 'rewards' | 'activity' | 'help'>('overview');
 
   const loadAccount = useCallback(async () => {
     setLoading(true);
     setError('');
     const session = await getCustomerSession();
     if (!session) {
+      setAccessToken('');
+      setAccount(null);
       setLoading(false);
       return;
     }
@@ -59,6 +64,7 @@ export default function RewardsDashboard() {
         cache: 'no-store',
       });
       const payload = (await response.json()) as RewardsAccountPayload & { error?: string };
+      if (response.status === 401) { clearCustomerSession(); setAccessToken(''); setAccount(null); }
       if (!response.ok) throw new Error(payload.error || 'Could not load your rewards.');
       setAccount(payload);
     } catch (loadError) {
@@ -69,8 +75,17 @@ export default function RewardsDashboard() {
   }, []);
 
   useEffect(() => {
-    loadAccount();
+    void loadAccount();
+    const refresh = () => { void loadAccount(); };
+    window.addEventListener('dame-auth-ready', refresh);
+    return () => window.removeEventListener('dame-auth-ready', refresh);
   }, [loadAccount]);
+
+  async function currentToken() {
+    const session = await getCustomerSession();
+    if (!session) throw new Error('Your session has expired. Sign in again to continue.');
+    return session.access_token;
+  }
 
   function updateProfile<K extends keyof CustomerProfile>(
     key: K,
@@ -91,7 +106,7 @@ export default function RewardsDashboard() {
     setError('');
     try {
       const profile = await updateCustomerProfile(
-        accessToken,
+        await currentToken(),
         account.user.id,
         account.profile,
       );
@@ -113,7 +128,7 @@ export default function RewardsDashboard() {
       const response = await fetch('/api/rewards/redeem', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${await currentToken()}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ rewardId }),
@@ -143,7 +158,7 @@ export default function RewardsDashboard() {
       const response = await fetch('/api/rewards/cancel', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${await currentToken()}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ redemptionId }),
@@ -197,7 +212,7 @@ export default function RewardsDashboard() {
       const response = await fetch('/api/rewards/favorites', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${await currentToken()}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ squareItemId, selected }),
@@ -232,9 +247,9 @@ export default function RewardsDashboard() {
       <section className="dame-account-empty">
         <BeanStateImage state="rewards" className="dame-account-empty-bean" decorative priority />
         <p className="dame-kicker">Dame Rewards</p>
-        <h1>Let&apos;s get you signed in.</h1>
-        <p>{error || 'Your rewards account is waiting for you.'}</p>
-        <Link className="dame-button" href="/rewards#join">Join or sign in</Link>
+        <h1>{accessToken ? 'Your account is still here.' : 'Your next reward starts here.'}</h1>
+        {error ? <p role="alert">{error}</p> : <p>Sign in to see your points. New here? Choose Join to create your account.</p>}
+        {accessToken ? <div className="dame-actions"><button type="button" className="dame-button" onClick={() => void loadAccount()}>Try loading again</button><button type="button" onClick={signOut}>Sign out</button></div> : <RewardsSignup initialMode="signin" onAuthenticated={loadAccount} />}
       </section>
     );
   }
@@ -259,9 +274,9 @@ export default function RewardsDashboard() {
         <div className="dame-points-card">
           <BeanStateImage state="birthday" className="dame-points-bean" decorative />
           <p>Available balance</p>
-          <strong>{rewards.points}</strong>
+          <strong>{rewards.points.toLocaleString()}</strong>
           <span>points</span>
-          <div className="dame-points-progress" aria-label={`${progress}% toward next reward`}>
+          <div className="dame-points-progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} aria-label="Progress toward your next reward">
             <i style={{ width: `${progress}%` }} />
           </div>
           {nextReward ? (
@@ -271,6 +286,13 @@ export default function RewardsDashboard() {
           )}
         </div>
       </section>
+
+      <nav className="dame-account-tabs" aria-label="Your rewards account sections">
+        {([['overview', 'My account'], ['rewards', 'Claim rewards'], ['activity', 'Orders & favorites'], ['help', 'How it works & FAQ']] as const).map(([value, label]) => (
+          <button type="button" key={value} aria-pressed={tab === value} onClick={() => setTab(value)}>{label}</button>
+        ))}
+        <button type="button" onClick={() => void loadAccount()}>Refresh points</button>
+      </nav>
 
       {rewards.activePromotions.length ? (
         <section className="dame-promotion-banner" aria-label="Current points promotion">
@@ -286,10 +308,13 @@ export default function RewardsDashboard() {
         </section>
       ) : null}
 
-      <section className="dame-account-body">
+      <section className={`dame-account-body ${tab !== 'overview' ? 'dame-account-single' : ''}`}>
         <div className="dame-account-main">
+          {message ? <p className="dame-rewards-success" role="status">{message}</p> : null}
+          {error ? <p className="dame-checkout-error" role="alert">{error}</p> : null}
+          {tab === 'help' ? <RewardsHelp /> : null}
           {rewards.pendingRedemptions.length ? (
-            <section className="dame-pending-rewards" aria-labelledby="ready-rewards">
+            <section hidden={tab !== 'overview' && tab !== 'rewards'} className="dame-pending-rewards" aria-labelledby="ready-rewards">
               <header>
                 <p className="dame-kicker">Ready at the cart</p>
                 <h2 id="ready-rewards">Show us this code.</h2>
@@ -313,7 +338,7 @@ export default function RewardsDashboard() {
             </section>
           ) : null}
 
-          <section className="dame-referral-card" aria-labelledby="dame-referral-title">
+          <section hidden={tab !== 'overview'} className="dame-referral-card" aria-labelledby="dame-referral-title">
             <div>
               <p className="dame-kicker">Share the Dame love</p>
               <h2 id="dame-referral-title">A little love for both of you.</h2>
@@ -334,7 +359,7 @@ export default function RewardsDashboard() {
             </div>
           </section>
 
-          <section className="dame-account-favorites" aria-labelledby="favorite-drinks-title">
+          <section hidden={tab !== 'activity'} className="dame-account-favorites" aria-labelledby="favorite-drinks-title">
             <header>
               <p className="dame-kicker">Favorite drinks</p>
               <h2 id="favorite-drinks-title">Keep your usual close.</h2>
@@ -356,7 +381,7 @@ export default function RewardsDashboard() {
             </div>
           </section>
 
-          <section className="dame-account-orders" aria-labelledby="order-history-title">
+          <section hidden={tab !== 'activity'} className="dame-account-orders" aria-labelledby="order-history-title">
             <header><p className="dame-kicker">Order history</p><h2 id="order-history-title">Made for you before.</h2></header>
             {account.orders.length ? (
               <div className="dame-account-list">
@@ -371,7 +396,7 @@ export default function RewardsDashboard() {
             ) : <p className="dame-reward-empty">Signed-in mobile orders will appear here.</p>}
           </section>
 
-          <section className="dame-account-bookings" aria-labelledby="catering-bookings-title">
+          <section hidden={tab !== 'activity'} className="dame-account-bookings" aria-labelledby="catering-bookings-title">
             <header><p className="dame-kicker">Catering</p><h2 id="catering-bookings-title">Your upcoming Dame dates.</h2></header>
             {account.bookings.length ? (
               <div className="dame-account-list">
@@ -386,7 +411,7 @@ export default function RewardsDashboard() {
             ) : <p className="dame-reward-empty">Catering booked while signed in will stay connected to your account.</p>}
           </section>
 
-          <section className="dame-account-rewards" aria-labelledby="your-rewards">
+          <section hidden={tab !== 'rewards'} className="dame-account-rewards" aria-labelledby="your-rewards">
             <header>
               <p className="dame-kicker">Your rewards</p>
               <h2 id="your-rewards">Choose your little something.</h2>
@@ -398,7 +423,7 @@ export default function RewardsDashboard() {
                 const ready = rewards.points >= tier.points_cost;
                 return (
                   <article key={tier.id} className={ready ? 'is-earned' : ''}>
-                    <span>{tier.points_cost} points</span>
+                    <span>{tier.points_cost.toLocaleString()} points</span>
                     <h3>{tier.name}</h3>
                     <p>{tier.description}</p>
                     <button
@@ -419,7 +444,7 @@ export default function RewardsDashboard() {
             </div>
           </section>
 
-          <section className="dame-reward-history" aria-labelledby="reward-history">
+          <section hidden={tab !== 'overview' && tab !== 'activity'} className="dame-reward-history" aria-labelledby="reward-history">
             <header>
               <p className="dame-kicker">Recent activity</p>
               <h2 id="reward-history">Your Dame moments.</h2>
@@ -443,11 +468,9 @@ export default function RewardsDashboard() {
             )}
           </section>
 
-          {message ? <p className="dame-rewards-success" role="status">{message}</p> : null}
-          {error ? <p className="dame-checkout-error" role="alert">{error}</p> : null}
         </div>
 
-        <aside className="dame-account-profile">
+        <aside hidden={tab !== 'overview'} className="dame-account-profile">
           <div className="dame-account-profile-heading">
             <div>
               <p>Your profile</p>

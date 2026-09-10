@@ -136,6 +136,9 @@ async function handlePayment(event: SquareWebhookEvent) {
   if (payment.order_id) {
     const cateringRequest = await findCateringRequestBySquareOrder(payment.order_id);
     if (cateringRequest) {
+      if (paymentAmountCents !== cateringRequest.deposit_cents || payment.amount_money?.currency !== 'USD') {
+        throw new Error('Catering deposit amount did not match the requested deposit.');
+      }
       await markCateringDepositPaid({
         requestId: cateringRequest.id,
         squarePaymentId: payment.id,

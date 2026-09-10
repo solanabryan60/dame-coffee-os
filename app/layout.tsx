@@ -1,6 +1,8 @@
 import './styles.css';
 import './public-v2.css';
 import AppServiceWorker from './components/app-service-worker';
+import CustomerAuthReturn from './components/customer-auth-return';
+import './customer-experience.css';
 
 export const viewport = {
   themeColor: '#961010',
@@ -47,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <body>
+        <CustomerAuthReturn />
         {children}
         <AppServiceWorker />
       </body>

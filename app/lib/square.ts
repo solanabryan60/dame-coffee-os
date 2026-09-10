@@ -833,6 +833,11 @@ export async function createSquareCateringDepositLink(
       description: 'Dame Coffee catering date-request deposit',
       order: {
         location_id: config.locationId,
+        reference_id: requestId,
+        pricing_options: { auto_apply_taxes: false, auto_apply_discounts: false },
+        taxes: [],
+        discounts: [],
+        service_charges: [],
         line_items: [
           {
             name: 'Catering date-request deposit',
@@ -846,7 +851,7 @@ export async function createSquareCateringDepositLink(
         allow_tipping: false,
         ask_for_shipping_address: false,
         merchant_support_email: 'info@damecoffeeco.com',
-        redirect_url: `${productionUrl()}/catering/complete?request=${encodeURIComponent(requestId)}`,
+        redirect_url: `${process.env.VERCEL_ENV === 'preview' && process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : productionUrl()}/catering/complete?request=${encodeURIComponent(requestId)}`,
       },
       pre_populated_data: {
         buyer_email: request.email.trim().toLowerCase(),
@@ -871,4 +876,28 @@ export async function createSquareCateringDepositLink(
     url: payload.payment_link.url,
     orderId: payload.payment_link.order_id,
   };
+}
+
+// Read-only verification: a return URL, order ID, or paid-looking browser state
+// is never proof of payment. Match the stored order to a completed USD payment.
+export async function verifyCateringDepositPayment(orderId: string) {
+  const config = getSquareConfig();
+  if (!config) throw new Error('Payment verification is temporarily unavailable.');
+  const payload = await squareRequest<{ order?: {
+    id?: string; location_id?: string; total_money?: SquareMoney;
+    tenders?: Array<{ payment_id?: string }>;
+  } }>(`/v2/orders/${encodeURIComponent(orderId)}`);
+  const order = payload?.order;
+  if (!order || order.id !== orderId || order.location_id !== config.locationId) throw new Error('Could not verify this deposit order.');
+  if (order.total_money?.amount !== 20000 || order.total_money.currency !== 'USD') throw new Error('This deposit needs review by Dame. Please do not pay again.');
+  for (const tender of order.tenders ?? []) {
+    if (!tender.payment_id) continue;
+    const result = await squareRequest<{ payment?: SquarePayment }>(`/v2/payments/${encodeURIComponent(tender.payment_id)}`);
+    const payment = result?.payment;
+    if (payment?.id && payment.order_id === orderId && payment.status === 'COMPLETED'
+      && payment.amount_money?.amount === 20000 && payment.amount_money.currency === 'USD') {
+      return { paid: true, paymentId: payment.id, refunded: (payment.refunded_money?.amount ?? 0) > 0 };
+    }
+  }
+  return { paid: false, paymentId: null, refunded: false };
 }
