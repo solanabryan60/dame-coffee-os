@@ -49,34 +49,34 @@ export default function Home() {
     <main className="dame-site dame-bean-home">
       <SiteHeader overlay />
 
-      <section className="dame-bean-hero" aria-labelledby="landing-title">
-        <div className="dame-bean-hero-copy">
-          <p className="dame-kicker dame-kicker-light">Dame Coffee · Southern California</p>
-          <h1 id="landing-title">
-            Cold brew,<br />
-            matcha <span>&amp; cultura.</span>
-          </h1>
-          <p className="dame-bean-hero-intro">A little café. A lot of corazón.</p>
-          <div className="dame-actions">
-            <Link className="dame-button dame-button-light" href="/order">Order pickup <span aria-hidden="true">↗</span></Link>
-            <a className="dame-inline-link dame-inline-link-light" href="#today">Find us today <span aria-hidden="true">↓</span></a>
-          </div>
-        </div>
-        <div className="dame-bean-hero-art">
+      <section className="dame-landing dame-pouring-landing" aria-labelledby="landing-title">
+        <div className="dame-pouring-scene">
           <Image
-            src="/assets/bean-states/bean-pouring-open-eyes-red.png"
-            alt="Pouring Bean, eyes open, pouring cold brew over ice."
+            src="/assets/bean-states/bean-pouring-open-eyes-v2.png"
+            alt="The Dame Bean pouring cold brew over ice."
             width={1254}
             height={1254}
-            sizes="(max-width: 760px) 95vw, 52vw"
+            sizes="(max-width: 760px) 480px, 65vw"
             priority
           />
-          <p>He pours. You enjoy.</p>
         </div>
-        <div className="dame-bean-hero-bottom" aria-hidden="true">
-          <span>Cold brew · Matcha · Más</span>
-          <span>Dame Coffee. Dame Vida.</span>
+        <div className="dame-landing-copy">
+          <p className="dame-kicker dame-kicker-light">Dame Coffee · Dame Vida</p>
+          <h1 id="landing-title">
+            Coffee that makes
+            <span>you want to find us.</span>
+          </h1>
+          <p>Cold brew and matcha made with intention, culture, unity, and love.</p>
+          <div className="dame-actions">
+            <a className="dame-button dame-button-light" href="#today">Find us today</a>
+            <Link className="dame-inline-link dame-inline-link-light" href="/menu">
+              Explore the menu <span aria-hidden="true">↗</span>
+            </Link>
+          </div>
         </div>
+        <a className="dame-scroll-cue" href="#today">
+          Today&apos;s details <span aria-hidden="true">↓</span>
+        </a>
       </section>
 
       <section id="today" className="dame-today" aria-labelledby="today-title">
