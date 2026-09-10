@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import HomeHeroReel from './components/home-hero-reel';
+import './pouring-bean-home.css';
 import SiteFooter from './components/site-footer';
 import GoogleMap from './components/google-map';
 import NotificationOptIn from './components/notification-opt-in';
@@ -46,31 +46,37 @@ export default function Home() {
   const orderingAvailable = location.isOpen && location.mobileOrdering;
 
   return (
-    <main className="dame-site">
+    <main className="dame-site dame-bean-home">
       <SiteHeader overlay />
 
-      <section className="dame-landing" aria-labelledby="landing-title">
-        <HomeHeroReel />
-        <div className="dame-landing-shade" />
-
-        <div className="dame-landing-copy">
-          <p className="dame-kicker dame-kicker-light">Dame Coffee · Dame Vida</p>
+      <section className="dame-bean-hero" aria-labelledby="landing-title">
+        <div className="dame-bean-hero-copy">
+          <p className="dame-kicker dame-kicker-light">Dame Coffee · Southern California</p>
           <h1 id="landing-title">
-            Coffee that makes
-            <span>you want to find us.</span>
+            Cold brew,<br />
+            matcha <span>&amp; cultura.</span>
           </h1>
-          <p>Cold brew and matcha made with intention, culture, unity, and love.</p>
+          <p className="dame-bean-hero-intro">A little café. A lot of corazón.</p>
           <div className="dame-actions">
-            <a className="dame-button dame-button-light" href="#today">Find us today</a>
-            <Link className="dame-inline-link dame-inline-link-light" href="/menu">
-              Explore the menu <span aria-hidden="true">↗</span>
-            </Link>
+            <Link className="dame-button dame-button-light" href="/order">Order pickup <span aria-hidden="true">↗</span></Link>
+            <a className="dame-inline-link dame-inline-link-light" href="#today">Find us today <span aria-hidden="true">↓</span></a>
           </div>
         </div>
-
-        <a className="dame-scroll-cue" href="#today">
-          Today&apos;s details <span aria-hidden="true">↓</span>
-        </a>
+        <div className="dame-bean-hero-art">
+          <Image
+            src="/assets/bean-states/bean-pouring-open-eyes-red.png"
+            alt="Pouring Bean, eyes open, pouring cold brew over ice."
+            width={1254}
+            height={1254}
+            sizes="(max-width: 760px) 95vw, 52vw"
+            priority
+          />
+          <p>He pours. You enjoy.</p>
+        </div>
+        <div className="dame-bean-hero-bottom" aria-hidden="true">
+          <span>Cold brew · Matcha · Más</span>
+          <span>Dame Coffee. Dame Vida.</span>
+        </div>
       </section>
 
       <section id="today" className="dame-today" aria-labelledby="today-title">
