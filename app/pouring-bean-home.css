@@ -19,7 +19,7 @@
 .dame-pouring-scene img {
   position: absolute;
   right: -6vw;
-  top: 50%;
+  top: calc(50% - 40px);
   transform: translateY(-45%);
   width: min(65vw, 960px);
   height: auto;
@@ -50,7 +50,7 @@
   .dame-pouring-scene img {
     width: min(120vw, 500px);
     right: -10%;
-    top: 50px;
+    top: 10px;
     transform: none;
   }
 
