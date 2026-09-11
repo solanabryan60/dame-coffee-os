@@ -11,9 +11,13 @@
 .dame-menu-bean-card span { display: block; font-size: 18px; letter-spacing: .24em; text-transform: uppercase; font-weight: 800; }
 .dame-menu-bean-card strong { font-family: Georgia, serif; font-weight: 400; font-size: clamp(54px, 6vw, 86px); line-height: 1.1; }
 .dame-menu-cover-bean { width: min(280px, 85%); height: auto; max-height: 300px; object-fit: contain; }
-.dame-account-tabs { max-width: 1320px; margin: 28px auto; padding: 0 24px; display: flex; gap: 10px; flex-wrap: wrap; }
-.dame-account-tabs button { padding: 14px 20px; border: 1px solid #96101040; border-radius: 12px; background: transparent; color: var(--dame-red); cursor: pointer; font: inherit; font-weight: 700; }
-.dame-account-tabs button[aria-pressed="true"] { background: var(--dame-red); color: white; }
+.dame-account-tabs { max-width: 1380px; margin: 0 auto; padding: 22px clamp(20px, 5vw, 64px); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; gap: 10px; background: var(--warm-white); }
+.dame-account-tabs button { min-height: 72px; padding: 14px 16px; border: 1px solid #96101035; border-radius: 18px; background: #fffdf9; color: var(--dame-red); cursor: pointer; font: inherit; text-align: left; transition: background 180ms ease, color 180ms ease, transform 180ms ease; }
+.dame-account-tabs button > span { display: block; margin-bottom: 6px; font-size: 9px; font-weight: 900; letter-spacing: .16em; opacity: .68; }
+.dame-account-tabs button > strong { display: block; font-size: 12px; font-weight: 900; letter-spacing: .045em; text-transform: uppercase; }
+.dame-account-tabs button:hover { transform: translateY(-2px); }
+.dame-account-tabs button[aria-pressed="true"] { border-color: var(--dame-red); background: var(--dame-red); color: white; }
+.dame-account-tabs .dame-account-refresh { min-width: 142px; border-color: transparent; background: #eadfd3; }
 .dame-account-tabs button:focus-visible, .dame-rewards-guide summary:focus-visible { outline: 3px solid var(--dame-red); outline-offset: 4px; }
 .dame-site .dame-account-body.dame-account-single { grid-template-columns: minmax(0, 1fr); }
 .dame-account-empty .dame-rewards-access { max-width: 600px; width: 100%; margin: 32px auto 0; text-align: left; }
@@ -23,14 +27,66 @@
 .dame-auth-help button:disabled { opacity: .6; cursor: wait; }
 .dame-auth-return-error { position: fixed; z-index: 10000; top: 16px; left: 16px; right: 16px; padding: 20px; background: #fff4eb; color: #961010; border: 1px solid #961010; border-radius: 16px; }
 .dame-auth-return-error button { float: right; margin-left: 16px; }
-.dame-rewards-guide { padding: clamp(24px, 4vw, 48px); background: #fffdf9; border: 1px solid #96101020; border-radius: 28px; }
-.dame-rewards-guide h2 { font-family: Georgia, serif; font-size: clamp(32px, 4vw, 48px); font-weight: 400; margin: 24px 0; }
-.dame-rewards-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin: 28px 0; }
-.dame-rewards-steps span { color: var(--dame-red); font-weight: 800; }
-.dame-rewards-steps h3 { font-family: Georgia, serif; font-size: 26px; font-weight: 400; margin: 14px 0; }
-.dame-rewards-guide p { line-height: 1.7; font-size: 17px; }
-.dame-rewards-guide details { border-top: 1px solid #96101025; padding: 20px 0; }
-.dame-rewards-guide summary { cursor: pointer; font-weight: 700; font-size: 18px; }
+.dame-rewards-guide { overflow: hidden; padding: 0; background: #fffdf9; border: 1px solid #96101030; border-radius: 38px; }
+.dame-rewards-guide-hero { min-height: 390px; padding: clamp(32px, 5vw, 66px); display: grid; grid-template-columns: minmax(0, 1fr) minmax(190px, .58fr); gap: 28px; align-items: end; background: var(--dame-red); color: white; }
+.dame-rewards-guide-hero > div { position: relative; z-index: 2; }
+.dame-rewards-guide-hero .dame-kicker { color: rgba(255,255,255,.68); }
+.dame-rewards-guide h2 { margin: 18px 0 20px; font-family: Georgia, serif; font-size: clamp(44px, 6vw, 76px); font-weight: 400; letter-spacing: -.05em; line-height: .94; }
+.dame-rewards-guide h2 em { font-weight: 400; }
+.dame-rewards-guide-hero p:last-child { max-width: 480px; margin: 0; color: rgba(255,255,255,.76); }
+.dame-rewards-guide-bean { width: min(100%, 310px); height: auto; max-height: 290px; object-fit: contain; justify-self: end; filter: drop-shadow(0 24px 34px rgba(50, 0, 0, .22)); }
+.dame-rewards-steps { padding: clamp(30px, 5vw, 60px); display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin: 0; }
+.dame-rewards-steps article { min-height: 250px; padding: 28px; border: 1px solid #96101028; display: flex; flex-direction: column; justify-content: flex-end; background: var(--cream); }
+.dame-rewards-steps article:first-child { border-radius: 26px 0 0 26px; }
+.dame-rewards-steps article:last-child { border-radius: 0 26px 26px 0; }
+.dame-rewards-steps span { color: var(--dame-red); font-size: 12px; font-weight: 900; letter-spacing: .15em; }
+.dame-rewards-steps h3 { margin: 38px 0 12px; color: var(--dame-red); font-family: Georgia, serif; font-size: clamp(25px, 2.8vw, 34px); font-weight: 400; letter-spacing: -.03em; }
+.dame-rewards-guide p { line-height: 1.65; font-size: 16px; }
+.dame-rewards-steps p { margin: 0; color: #726660; }
+.dame-rewards-guide > .dame-button { margin: 0 clamp(30px, 5vw, 60px) clamp(58px, 7vw, 84px); }
+.dame-rewards-faq-heading { padding: clamp(52px, 7vw, 88px) clamp(30px, 5vw, 60px) 26px; background: #f2e8dd; }
+.dame-rewards-faq-heading .dame-kicker,
+.dame-rewards-faq-heading h2 { color: var(--dame-red); }
+.dame-rewards-faq-heading h2 { margin-bottom: 0; }
+.dame-rewards-faq-list { padding: 0 clamp(30px, 5vw, 60px) clamp(38px, 5vw, 60px); background: #f2e8dd; }
+.dame-rewards-guide details { border-top: 1px solid #96101038; padding: 0; color: var(--dame-red); }
+.dame-rewards-guide details:last-child { border-bottom: 1px solid #96101038; }
+.dame-rewards-guide summary { padding: 24px 0; display: grid; grid-template-columns: 42px 1fr; align-items: center; cursor: pointer; color: var(--dame-red); font-family: Georgia, serif; font-weight: 400; font-size: clamp(20px, 2.3vw, 28px); letter-spacing: -.018em; list-style: none; }
+.dame-rewards-guide summary::-webkit-details-marker { display: none; }
+.dame-rewards-guide summary::after { content: "+"; grid-column: 3; padding-left: 20px; font-family: Arial, sans-serif; font-size: 22px; font-weight: 400; }
+.dame-rewards-guide details[open] summary::after { content: "−"; }
+.dame-rewards-guide summary span { font-family: Arial, sans-serif; font-size: 10px; font-weight: 900; letter-spacing: .14em; opacity: .62; }
+.dame-rewards-guide details > p { max-width: 800px; margin: -4px 0 24px 42px; color: #7e1717; }
+.dame-rewards-contact { margin: 0; padding: 28px clamp(30px, 5vw, 60px); background: var(--dame-red); color: white; }
+.dame-rewards-contact a { font-weight: 800; text-underline-offset: 4px; }
+
+.dame-account-loading { min-height: 100svh; padding: 120px 24px 70px; gap: 0; background: #f7f0e7; color: var(--dame-red); }
+.dame-account-loading-stage { width: min(64vw, 330px); aspect-ratio: 1; display: grid; place-items: center; animation: dame-account-bean-arrive 540ms ease-out both; }
+.dame-account-loading-bean { width: 100%; height: 100%; max-width: 330px; max-height: 330px; object-fit: contain; }
+.dame-account-loading .dame-kicker { margin: 14px 0 12px; color: var(--dame-red); }
+.dame-account-loading h1 { margin: 0; font-family: Georgia, serif; font-size: clamp(44px, 6vw, 72px); font-weight: 400; letter-spacing: -.055em; line-height: .94; }
+.dame-account-loading > span { margin-top: 14px; color: #756964; font-family: Georgia, serif; font-size: 17px; font-style: italic; }
+
+@keyframes dame-account-bean-arrive {
+  from { opacity: 0; transform: translateY(14px) rotate(-2deg); }
+  to { opacity: 1; transform: translateY(0) rotate(0); }
+}
+
+.dame-account-main { container-type: inline-size; }
+.dame-referral-card { grid-template-columns: 1fr; align-items: start; }
+.dame-referral-card h2 { max-width: 760px; font-size: clamp(42px, 7cqw, 64px); line-height: .98; text-wrap: balance; }
+.dame-referral-code { width: min(100%, 520px); }
+.dame-referral-code > strong { overflow-wrap: anywhere; }
+
+.dame-account-rewards,
+.dame-account-favorites,
+.dame-account-orders,
+.dame-account-bookings,
+.dame-reward-history { padding: clamp(28px, 5cqw, 54px); border: 1px solid #96101024; border-radius: 34px; background: #fffdf9; }
+.dame-account-favorites + .dame-account-orders,
+.dame-account-orders + .dame-account-bookings { margin-top: 24px; }
+.dame-reward-history { margin-top: 28px; }
+.dame-account-profile { border-color: #9610102e; background: #f2e8dd; }
 .dame-checkout-transition { position: fixed; inset: 0; z-index: 9999; background: #f8f3ebfa; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 28px; text-align: center; }
 .dame-checkout-transition img { width: min(340px, 70vw); height: auto; max-height: 40vh; object-fit: contain; }
 .dame-checkout-transition h2 { font-family: Georgia, serif; font-size: clamp(32px, 5vw, 54px); font-weight: 400; margin: 20px 0; }
@@ -43,7 +99,26 @@
 @media (max-width: 650px) {
   .dame-menu-bean-card { min-height: 360px; padding: 26px; border-radius: 28px 28px 70px 28px; }
   .dame-menu-cover-bean { width: 220px; max-height: 230px; }
-  .dame-account-tabs { gap: 8px; padding: 0 16px; }
-  .dame-account-tabs button { font-size: 14px; padding: 12px; flex: 1 1 calc(50% - 8px); }
+  .dame-account-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 16px; }
+  .dame-account-tabs button { min-height: 66px; padding: 11px 12px; }
+  .dame-account-tabs .dame-account-refresh { grid-column: 1 / -1; width: 100%; }
   .dame-rewards-steps { grid-template-columns: 1fr; gap: 12px; }
+  .dame-rewards-guide { border-radius: 28px; }
+  .dame-rewards-guide-hero { min-height: 540px; padding: 34px 24px 0; grid-template-columns: 1fr; overflow: hidden; }
+  .dame-rewards-guide-bean { width: min(78vw, 300px); margin-bottom: -22px; justify-self: center; }
+  .dame-rewards-steps { padding: 28px 20px; }
+  .dame-rewards-steps article,
+  .dame-rewards-steps article:first-child,
+  .dame-rewards-steps article:last-child { min-height: 205px; border-radius: 22px; }
+  .dame-rewards-guide > .dame-button { width: calc(100% - 40px); margin: 0 20px 58px; }
+  .dame-rewards-faq-heading { padding-inline: 22px; }
+  .dame-rewards-faq-list { padding-inline: 22px; }
+  .dame-rewards-guide summary { grid-template-columns: 34px 1fr; font-size: 20px; }
+  .dame-rewards-guide details > p { margin-left: 34px; }
+  .dame-referral-card h2 { font-size: clamp(40px, 13vw, 56px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dame-account-loading-stage { animation: none; }
+  .dame-account-tabs button { transition: none; }
 }

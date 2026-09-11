@@ -14,9 +14,32 @@ import {
   clearCustomerSession,
   getCustomerSession,
 } from '../../lib/customer-session';
-import BeanStateImage from '../../components/bean-state';
+import BeanStateImage, { type DameBeanState } from '../../components/bean-state';
 import RewardsSignup from '../../components/rewards-signup';
 import RewardsHelp from './rewards-help';
+
+const refreshBeans = [
+  { state: 'rewards', message: 'Counting every little something.' },
+  { state: 'pouring', message: 'Pouring your newest points into place.' },
+  { state: 'celebrating', message: 'Getting your next treat a little closer.' },
+  { state: 'walking', message: 'Bringing your Dame moments together.' },
+  { state: 'waving', message: 'Checking in with the cart.' },
+  { state: 'croissant', message: 'Making room for something sweet.' },
+  { state: 'chef', message: 'Freshening up your rewards.' },
+  { state: 'binoculars', message: 'Looking for your latest points.' },
+] satisfies ReadonlyArray<{ state: DameBeanState; message: string }>;
+
+function randomRefreshBean(previousState: DameBeanState) {
+  const choices = refreshBeans.filter(({ state }) => state !== previousState);
+  return choices[Math.floor(Math.random() * choices.length)] ?? refreshBeans[0];
+}
+
+const accountTabs = [
+  ['overview', '01', 'My account'],
+  ['rewards', '02', 'Claim rewards'],
+  ['activity', '03', 'Orders & favorites'],
+  ['help', '04', 'How it works & FAQ'],
+] as const;
 
 function shortDate(value: string) {
   return new Intl.DateTimeFormat('en-US', {
@@ -45,8 +68,10 @@ export default function RewardsDashboard() {
   const [error, setError] = useState('');
   const [referralMessage, setReferralMessage] = useState('');
   const [tab, setTab] = useState<'overview' | 'rewards' | 'activity' | 'help'>('overview');
+  const [refreshBean, setRefreshBean] = useState(refreshBeans[0]);
 
   const loadAccount = useCallback(async () => {
+    setRefreshBean((current) => randomRefreshBean(current.state));
     setLoading(true);
     setError('');
     const session = await getCustomerSession();
@@ -235,9 +260,13 @@ export default function RewardsDashboard() {
 
   if (loading) {
     return (
-      <section className="dame-account-loading">
-        <BeanStateImage state="loading-sip" className="dame-account-loading-bean" decorative priority />
-        <p>Pouring your rewards dashboard…</p>
+      <section className="dame-account-loading" aria-live="polite" aria-busy="true">
+        <div className="dame-account-loading-stage">
+          <BeanStateImage state={refreshBean.state} className="dame-account-loading-bean" decorative priority />
+        </div>
+        <p className="dame-kicker">Refreshing your points</p>
+        <h1>One Dame moment.</h1>
+        <span>{refreshBean.message}</span>
       </section>
     );
   }
@@ -288,10 +317,16 @@ export default function RewardsDashboard() {
       </section>
 
       <nav className="dame-account-tabs" aria-label="Your rewards account sections">
-        {([['overview', 'My account'], ['rewards', 'Claim rewards'], ['activity', 'Orders & favorites'], ['help', 'How it works & FAQ']] as const).map(([value, label]) => (
-          <button type="button" key={value} aria-pressed={tab === value} onClick={() => setTab(value)}>{label}</button>
+        {accountTabs.map(([value, number, label]) => (
+          <button type="button" key={value} aria-pressed={tab === value} onClick={() => setTab(value)}>
+            <span aria-hidden="true">{number}</span>
+            <strong>{label}</strong>
+          </button>
         ))}
-        <button type="button" onClick={() => void loadAccount()}>Refresh points</button>
+        <button className="dame-account-refresh" type="button" onClick={() => void loadAccount()}>
+          <span aria-hidden="true">↻</span>
+          <strong>Refresh points</strong>
+        </button>
       </nav>
 
       {rewards.activePromotions.length ? (
