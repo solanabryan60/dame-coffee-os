@@ -241,10 +241,6 @@ export default function RewardsSignup({
               placeholder="(555) 555-5555"
               required
             />
-            <small>
-              Your phone number is kept privately for important account or
-              order-related contact. We won&apos;t send promotional texts.
-            </small>
           </div>
         ) : null}
         <div>
@@ -262,17 +258,23 @@ export default function RewardsSignup({
         </div>
 
         {mode === 'join' ? (
-          <label className="dame-rewards-consent">
-            <input
-              type="checkbox"
-              checked={marketingOptIn}
-              onChange={(event) => setMarketingOptIn(event.target.checked)}
-            />
-            <span>
-              Email me Dame Coffee updates, reward news, and special drops. I can
-              unsubscribe anytime.
-            </span>
-          </label>
+          <>
+            <label className="dame-rewards-consent">
+              <input
+                type="checkbox"
+                checked={marketingOptIn}
+                onChange={(event) => setMarketingOptIn(event.target.checked)}
+              />
+              <span>
+                Email me Dame Coffee updates, reward news, and special drops. I can
+                unsubscribe anytime.
+              </span>
+            </label>
+            <small>
+              Your phone number is kept privately for important account or
+              order-related contact. We won&apos;t send promotional texts.
+            </small>
+          </>
         ) : null}
 
         {message ? <p className="dame-rewards-success" role="status">{message}</p> : null}
