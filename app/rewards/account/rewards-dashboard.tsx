@@ -76,6 +76,7 @@ export default function RewardsDashboard() {
   const [saving, setSaving] = useState(false);
   const [workingReward, setWorkingReward] = useState('');
   const [workingFavorite, setWorkingFavorite] = useState('');
+  const [favoriteNotice, setFavoriteNotice] = useState<{ tone: 'success' | 'error'; text: string } | null>(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [referralMessage, setReferralMessage] = useState('');
@@ -268,8 +269,15 @@ export default function RewardsDashboard() {
     if (!account || !accessToken) return;
     const selected = !account.favorites.includes(squareItemId);
     setWorkingFavorite(squareItemId);
+    setFavoriteNotice(null);
     setMessage('');
     setError('');
+    setAccount((current) => current ? {
+      ...current,
+      favorites: selected
+        ? [...current.favorites, squareItemId]
+        : current.favorites.filter((itemId) => itemId !== squareItemId),
+    } : current);
     try {
       const response = await fetch('/api/rewards/favorites', {
         method: 'POST',
@@ -281,15 +289,19 @@ export default function RewardsDashboard() {
       });
       const payload = (await response.json()) as { error?: string };
       if (!response.ok) throw new Error(payload.error || 'Could not update that favorite.');
+      const successText = selected ? 'Added to your Dame favorites.' : 'Removed from your favorites.';
+      setFavoriteNotice({ tone: 'success', text: successText });
+      setMessage(successText);
+    } catch (favoriteError) {
       setAccount((current) => current ? {
         ...current,
         favorites: selected
-          ? [...current.favorites, squareItemId]
-          : current.favorites.filter((itemId) => itemId !== squareItemId),
+          ? current.favorites.filter((itemId) => itemId !== squareItemId)
+          : [...current.favorites, squareItemId],
       } : current);
-      setMessage(selected ? 'Added to your Dame favorites.' : 'Removed from your favorites.');
-    } catch (favoriteError) {
-      setError(favoriteError instanceof Error ? favoriteError.message : 'Could not update that favorite.');
+      const errorText = favoriteError instanceof Error ? favoriteError.message : 'Could not update that favorite.';
+      setFavoriteNotice({ tone: 'error', text: errorText });
+      setError(errorText);
     } finally {
       setWorkingFavorite('');
     }
@@ -472,7 +484,10 @@ export default function RewardsDashboard() {
                           className={favorite ? 'is-favorite' : undefined}
                           key={item.id}
                           type="button"
-                          onClick={() => setSelectedFavoriteId(item.id)}
+                          onClick={() => {
+                            setFavoriteNotice(null);
+                            setSelectedFavoriteId(item.id);
+                          }}
                           aria-label={`View ${item.name}${favorite ? ', saved as a favorite' : ''}`}
                         >
                           <span
@@ -699,6 +714,11 @@ export default function RewardsDashboard() {
                     ? 'Saved to my Dame favorites'
                     : 'Add to my Dame favorites'}
               </button>
+              {favoriteNotice ? (
+                <p className={`dame-favorite-notice is-${favoriteNotice.tone}`} role="status" aria-live="polite">
+                  {favoriteNotice.text}
+                </p>
+              ) : null}
               <button className="dame-favorite-keep-browsing" type="button" onClick={() => setSelectedFavoriteId('')}>
                 Keep browsing
               </button>

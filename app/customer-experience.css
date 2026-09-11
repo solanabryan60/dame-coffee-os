@@ -124,7 +124,43 @@
 .dame-favorite-action > span { font-size: 19px; line-height: 1; }
 .dame-favorite-action.is-saved { background: #fffdf9; color: var(--dame-red); }
 .dame-favorite-action:disabled { opacity: .62; cursor: wait; }
+.dame-favorite-notice { margin: 14px 0 0; padding: 12px 15px; border-radius: 13px; font-size: 13px !important; font-family: inherit !important; font-weight: 800; line-height: 1.45 !important; text-align: center; }
+.dame-favorite-notice.is-success { background: #e5f2e9; color: #21653d !important; }
+.dame-favorite-notice.is-error { background: #f5dfdc; color: var(--dame-red) !important; }
 .dame-favorite-keep-browsing { align-self: center; margin-top: 18px; padding: 9px 0; border: 0; border-bottom: 1px solid currentColor; background: transparent; color: var(--ink); cursor: pointer; font-size: 9px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+
+/* Dame-red entrances with the menu center left warm and light. */
+.dame-menu-intro,
+.dame-catering-hero,
+.dame-events-hero {
+  background: var(--dame-red, #961010);
+  color: #fff;
+}
+.dame-menu-intro .dame-kicker,
+.dame-catering-hero .dame-kicker,
+.dame-events-hero .dame-kicker,
+.dame-menu-intro > div:first-child > p:not(.dame-kicker),
+.dame-catering-hero > div:first-child > p:not(.dame-kicker),
+.dame-events-hero > div > p:last-child,
+.dame-events-hero h1 em {
+  color: rgba(255, 255, 255, .84);
+}
+.dame-menu-bean-card,
+.dame-catering-base {
+  border: 1px solid rgba(255, 255, 255, .3);
+  background: rgba(255, 255, 255, .08);
+}
+.dame-customize {
+  background: var(--dame-red, #961010);
+  color: #fff;
+}
+.dame-customize .dame-kicker,
+.dame-customize dd {
+  color: #fff;
+}
+.dame-customize dl > div {
+  border-color: rgba(255, 255, 255, .3);
+}
 
 @keyframes dame-favorite-panel-arrive {
   from { opacity: 0; transform: translateY(8px); }

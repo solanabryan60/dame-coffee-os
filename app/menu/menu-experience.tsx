@@ -196,9 +196,9 @@ export default function MenuExperience({
         </div>
         <dl>
           <div><dt>Whole milk</dt><dd>Included</dd></div>
-          <div><dt>Oat milk</dt><dd>+$1</dd></div>
-          <div><dt>Almond milk</dt><dd>+$1</dd></div>
-          <div><dt>Add cold foam</dt><dd>+$1</dd></div>
+          <div><dt>Oat milk</dt><dd>Free</dd></div>
+          <div><dt>Almond milk</dt><dd>Free</dd></div>
+          <div><dt>Add cold foam</dt><dd>Free</dd></div>
         </dl>
       </section>
 
