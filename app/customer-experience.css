@@ -1,0 +1,49 @@
+/* Customer account, deposit checkout, and the simplified Dame Menu cover. */
+.dame-site [hidden] { display: none !important; }
+.dame-site .dame-estimate-card { background: var(--dame-red, #961010); color: #fff; }
+.dame-site .dame-estimate-card > p,
+.dame-site .dame-estimate-card > span,
+.dame-site .dame-estimate-card > strong,
+.dame-site .dame-estimate-card li { color: #fff; }
+.dame-site .dame-estimate-card ul { border-color: #ffffff45; }
+.dame-menu-bean-card { width: min(100%, 620px); min-height: 460px; padding: 38px; border-radius: 36px 36px 100px 36px; background: var(--dame-red, #961010); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+.dame-menu-bean-card p { margin: 0; text-align: center; color: #fff; }
+.dame-menu-bean-card span { display: block; font-size: 18px; letter-spacing: .24em; text-transform: uppercase; font-weight: 800; }
+.dame-menu-bean-card strong { font-family: Georgia, serif; font-weight: 400; font-size: clamp(54px, 6vw, 86px); line-height: 1.1; }
+.dame-menu-cover-bean { width: min(280px, 85%); height: auto; max-height: 300px; object-fit: contain; }
+.dame-account-tabs { max-width: 1320px; margin: 28px auto; padding: 0 24px; display: flex; gap: 10px; flex-wrap: wrap; }
+.dame-account-tabs button { padding: 14px 20px; border: 1px solid #96101040; border-radius: 12px; background: transparent; color: var(--dame-red); cursor: pointer; font: inherit; font-weight: 700; }
+.dame-account-tabs button[aria-pressed="true"] { background: var(--dame-red); color: white; }
+.dame-account-tabs button:focus-visible, .dame-rewards-guide summary:focus-visible { outline: 3px solid var(--dame-red); outline-offset: 4px; }
+.dame-site .dame-account-body.dame-account-single { grid-template-columns: minmax(0, 1fr); }
+.dame-account-empty .dame-rewards-access { max-width: 600px; width: 100%; margin: 32px auto 0; text-align: left; }
+.dame-auth-help { display: grid; gap: 14px; grid-column: 1 / -1; padding-top: 18px; border-top: 1px solid #96101025; }
+.dame-auth-help p { font-size: 15px; line-height: 1.6; }
+.dame-auth-help button:not(.dame-button) { background: none; color: var(--dame-red); border: 0; text-decoration: underline; padding: 8px; font: inherit; cursor: pointer; }
+.dame-auth-help button:disabled { opacity: .6; cursor: wait; }
+.dame-auth-return-error { position: fixed; z-index: 10000; top: 16px; left: 16px; right: 16px; padding: 20px; background: #fff4eb; color: #961010; border: 1px solid #961010; border-radius: 16px; }
+.dame-auth-return-error button { float: right; margin-left: 16px; }
+.dame-rewards-guide { padding: clamp(24px, 4vw, 48px); background: #fffdf9; border: 1px solid #96101020; border-radius: 28px; }
+.dame-rewards-guide h2 { font-family: Georgia, serif; font-size: clamp(32px, 4vw, 48px); font-weight: 400; margin: 24px 0; }
+.dame-rewards-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin: 28px 0; }
+.dame-rewards-steps span { color: var(--dame-red); font-weight: 800; }
+.dame-rewards-steps h3 { font-family: Georgia, serif; font-size: 26px; font-weight: 400; margin: 14px 0; }
+.dame-rewards-guide p { line-height: 1.7; font-size: 17px; }
+.dame-rewards-guide details { border-top: 1px solid #96101025; padding: 20px 0; }
+.dame-rewards-guide summary { cursor: pointer; font-weight: 700; font-size: 18px; }
+.dame-checkout-transition { position: fixed; inset: 0; z-index: 9999; background: #f8f3ebfa; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 28px; text-align: center; }
+.dame-checkout-transition img { width: min(340px, 70vw); height: auto; max-height: 40vh; object-fit: contain; }
+.dame-checkout-transition h2 { font-family: Georgia, serif; font-size: clamp(32px, 5vw, 54px); font-weight: 400; margin: 20px 0; }
+.dame-checkout-transition p { font-size: 20px; }
+.dame-checkout-transition small { font-size: 15px; line-height: 1.6; max-width: 400px; }
+.dame-deposit-next-steps { padding-left: 24px; display: grid; gap: 24px; margin: 32px 0; }
+.dame-deposit-next-steps strong, .dame-deposit-next-steps span { display: block; }
+.dame-deposit-next-steps span { margin-top: 6px; line-height: 1.6; }
+.dame-request-reference { overflow-wrap: anywhere; font-size: 13px !important; }
+@media (max-width: 650px) {
+  .dame-menu-bean-card { min-height: 360px; padding: 26px; border-radius: 28px 28px 70px 28px; }
+  .dame-menu-cover-bean { width: 220px; max-height: 230px; }
+  .dame-account-tabs { gap: 8px; padding: 0 16px; }
+  .dame-account-tabs button { font-size: 14px; padding: 12px; flex: 1 1 calc(50% - 8px); }
+  .dame-rewards-steps { grid-template-columns: 1fr; gap: 12px; }
+}

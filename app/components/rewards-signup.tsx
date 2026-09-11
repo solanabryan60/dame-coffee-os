@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import {
   loginCustomer,
   signUpCustomer,
+  sendCustomerEmail,
 } from '../lib/supabase-rest';
 import {
   getCustomerSession,
@@ -17,12 +18,16 @@ type Mode = 'join' | 'signin';
 export default function RewardsSignup({
   initialReferralCode = '',
   returnTo = '/rewards/account',
+  initialMode = 'join',
+  onAuthenticated,
 }: {
   initialReferralCode?: string;
   returnTo?: string;
+  initialMode?: Mode;
+  onAuthenticated?: () => void;
 }) {
   const router = useRouter();
-  const [mode, setMode] = useState<Mode>('join');
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -33,12 +38,42 @@ export default function RewardsSignup({
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [emailWorking, setEmailWorking] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+  const [confirmationPending, setConfirmationPending] = useState(false);
+
+  useEffect(() => {
+    if (!cooldown) return;
+    const timer = window.setTimeout(() => setCooldown((value) => value - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [cooldown]);
+
+  async function sendEmail(type: 'confirmation' | 'recovery') {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError('Enter your email address above first.');
+      document.getElementById('rewards-email')?.focus();
+      return;
+    }
+    setEmailWorking(true);
+    setError('');
+    setMessage('');
+    try {
+      await sendCustomerEmail(email, type);
+      setMessage(type === 'confirmation'
+        ? 'If this email has an unconfirmed account, a new confirmation link has been requested. Check your inbox and spam folder, and use the newest link.'
+        : 'If an account exists for this email, a password reset link has been requested. Check your inbox and spam folder.');
+      setCooldown(60);
+    } catch (emailError) {
+      setError(emailError instanceof Error ? emailError.message : 'Could not send the email.');
+      setCooldown(60);
+    } finally { setEmailWorking(false); }
+  }
 
   useEffect(() => {
     getCustomerSession().then((session) => {
-      if (session) router.replace('/rewards/account');
+      if (session && !onAuthenticated) router.replace(returnTo);
     });
-  }, [router]);
+  }, [router, returnTo, onAuthenticated]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -49,8 +84,10 @@ export default function RewardsSignup({
     try {
       if (mode === 'signin') {
         const session = await loginCustomer(email, password);
+        setConfirmationPending(false);
         saveCustomerSession(session);
-        router.push(returnTo);
+        if (onAuthenticated) onAuthenticated();
+        else router.push(returnTo);
         return;
       }
 
@@ -78,17 +115,24 @@ export default function RewardsSignup({
           expires_at: result.expires_at,
           user: result.user,
         });
-        router.push(returnTo);
+        if (onAuthenticated) onAuthenticated();
+        else router.push(returnTo);
         return;
       }
 
       setMessage(
         'You’re almost in. Check your email and confirm your Dame account, then come back to sign in.',
       );
+      setConfirmationPending(true);
       setMode('signin');
+      setCooldown(60);
       setPassword('');
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'Something went wrong.');
+      const submitMessage = submitError instanceof Error ? submitError.message : 'Something went wrong.';
+      setConfirmationPending(
+        mode === 'signin' && submitMessage.toLowerCase().includes('confirm your email'),
+      );
+      setError(submitMessage);
     } finally {
       setSubmitting(false);
     }
@@ -103,6 +147,7 @@ export default function RewardsSignup({
           aria-selected={mode === 'join'}
           onClick={() => {
             setMode('join');
+            setConfirmationPending(false);
             setError('');
             setMessage('');
           }}
@@ -135,18 +180,6 @@ export default function RewardsSignup({
                 autoComplete="given-name"
                 placeholder="Your name"
                 maxLength={80}
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="rewards-phone">Mobile number</label>
-              <input
-                id="rewards-phone"
-                value={phone}
-                onChange={(event) => setPhone(event.target.value)}
-                autoComplete="tel"
-                inputMode="tel"
-                placeholder="(555) 555-5555"
                 required
               />
             </div>
@@ -196,6 +229,20 @@ export default function RewardsSignup({
             required
           />
         </div>
+        {mode === 'join' ? (
+          <div>
+            <label htmlFor="rewards-phone">Mobile number</label>
+            <input
+              id="rewards-phone"
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
+              autoComplete="tel"
+              inputMode="tel"
+              placeholder="(555) 555-5555"
+              required
+            />
+          </div>
+        ) : null}
         <div>
           <label htmlFor="rewards-password">Password</label>
           <input
@@ -211,17 +258,23 @@ export default function RewardsSignup({
         </div>
 
         {mode === 'join' ? (
-          <label className="dame-rewards-consent">
-            <input
-              type="checkbox"
-              checked={marketingOptIn}
-              onChange={(event) => setMarketingOptIn(event.target.checked)}
-            />
-            <span>
-              Send me Dame Coffee updates, reward news, and special drops. I can
-              unsubscribe anytime.
-            </span>
-          </label>
+          <>
+            <label className="dame-rewards-consent">
+              <input
+                type="checkbox"
+                checked={marketingOptIn}
+                onChange={(event) => setMarketingOptIn(event.target.checked)}
+              />
+              <span>
+                Email me Dame Coffee updates, reward news, and special drops. I can
+                unsubscribe anytime.
+              </span>
+            </label>
+            <small>
+              Your phone number is kept privately for important account or
+              order-related contact. We won&apos;t send promotional texts.
+            </small>
+          </>
         ) : null}
 
         {message ? <p className="dame-rewards-success" role="status">{message}</p> : null}
@@ -234,10 +287,23 @@ export default function RewardsSignup({
               ? 'Create my account'
               : 'Sign in'}
         </button>
+        {confirmationPending ? (
+          <div className="dame-auth-help">
+            <p>Check your inbox and spam folder. If the confirmation link is missing, request a new one.</p>
+            <button type="button" className="dame-button dame-button-outline" disabled={emailWorking || submitting || cooldown > 0} onClick={() => void sendEmail('confirmation')}>
+              {emailWorking ? 'Requesting email…' : cooldown ? `Resend available in ${cooldown}s` : 'Resend confirmation email'}
+            </button>
+          </div>
+        ) : null}
+        {mode === 'signin' ? (
+          <div className="dame-auth-help">
+            <button type="button" disabled={emailWorking || submitting || cooldown > 0} onClick={() => void sendEmail('recovery')}>Forgot your password?</button>
+          </div>
+        ) : null}
         <p>
           {mode === 'join'
-            ? 'By joining, you agree to save your contact information for Dame Rewards.'
-            : 'Your rewards account is separate from the private Dame Coffee admin.'}
+            ? 'We’ll confirm your account by email. Your contact information is saved securely for Dame Rewards.'
+            : 'Sign in to see your points, rewards, and saved favorites.'}
         </p>
         {mode === 'signin' ? (
           <Link href="mailto:info@damecoffeeco.com?subject=Dame%20Rewards%20account%20help">

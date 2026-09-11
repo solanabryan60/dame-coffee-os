@@ -86,11 +86,9 @@ export default function MenuExperience({
           <p>20-hour cold brew, smooth matcha, and flavors inspired by home.</p>
           <p lang="es">Cold brew de 20 horas, matcha suave y sabores de casa.</p>
         </div>
-        <div className="dame-menu-editorial" role="img" aria-label="Iced matcha and cold brew presented in warm sunlight">
-          <div>
-            <span>Dame</span>
-            <strong>Menu</strong>
-          </div>
+        <div className="dame-menu-bean-card">
+          <p><span>Dame</span><strong>Menu</strong></p>
+          <BeanStateImage state="chef" className="dame-menu-cover-bean" />
         </div>
       </section>
 

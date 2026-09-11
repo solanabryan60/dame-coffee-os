@@ -278,6 +278,13 @@ export async function findCateringRequestBySquareOrder(squareOrderId: string) {
   return rows[0] ?? null;
 }
 
+export async function findCateringDepositStatus(requestId: string) {
+  const rows = await adminRequest<Array<Pick<CateringRequest, 'id' | 'status' | 'square_order_id' | 'deposit_paid_at'>>>(
+    `/catering_requests?id=eq.${encodeURIComponent(requestId)}&select=id,status,square_order_id,deposit_paid_at&limit=1`,
+  );
+  return rows[0] ?? null;
+}
+
 export async function findCateringRequestBySquarePayment(squarePaymentId: string) {
   const rows = await adminRequest<CateringRequest[]>(
     `/catering_requests?square_payment_id=eq.${encodeURIComponent(squarePaymentId)}&select=*&limit=1`,
@@ -291,7 +298,7 @@ export async function markCateringDepositPaid(input: {
 }) {
   const now = new Date().toISOString();
   await adminRequest<unknown>(
-    `/catering_requests?id=eq.${encodeURIComponent(input.requestId)}`,
+    `/catering_requests?id=eq.${encodeURIComponent(input.requestId)}&status=eq.awaiting_payment`,
     {
       method: 'PATCH',
       headers: { Prefer: 'return=minimal' },

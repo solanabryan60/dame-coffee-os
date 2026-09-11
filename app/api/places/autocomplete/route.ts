@@ -13,6 +13,15 @@ type GoogleAutocompleteResponse = {
   suggestions?: GooglePlaceSuggestion[];
 };
 
+type GoogleLegacyAutocompleteResponse = {
+  status?: string;
+  predictions?: Array<{
+    place_id?: string;
+    description?: string;
+    structured_formatting?: { main_text?: string; secondary_text?: string };
+  }>;
+};
+
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -61,10 +70,29 @@ export async function GET(request: Request) {
         status: response.status,
         upstreamMessage,
       });
-      return Response.json(
-        { suggestions: [], error: 'Google address suggestions are temporarily unavailable.' },
-        { status: 502 },
-      );
+      // Some existing Google Cloud keys have Places API (Legacy) enabled while
+      // the new endpoint is still restricted. Support both during migration.
+      const legacyUrl = new URL('https://maps.googleapis.com/maps/api/place/autocomplete/json');
+      legacyUrl.searchParams.set('input', input);
+      legacyUrl.searchParams.set('types', 'address');
+      legacyUrl.searchParams.set('components', 'country:us');
+      legacyUrl.searchParams.set('language', 'en');
+      legacyUrl.searchParams.set('location', '34.05,-117.85');
+      legacyUrl.searchParams.set('radius', '250000');
+      legacyUrl.searchParams.set('key', apiKey);
+      const legacyResponse = await fetch(legacyUrl, { cache: 'no-store' });
+      const legacy = (await legacyResponse.json()) as GoogleLegacyAutocompleteResponse;
+      if (legacyResponse.ok && legacy.status === 'OK') {
+        const suggestions = (legacy.predictions ?? []).slice(0, 5).flatMap((prediction) => {
+          const fullText = prediction.description?.trim() ?? '';
+          const placeId = prediction.place_id?.trim() ?? '';
+          if (!fullText || !placeId) return [];
+          return [{ placeId, fullText, mainText: prediction.structured_formatting?.main_text?.trim() || fullText, secondaryText: prediction.structured_formatting?.secondary_text?.trim() || '' }];
+        });
+        return Response.json({ suggestions, configured: true }, { headers: { 'Cache-Control': 'private, max-age=30' } });
+      }
+      console.error('Google Places legacy fallback failed.', { status: legacyResponse.status, apiStatus: legacy.status });
+      return Response.json({ suggestions: [], error: 'Google address suggestions are temporarily unavailable.' }, { status: 502 });
     }
 
     const payload = (await response.json()) as GoogleAutocompleteResponse;

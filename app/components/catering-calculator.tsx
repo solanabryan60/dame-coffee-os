@@ -6,11 +6,13 @@ import {
   useEffect,
   useId,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { calculateCateringEstimateDollars } from '../lib/catering-pricing';
 import { getCustomerSession } from '../lib/customer-session';
 import GoogleMap from './google-map';
+import BeanStateImage from './bean-state';
 
 type AddressSuggestion = {
   placeId: string;
@@ -50,6 +52,12 @@ export default function CateringCalculator() {
   const [highlightedAddress, setHighlightedAddress] = useState(-1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const submitLock = useRef(false);
+  const errorRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    if (error) errorRef.current?.focus();
+  }, [error]);
 
   const estimate = useMemo(
     () => calculateCateringEstimateDollars(drinks, hours),
@@ -129,6 +137,15 @@ export default function CateringCalculator() {
 
   async function requestDate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submitLock.current) return;
+    const invalid = event.currentTarget.querySelector<HTMLInputElement>(':invalid');
+    if (invalid) {
+      const label = invalid.closest('label')?.querySelector('span')?.textContent || invalid.getAttribute('aria-label') || (invalid.id === 'dame-event-address' ? 'Event address' : 'Event details');
+      setError(`${label}: ${invalid.validationMessage}`);
+      invalid.reportValidity();
+      return;
+    }
+    submitLock.current = true;
     setError('');
     setSubmitting(true);
 
@@ -165,11 +182,13 @@ export default function CateringCalculator() {
     } catch (checkoutError) {
       setError(checkoutError instanceof Error ? checkoutError.message : 'Deposit checkout is temporarily unavailable.');
       setSubmitting(false);
+      submitLock.current = false;
     }
   }
 
   return (
-    <form className="dame-estimator" onSubmit={requestDate}>
+    <form className="dame-estimator" onSubmit={requestDate} noValidate aria-busy={submitting}>
+      {submitting ? <div className="dame-checkout-transition" role="status" aria-live="polite"><BeanStateImage state="driving" decorative /><h2>One step closer.</h2><p>Opening secure checkout for your $200 deposit.</p><small>No tax or tip added today. You’ll return to Dame after payment.</small></div> : null}
       <div className="dame-slider-block">
         <div>
           <span>How many drinks?</span>
@@ -356,7 +375,7 @@ export default function CateringCalculator() {
 
         <label className="dame-field">
           <span>Budget · optional</span>
-          <div className="dame-money-input"><b aria-hidden="true">$</b><input aria-label="Event budget in dollars" type="number" min="0" max="1000000" step="50" inputMode="numeric" value={budget} onChange={(event) => setBudget(event.target.value)} placeholder="0" /></div>
+          <div className="dame-money-input"><b aria-hidden="true">$</b><input aria-label="Event budget in dollars" type="number" min="0" max="1000000" step="0.01" inputMode="decimal" value={budget} onChange={(event) => setBudget(event.target.value)} placeholder="0" /></div>
         </label>
 
         <label className="dame-field dame-field-wide dame-notes-field">
@@ -370,6 +389,7 @@ export default function CateringCalculator() {
         <div>
           <p className="dame-kicker">Request your date</p>
           <h3 id="deposit-title">$200 deposit</h3>
+          <p><strong>Pay $200 today. No tax or tip added.</strong> The remaining balance and applicable tax will be invoiced separately by Dame.</p>
           <p>
             The deposit is applied to your final event balance. Your date is requested—not
             confirmed—until Dame calls you and approves the event details.
@@ -391,7 +411,7 @@ export default function CateringCalculator() {
       </section>
 
       <div className="dame-estimator-actions">
-        {error ? <p className="dame-checkout-error" role="alert">{error}</p> : null}
+        {error ? <p ref={errorRef} tabIndex={-1} className="dame-checkout-error" role="alert">{error}</p> : null}
         <button className="dame-button" type="submit" disabled={submitting}>
           {submitting ? 'Preparing checkout…' : 'Pay $200 deposit & request date'}
         </button>
