@@ -186,6 +186,10 @@ export default function RewardsSignup({
                 placeholder="(555) 555-5555"
                 required
               />
+              <small>
+                Kept privately for important account or order-related contact. We
+                won&apos;t send promotional texts.
+              </small>
             </div>
             <div>
               <label htmlFor="rewards-birthday">Birthday · optional</label>
@@ -255,7 +259,7 @@ export default function RewardsSignup({
               onChange={(event) => setMarketingOptIn(event.target.checked)}
             />
             <span>
-              Send me Dame Coffee updates, reward news, and special drops. I can
+              Email me Dame Coffee updates, reward news, and special drops. I can
               unsubscribe anytime.
             </span>
           </label>
@@ -280,7 +284,7 @@ export default function RewardsSignup({
         </div>
         <p>
           {mode === 'join'
-            ? 'By joining, you agree to save your contact information for Dame Rewards.'
+            ? 'We’ll confirm your account by email. Your contact information is saved securely for Dame Rewards.'
             : 'Sign in to see your points, rewards, and saved favorites.'}
         </p>
         {mode === 'signin' ? (

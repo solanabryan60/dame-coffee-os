@@ -499,6 +499,7 @@ export default function RewardsDashboard() {
                 inputMode="tel"
                 required
               />
+              <small>Reserved for important account or order-related contact.</small>
             </label>
             <label>
               <span>Birthday · optional</span>
@@ -515,7 +516,7 @@ export default function RewardsDashboard() {
                 checked={profile.marketing_opt_in}
                 onChange={(event) => updateProfile('marketing_opt_in', event.target.checked)}
               />
-              <span>Send me reward news and special Dame drops.</span>
+              <span>Email me reward news and special Dame drops.</span>
             </label>
             <button className="dame-button dame-button-outline" type="submit" disabled={saving}>
               {saving ? 'Saving…' : 'Save profile'}
