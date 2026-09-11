@@ -28,7 +28,6 @@ export default function ReceiptClaim() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [accountPrompt, setAccountPrompt] = useState('');
-  const [needsPhoneVerification, setNeedsPhoneVerification] = useState(false);
   const accountGateRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -62,7 +61,6 @@ export default function ReceiptClaim() {
     event.preventDefault();
     setMessage('');
     setError('');
-    setNeedsPhoneVerification(false);
 
     if (!accessToken) {
       rememberClaim();
@@ -100,10 +98,7 @@ export default function ReceiptClaim() {
         pointsBalance?: number;
         error?: string;
       };
-      if (!response.ok) {
-        if (response.status === 403) setNeedsPhoneVerification(true);
-        throw new Error(payload.error || 'We could not save those points.');
-      }
+      if (!response.ok) throw new Error(payload.error || 'We could not save those points.');
 
       window.sessionStorage.removeItem(PENDING_CLAIM_KEY);
       if (payload.duplicate) {
@@ -192,11 +187,6 @@ export default function ReceiptClaim() {
 
         {message ? <p className="dame-rewards-success" role="status">{message}</p> : null}
         {error ? <p className="dame-checkout-error" role="alert">{error}</p> : null}
-        {needsPhoneVerification ? (
-          <Link className="dame-button dame-button-outline" href="/rewards/account">
-            Verify my phone
-          </Link>
-        ) : null}
 
         <button className="dame-button" type="submit" disabled={submitting || checkingSession}>
           {checkingSession ? 'Checking your account…' : submitting ? 'Saving your points…' : 'Save my points'}
