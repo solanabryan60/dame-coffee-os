@@ -40,6 +40,7 @@ export default function RewardsSignup({
   const [submitting, setSubmitting] = useState(false);
   const [emailWorking, setEmailWorking] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  const [confirmationPending, setConfirmationPending] = useState(false);
 
   useEffect(() => {
     if (!cooldown) return;
@@ -83,6 +84,7 @@ export default function RewardsSignup({
     try {
       if (mode === 'signin') {
         const session = await loginCustomer(email, password);
+        setConfirmationPending(false);
         saveCustomerSession(session);
         if (onAuthenticated) onAuthenticated();
         else router.push(returnTo);
@@ -121,11 +123,16 @@ export default function RewardsSignup({
       setMessage(
         'You’re almost in. Check your email and confirm your Dame account, then come back to sign in.',
       );
+      setConfirmationPending(true);
       setMode('signin');
       setCooldown(60);
       setPassword('');
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'Something went wrong.');
+      const submitMessage = submitError instanceof Error ? submitError.message : 'Something went wrong.';
+      setConfirmationPending(
+        mode === 'signin' && submitMessage.toLowerCase().includes('confirm your email'),
+      );
+      setError(submitMessage);
     } finally {
       setSubmitting(false);
     }
@@ -140,6 +147,7 @@ export default function RewardsSignup({
           aria-selected={mode === 'join'}
           onClick={() => {
             setMode('join');
+            setConfirmationPending(false);
             setError('');
             setMessage('');
           }}
@@ -174,22 +182,6 @@ export default function RewardsSignup({
                 maxLength={80}
                 required
               />
-            </div>
-            <div>
-              <label htmlFor="rewards-phone">Mobile number</label>
-              <input
-                id="rewards-phone"
-                value={phone}
-                onChange={(event) => setPhone(event.target.value)}
-                autoComplete="tel"
-                inputMode="tel"
-                placeholder="(555) 555-5555"
-                required
-              />
-              <small>
-                Kept privately for important account or order-related contact. We
-                won&apos;t send promotional texts.
-              </small>
             </div>
             <div>
               <label htmlFor="rewards-birthday">Birthday · optional</label>
@@ -237,6 +229,24 @@ export default function RewardsSignup({
             required
           />
         </div>
+        {mode === 'join' ? (
+          <div>
+            <label htmlFor="rewards-phone">Mobile number</label>
+            <input
+              id="rewards-phone"
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
+              autoComplete="tel"
+              inputMode="tel"
+              placeholder="(555) 555-5555"
+              required
+            />
+            <small>
+              Your phone number is kept privately for important account or
+              order-related contact. We won&apos;t send promotional texts.
+            </small>
+          </div>
+        ) : null}
         <div>
           <label htmlFor="rewards-password">Password</label>
           <input
@@ -275,13 +285,19 @@ export default function RewardsSignup({
               ? 'Create my account'
               : 'Sign in'}
         </button>
-        <div className="dame-auth-help">
-          <p>Missing your email? Check spam, confirm the address above, then request a new link.</p>
-          <button type="button" className="dame-button dame-button-outline" disabled={emailWorking || submitting || cooldown > 0} onClick={() => void sendEmail('confirmation')}>
-            {emailWorking ? 'Requesting email…' : cooldown ? `Resend available in ${cooldown}s` : 'Resend confirmation email'}
-          </button>
-          {mode === 'signin' ? <button type="button" disabled={emailWorking || submitting || cooldown > 0} onClick={() => void sendEmail('recovery')}>Forgot your password?</button> : null}
-        </div>
+        {confirmationPending ? (
+          <div className="dame-auth-help">
+            <p>Check your inbox and spam folder. If the confirmation link is missing, request a new one.</p>
+            <button type="button" className="dame-button dame-button-outline" disabled={emailWorking || submitting || cooldown > 0} onClick={() => void sendEmail('confirmation')}>
+              {emailWorking ? 'Requesting email…' : cooldown ? `Resend available in ${cooldown}s` : 'Resend confirmation email'}
+            </button>
+          </div>
+        ) : null}
+        {mode === 'signin' ? (
+          <div className="dame-auth-help">
+            <button type="button" disabled={emailWorking || submitting || cooldown > 0} onClick={() => void sendEmail('recovery')}>Forgot your password?</button>
+          </div>
+        ) : null}
         <p>
           {mode === 'join'
             ? 'We’ll confirm your account by email. Your contact information is saved securely for Dame Rewards.'
