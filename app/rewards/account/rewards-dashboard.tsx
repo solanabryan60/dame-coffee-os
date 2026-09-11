@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import type {
   RewardRedemption,
   RewardsAccountPayload,
@@ -14,9 +14,44 @@ import {
   clearCustomerSession,
   getCustomerSession,
 } from '../../lib/customer-session';
-import BeanStateImage from '../../components/bean-state';
+import BeanStateImage, { type DameBeanState } from '../../components/bean-state';
 import RewardsSignup from '../../components/rewards-signup';
 import RewardsHelp from './rewards-help';
+import type { MenuCategoryId } from '../../lib/square';
+
+const refreshBeans = [
+  { state: 'rewards', message: 'Counting every little something.' },
+  { state: 'pouring', message: 'Pouring your newest points into place.' },
+  { state: 'celebrating', message: 'Getting your next treat a little closer.' },
+  { state: 'walking', message: 'Bringing your Dame moments together.' },
+  { state: 'waving', message: 'Checking in with the cart.' },
+  { state: 'croissant', message: 'Making room for something sweet.' },
+  { state: 'chef', message: 'Freshening up your rewards.' },
+  { state: 'binoculars', message: 'Looking for your latest points.' },
+] satisfies ReadonlyArray<{ state: DameBeanState; message: string }>;
+
+function randomRefreshBean(previousState: DameBeanState) {
+  const choices = refreshBeans.filter(({ state }) => state !== previousState);
+  return choices[Math.floor(Math.random() * choices.length)] ?? refreshBeans[0];
+}
+
+const accountTabs = [
+  ['overview', '01', 'My account'],
+  ['rewards', '02', 'Claim rewards'],
+  ['activity', '03', 'Orders & favorites'],
+  ['help', '04', 'How it works & FAQ'],
+] as const;
+
+const favoriteCategories: ReadonlyArray<{
+  id: MenuCategoryId;
+  number: string;
+  label: string;
+}> = [
+  { id: 'basics', number: '01', label: 'The Basics' },
+  { id: 'specialty', number: '02', label: 'Specialty Drinks' },
+  { id: 'foam', number: '03', label: 'Cold Foam Lovers' },
+  { id: 'food', number: '04', label: 'Food' },
+];
 
 function shortDate(value: string) {
   return new Intl.DateTimeFormat('en-US', {
@@ -41,12 +76,18 @@ export default function RewardsDashboard() {
   const [saving, setSaving] = useState(false);
   const [workingReward, setWorkingReward] = useState('');
   const [workingFavorite, setWorkingFavorite] = useState('');
+  const [favoriteNotice, setFavoriteNotice] = useState<{ tone: 'success' | 'error'; text: string } | null>(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [referralMessage, setReferralMessage] = useState('');
   const [tab, setTab] = useState<'overview' | 'rewards' | 'activity' | 'help'>('overview');
+  const [refreshBean, setRefreshBean] = useState(refreshBeans[0]);
+  const [favoriteCategory, setFavoriteCategory] = useState<MenuCategoryId>('basics');
+  const [selectedFavoriteId, setSelectedFavoriteId] = useState('');
+  const favoriteCloseButtonRef = useRef<HTMLButtonElement>(null);
 
   const loadAccount = useCallback(async () => {
+    setRefreshBean((current) => randomRefreshBean(current.state));
     setLoading(true);
     setError('');
     const session = await getCustomerSession();
@@ -80,6 +121,28 @@ export default function RewardsDashboard() {
     window.addEventListener('dame-auth-ready', refresh);
     return () => window.removeEventListener('dame-auth-ready', refresh);
   }, [loadAccount]);
+
+  useEffect(() => {
+    if (!selectedFavoriteId) return;
+
+    const previouslyFocused = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    favoriteCloseButtonRef.current?.focus();
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') setSelectedFavoriteId('');
+    }
+
+    window.addEventListener('keydown', closeOnEscape);
+    return () => {
+      window.removeEventListener('keydown', closeOnEscape);
+      document.body.style.overflow = previousOverflow;
+      previouslyFocused?.focus();
+    };
+  }, [selectedFavoriteId]);
 
   async function currentToken() {
     const session = await getCustomerSession();
@@ -206,8 +269,15 @@ export default function RewardsDashboard() {
     if (!account || !accessToken) return;
     const selected = !account.favorites.includes(squareItemId);
     setWorkingFavorite(squareItemId);
+    setFavoriteNotice(null);
     setMessage('');
     setError('');
+    setAccount((current) => current ? {
+      ...current,
+      favorites: selected
+        ? [...current.favorites, squareItemId]
+        : current.favorites.filter((itemId) => itemId !== squareItemId),
+    } : current);
     try {
       const response = await fetch('/api/rewards/favorites', {
         method: 'POST',
@@ -219,15 +289,19 @@ export default function RewardsDashboard() {
       });
       const payload = (await response.json()) as { error?: string };
       if (!response.ok) throw new Error(payload.error || 'Could not update that favorite.');
+      const successText = selected ? 'Added to your Dame favorites.' : 'Removed from your favorites.';
+      setFavoriteNotice({ tone: 'success', text: successText });
+      setMessage(successText);
+    } catch (favoriteError) {
       setAccount((current) => current ? {
         ...current,
         favorites: selected
-          ? [...current.favorites, squareItemId]
-          : current.favorites.filter((itemId) => itemId !== squareItemId),
+          ? current.favorites.filter((itemId) => itemId !== squareItemId)
+          : [...current.favorites, squareItemId],
       } : current);
-      setMessage(selected ? 'Added to your Dame favorites.' : 'Removed from your favorites.');
-    } catch (favoriteError) {
-      setError(favoriteError instanceof Error ? favoriteError.message : 'Could not update that favorite.');
+      const errorText = favoriteError instanceof Error ? favoriteError.message : 'Could not update that favorite.';
+      setFavoriteNotice({ tone: 'error', text: errorText });
+      setError(errorText);
     } finally {
       setWorkingFavorite('');
     }
@@ -235,9 +309,13 @@ export default function RewardsDashboard() {
 
   if (loading) {
     return (
-      <section className="dame-account-loading">
-        <BeanStateImage state="loading-sip" className="dame-account-loading-bean" decorative priority />
-        <p>Pouring your rewards dashboard…</p>
+      <section className="dame-account-loading" aria-live="polite" aria-busy="true">
+        <div className="dame-account-loading-stage">
+          <BeanStateImage state={refreshBean.state} className="dame-account-loading-bean" decorative priority />
+        </div>
+        <p className="dame-kicker">Refreshing your points</p>
+        <h1>One Dame moment.</h1>
+        <span>{refreshBean.message}</span>
       </section>
     );
   }
@@ -255,6 +333,14 @@ export default function RewardsDashboard() {
   }
 
   const { rewards, profile, user } = account;
+  const availableFavoriteCategories = favoriteCategories.filter((category) =>
+    account.menu.some((item) => item.category === category.id),
+  );
+  const activeFavoriteCategory = availableFavoriteCategories.some((category) => category.id === favoriteCategory)
+    ? favoriteCategory
+    : availableFavoriteCategories[0]?.id;
+  const favoriteMenuItems = account.menu.filter((item) => item.category === activeFavoriteCategory);
+  const selectedFavorite = account.menu.find((item) => item.id === selectedFavoriteId) ?? null;
   const nextReward = rewards.nextReward;
   const progress = nextReward
     ? Math.max(0, Math.min(100, Math.round((rewards.points / nextReward.points) * 100)))
@@ -288,10 +374,16 @@ export default function RewardsDashboard() {
       </section>
 
       <nav className="dame-account-tabs" aria-label="Your rewards account sections">
-        {([['overview', 'My account'], ['rewards', 'Claim rewards'], ['activity', 'Orders & favorites'], ['help', 'How it works & FAQ']] as const).map(([value, label]) => (
-          <button type="button" key={value} aria-pressed={tab === value} onClick={() => setTab(value)}>{label}</button>
+        {accountTabs.map(([value, number, label]) => (
+          <button type="button" key={value} aria-pressed={tab === value} onClick={() => setTab(value)}>
+            <span aria-hidden="true">{number}</span>
+            <strong>{label}</strong>
+          </button>
         ))}
-        <button type="button" onClick={() => void loadAccount()}>Refresh points</button>
+        <button className="dame-account-refresh" type="button" onClick={() => void loadAccount()}>
+          <span aria-hidden="true">↻</span>
+          <strong>Refresh points</strong>
+        </button>
       </nav>
 
       {rewards.activePromotions.length ? (
@@ -363,22 +455,60 @@ export default function RewardsDashboard() {
             <header>
               <p className="dame-kicker">Favorite drinks</p>
               <h2 id="favorite-drinks-title">Keep your usual close.</h2>
-              <p>Tap the heart beside any current Dame item. Your favorites stay here even as the menu grows.</p>
+              <p>Choose a section, then open any item to see the details and save it as a favorite.</p>
             </header>
-            <div className="dame-favorite-grid">
-              {account.menu.map((item) => {
-                const favorite = account.favorites.includes(item.id);
-                return (
-                  <article className={favorite ? 'is-favorite' : ''} key={item.id}>
-                    {item.imageUrl ? <div className="dame-favorite-photo" style={{ backgroundImage: `url(${JSON.stringify(item.imageUrl)})` }} aria-hidden="true" /> : null}
-                    <div><span>{item.categoryLabel}</span><h3>{item.name}</h3><p>{item.description}</p></div>
-                    <button type="button" aria-pressed={favorite} disabled={workingFavorite === item.id} onClick={() => void toggleFavorite(item.id)}>
-                      {workingFavorite === item.id ? 'Saving…' : favorite ? '♥ Saved' : '♡ Add favorite'}
+            {availableFavoriteCategories.length ? (
+              <>
+                <div className="dame-favorite-categories" role="tablist" aria-label="Favorite menu categories">
+                  {availableFavoriteCategories.map((category) => (
+                    <button
+                      key={category.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={activeFavoriteCategory === category.id}
+                      aria-controls="dame-favorite-menu-panel"
+                      onClick={() => setFavoriteCategory(category.id)}
+                    >
+                      <span>{category.number}</span>
+                      <strong>{category.label}</strong>
                     </button>
-                  </article>
-                );
-              })}
-            </div>
+                  ))}
+                </div>
+                <div className="dame-favorite-menu-panel" id="dame-favorite-menu-panel" role="tabpanel" key={activeFavoriteCategory}>
+                  <p>Select an item to see more.</p>
+                  <div className="dame-favorite-grid">
+                    {favoriteMenuItems.map((item) => {
+                      const favorite = account.favorites.includes(item.id);
+                      return (
+                        <button
+                          className={favorite ? 'is-favorite' : undefined}
+                          key={item.id}
+                          type="button"
+                          onClick={() => {
+                            setFavoriteNotice(null);
+                            setSelectedFavoriteId(item.id);
+                          }}
+                          aria-label={`View ${item.name}${favorite ? ', saved as a favorite' : ''}`}
+                        >
+                          <span
+                            className={`dame-favorite-thumb ${item.imageUrl ? 'has-photo' : ''}`.trim()}
+                            style={item.imageUrl ? { backgroundImage: `url(${JSON.stringify(item.imageUrl)})` } : undefined}
+                            aria-hidden="true"
+                          >
+                            {item.imageUrl ? null : 'DC'}
+                          </span>
+                          <span className="dame-favorite-name">
+                            <small>{favorite ? '♥ Your favorite' : item.categoryLabel}</small>
+                            <strong>{item.name}</strong>
+                            <i>View details <span aria-hidden="true">↗</span></i>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            ) : <p className="dame-reward-empty">The Dame menu will appear here as soon as it is available.</p>}
           </section>
 
           <section hidden={tab !== 'activity'} className="dame-account-orders" aria-labelledby="order-history-title">
@@ -524,6 +654,78 @@ export default function RewardsDashboard() {
           </form>
         </aside>
       </section>
+
+      {selectedFavorite ? (
+        <div
+          className="dame-favorite-detail-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setSelectedFavoriteId('');
+          }}
+        >
+          <section
+            className="dame-favorite-detail"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="dame-favorite-detail-title"
+            aria-describedby="dame-favorite-detail-description"
+          >
+            <button
+              ref={favoriteCloseButtonRef}
+              className="dame-favorite-detail-close"
+              type="button"
+              aria-label="Close favorite details"
+              onClick={() => setSelectedFavoriteId('')}
+            >
+              <span aria-hidden="true" />
+              <span aria-hidden="true" />
+            </button>
+            <div
+              className={`dame-favorite-detail-photo ${selectedFavorite.imageUrl ? 'has-photo' : ''}`.trim()}
+              style={selectedFavorite.imageUrl
+                ? { backgroundImage: `url(${JSON.stringify(selectedFavorite.imageUrl)})` }
+                : undefined}
+              role={selectedFavorite.imageUrl ? 'img' : undefined}
+              aria-label={selectedFavorite.imageUrl ? `${selectedFavorite.name} photo` : undefined}
+            >
+              {selectedFavorite.imageUrl ? null : (
+                <div>
+                  <span>DC</span>
+                  <small>Photo coming soon</small>
+                </div>
+              )}
+            </div>
+            <div className="dame-favorite-detail-copy">
+              <p className="dame-kicker">{selectedFavorite.categoryLabel}</p>
+              <h2 id="dame-favorite-detail-title">{selectedFavorite.name}</h2>
+              <p id="dame-favorite-detail-description">
+                {selectedFavorite.description || 'Made fresh and served cold.'}
+              </p>
+              <button
+                className={`dame-favorite-action ${account.favorites.includes(selectedFavorite.id) ? 'is-saved' : ''}`.trim()}
+                type="button"
+                aria-pressed={account.favorites.includes(selectedFavorite.id)}
+                disabled={workingFavorite === selectedFavorite.id}
+                onClick={() => void toggleFavorite(selectedFavorite.id)}
+              >
+                <span aria-hidden="true">{account.favorites.includes(selectedFavorite.id) ? '♥' : '♡'}</span>
+                {workingFavorite === selectedFavorite.id
+                  ? 'Saving your favorite…'
+                  : account.favorites.includes(selectedFavorite.id)
+                    ? 'Saved to my Dame favorites'
+                    : 'Add to my Dame favorites'}
+              </button>
+              {favoriteNotice ? (
+                <p className={`dame-favorite-notice is-${favoriteNotice.tone}`} role="status" aria-live="polite">
+                  {favoriteNotice.text}
+                </p>
+              ) : null}
+              <button className="dame-favorite-keep-browsing" type="button" onClick={() => setSelectedFavoriteId('')}>
+                Keep browsing
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
     </>
   );
 }

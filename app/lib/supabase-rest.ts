@@ -697,7 +697,7 @@ export async function setCustomerFavorite(
   const config = requireConfig();
   const itemFilter = encodeURIComponent(squareItemId);
   const endpoint = selected
-    ? `${config.supabaseUrl}/rest/v1/customer_favorites?on_conflict=user_id,square_item_id`
+    ? `${config.supabaseUrl}/rest/v1/customer_favorites`
     : `${config.supabaseUrl}/rest/v1/customer_favorites?user_id=eq.${encodeURIComponent(userId)}&square_item_id=eq.${itemFilter}`;
   const response = await fetch(
     endpoint,
@@ -708,7 +708,7 @@ export async function setCustomerFavorite(
             apikey: config.supabaseKey,
             Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
-            Prefer: 'resolution=merge-duplicates,return=minimal',
+            Prefer: 'return=minimal',
           },
           body: JSON.stringify({ user_id: userId, square_item_id: squareItemId }),
         }
@@ -723,6 +723,14 @@ export async function setCustomerFavorite(
   );
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
+    if (
+      selected &&
+      payload &&
+      typeof payload === 'object' &&
+      (payload as Record<string, unknown>).code === '23505'
+    ) {
+      return;
+    }
     throw new Error(authError(payload, 'Could not update that favorite.'));
   }
 }

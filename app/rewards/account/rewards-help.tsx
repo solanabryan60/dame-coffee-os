@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import BeanStateImage from '../../components/bean-state';
 
 const questions = [
   ['How do I earn points?', 'Earn 10 points for each eligible $1 spent. Sign in before ordering online, or save an in-person receipt to your account. Taxes, tips, and refunded amounts do not earn points. Eligible promotions may earn more.'],
@@ -14,11 +15,27 @@ const questions = [
 
 export default function RewardsHelp() {
   return <section className="dame-rewards-guide">
-    <p className="dame-kicker">A little more Dame</p><h2>Earn. Choose. Enjoy.</h2>
-    <div className="dame-rewards-steps"><article><span>01</span><h3>Make it yours</h3><p>Sign in when ordering, or save your receipt after visiting the cart.</p></article><article><span>02</span><h3>Watch it grow</h3><p>10 points per eligible dollar. Your balance and next reward stay right here.</p></article><article><span>03</span><h3>Treat yourself</h3><p>Choose a reward and show your code to our team.</p></article></div>
+    <header className="dame-rewards-guide-hero">
+      <div>
+        <p className="dame-kicker">A little more Dame</p>
+        <h2>Earn. Choose.<br /><em>Enjoy.</em></h2>
+        <p>Your points, your favorites, and your next treat—all kept together.</p>
+      </div>
+      <BeanStateImage state="binoculars" className="dame-rewards-guide-bean" decorative />
+    </header>
+    <div className="dame-rewards-steps">
+      <article><span>01</span><h3>Make it yours</h3><p>Sign in when ordering, or save your receipt after visiting the cart.</p></article>
+      <article><span>02</span><h3>Watch it grow</h3><p>Earn 10 points per eligible dollar. Your balance and next reward stay right here.</p></article>
+      <article><span>03</span><h3>Treat yourself</h3><p>Choose a reward and show your one-time code to our team.</p></article>
+    </div>
     <Link className="dame-button" href="/rewards/claim">Save an in-person receipt</Link>
-    <h2>Good to know.</h2>
-    {questions.map(([question, answer]) => <details key={question}><summary>{question}</summary><p>{answer}</p></details>)}
-    <p>Still need a hand? <a href="mailto:info@damecoffeeco.com">Email Dame</a> or <a href="tel:+19094519307">call (909) 451-9307</a>.</p>
+    <div className="dame-rewards-faq-heading">
+      <p className="dame-kicker">Questions, answered</p>
+      <h2>Good to know.</h2>
+    </div>
+    <div className="dame-rewards-faq-list">
+      {questions.map(([question, answer], index) => <details key={question}><summary><span>{String(index + 1).padStart(2, '0')}</span>{question}</summary><p>{answer}</p></details>)}
+    </div>
+    <p className="dame-rewards-contact">Still need a hand? <a href="mailto:info@damecoffeeco.com">Email Dame</a> or <a href="tel:+19094519307">call (909) 451-9307</a>.</p>
   </section>;
 }
