@@ -109,7 +109,18 @@ async function rewardsRequest<T>(
     },
     cache: 'no-store',
   });
-  const payload = response.status === 204 ? null : await response.json();
+  // PostgREST returns an empty body for successful writes that use
+  // `Prefer: return=minimal` (often with a 201 status). Read the body first
+  // so those successful responses do not throw while parsing JSON.
+  const responseText = response.status === 204 ? '' : await response.text();
+  let payload: unknown = null;
+  if (responseText) {
+    try {
+      payload = JSON.parse(responseText);
+    } catch {
+      payload = responseText;
+    }
+  }
   if (!response.ok) throw new Error(errorMessage(payload, 'Could not load Dame Rewards.'));
   return payload as T;
 }
