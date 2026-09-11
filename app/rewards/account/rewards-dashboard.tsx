@@ -17,6 +17,7 @@ import {
 import BeanStateImage from '../../components/bean-state';
 import RewardsSignup from '../../components/rewards-signup';
 import RewardsHelp from './rewards-help';
+import RewardsPhoneSecurity from './rewards-phone-security';
 
 function shortDate(value: string) {
   return new Intl.DateTimeFormat('en-US', {
@@ -44,6 +45,7 @@ export default function RewardsDashboard() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [referralMessage, setReferralMessage] = useState('');
+  const [phoneVerified, setPhoneVerified] = useState(false);
   const [tab, setTab] = useState<'overview' | 'rewards' | 'activity' | 'help'>('overview');
 
   const loadAccount = useCallback(async () => {
@@ -287,6 +289,11 @@ export default function RewardsDashboard() {
         </div>
       </section>
 
+      <RewardsPhoneSecurity
+        initialPhone={profile.phone ?? ''}
+        onStatusChange={setPhoneVerified}
+      />
+
       <nav className="dame-account-tabs" aria-label="Your rewards account sections">
         {([['overview', 'My account'], ['rewards', 'Claim rewards'], ['activity', 'Orders & favorites'], ['help', 'How it works & FAQ']] as const).map(([value, label]) => (
           <button type="button" key={value} aria-pressed={tab === value} onClick={() => setTab(value)}>{label}</button>
@@ -430,12 +437,14 @@ export default function RewardsDashboard() {
                       className="dame-button"
                       type="button"
                       onClick={() => redeemReward(tier.id)}
-                      disabled={!ready || Boolean(workingReward)}
+                      disabled={!ready || Boolean(workingReward) || !phoneVerified}
                     >
                       {workingReward === tier.id
                         ? 'Preparing…'
-                        : ready
+                        : ready && phoneVerified
                           ? 'Use my points'
+                          : ready
+                            ? 'Verify phone to use'
                           : `${tier.points_cost - rewards.points} to go`}
                     </button>
                   </article>

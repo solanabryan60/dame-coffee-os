@@ -1,5 +1,5 @@
 import { createDameRedemption } from '@/app/lib/dame-rewards';
-import { readAuthUser } from '@/app/lib/supabase-rest';
+import { readAuthUserAtAal2 } from '@/app/lib/supabase-rest';
 
 function bearerToken(request: Request) {
   const authorization = request.headers.get('authorization') ?? '';
@@ -13,7 +13,7 @@ export async function POST(request: Request) {
       return Response.json({ error: 'Please sign in before choosing a reward.' }, { status: 401 });
     }
 
-    await readAuthUser(accessToken);
+    await readAuthUserAtAal2(accessToken);
     const body = (await request.json()) as { rewardId?: string };
     const rewardId = body.rewardId?.trim() ?? '';
     if (!rewardId) {
@@ -24,7 +24,11 @@ export async function POST(request: Request) {
     return Response.json({ redemption });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Could not prepare that reward.';
-    const status = /sign in|jwt|token|session/i.test(message) ? 401 : 400;
+    const status = /verify your phone/i.test(message)
+      ? 403
+      : /sign in|jwt|token|session/i.test(message)
+        ? 401
+        : 400;
     return Response.json({ error: message }, { status });
   }
 }

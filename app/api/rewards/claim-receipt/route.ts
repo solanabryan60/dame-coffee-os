@@ -9,7 +9,7 @@ import {
   recordDameReceiptClaim,
   type ActiveRewardPromotion,
 } from '@/app/lib/supabase-admin';
-import { readAuthUser } from '@/app/lib/supabase-rest';
+import { readAuthUserAtAal2 } from '@/app/lib/supabase-rest';
 
 export const runtime = 'nodejs';
 
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const user = await readAuthUser(accessToken);
+    const user = await readAuthUserAtAal2(accessToken);
     const body = (await request.json()) as {
       receiptNumber?: string;
       purchaseDate?: string;
@@ -146,7 +146,9 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'We could not save those points.';
-    const status = /sign in|jwt|token|session/i.test(message)
+    const status = /verify your phone/i.test(message)
+      ? 403
+      : /sign in|jwt|token|session/i.test(message)
       ? 401
       : /three receipt claims|claim limit/i.test(message)
         ? 429

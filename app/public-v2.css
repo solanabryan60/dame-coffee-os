@@ -1735,6 +1735,176 @@
   font-weight: 800;
 }
 
+.dame-phone-security {
+  position: relative;
+  padding: clamp(34px, 5vw, 68px) clamp(22px, 7vw, 110px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(130px, 220px) minmax(280px, 390px);
+  gap: clamp(24px, 4vw, 58px);
+  align-items: center;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(150, 16, 16, 0.16);
+  background: var(--cream);
+}
+
+.dame-phone-security.is-checking {
+  min-height: 118px;
+  display: flex;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.dame-phone-security-copy h2 {
+  margin: 12px 0 12px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(38px, 4.4vw, 66px);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 0.94;
+}
+
+.dame-phone-security-copy > p:last-child {
+  max-width: 600px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.dame-phone-security-bean {
+  width: 100%;
+  max-height: 210px;
+  object-fit: contain;
+  align-self: end;
+  filter: drop-shadow(0 20px 28px rgba(69, 13, 13, 0.12));
+}
+
+.dame-phone-security-action,
+.dame-phone-security-action form {
+  display: grid;
+  gap: 12px;
+}
+
+.dame-phone-security-action label {
+  display: grid;
+  gap: 8px;
+}
+
+.dame-phone-security-action label > span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.dame-phone-security-action input {
+  width: 100%;
+  min-height: 58px;
+  padding: 0 17px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--warm-white);
+  color: var(--ink);
+  font: inherit;
+  font-size: 17px;
+}
+
+.dame-phone-security-action input:focus {
+  border-color: var(--dame-red);
+  outline: 3px solid rgba(150, 16, 16, 0.1);
+}
+
+.dame-phone-security-action .dame-button {
+  width: 100%;
+}
+
+.dame-phone-resend {
+  width: fit-content;
+  padding: 4px 0;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  background: transparent;
+  color: var(--dame-red);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.dame-phone-resend:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.dame-phone-security.is-verified {
+  min-height: 88px;
+  padding-top: 18px;
+  padding-bottom: 18px;
+  display: flex;
+  justify-content: space-between;
+  gap: 22px;
+  background: #eaf4ed;
+  color: #176838;
+}
+
+.dame-phone-security.is-verified > div {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.dame-phone-security.is-verified span {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #176838;
+  color: white;
+  font-weight: 900;
+}
+
+.dame-phone-security.is-verified p,
+.dame-phone-security.is-verified small {
+  margin: 0;
+  color: inherit;
+  line-height: 1.4;
+}
+
+.dame-phone-security.is-verified strong {
+  margin-right: 8px;
+}
+
+@media (max-width: 980px) {
+  .dame-phone-security {
+    grid-template-columns: minmax(0, 1fr) 150px;
+  }
+
+  .dame-phone-security-action {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 620px) {
+  .dame-phone-security {
+    grid-template-columns: minmax(0, 1fr) 96px;
+  }
+
+  .dame-phone-security-bean {
+    max-height: 128px;
+  }
+
+  .dame-phone-security.is-verified {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dame-phone-security.is-verified strong {
+    display: block;
+  }
+}
+
 .dame-account-empty h1 {
   max-width: 760px;
   margin: 20px 0;

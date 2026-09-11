@@ -1177,6 +1177,27 @@ export async function readAuthUser(accessToken: string): Promise<AuthUser> {
   return payload as AuthUser;
 }
 
+function accessTokenAssuranceLevel(accessToken: string) {
+  try {
+    const encodedPayload = accessToken.split('.')[1];
+    if (!encodedPayload) return null;
+    const normalized = encodedPayload.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
+    const payload = JSON.parse(globalThis.atob(padded)) as { aal?: unknown };
+    return payload.aal === 'aal2' ? 'aal2' : payload.aal === 'aal1' ? 'aal1' : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function readAuthUserAtAal2(accessToken: string): Promise<AuthUser> {
+  const user = await readAuthUser(accessToken);
+  if (accessTokenAssuranceLevel(accessToken) !== 'aal2') {
+    throw new Error('Verify your phone in My Rewards before claiming or using points.');
+  }
+  return user;
+}
+
 export async function readCustomerProfile(
   accessToken: string,
   userId: string,
